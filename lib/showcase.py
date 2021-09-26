@@ -3,12 +3,18 @@ import json
 import sys
 from functools import lru_cache
 from pathlib import Path
-from typing import Callable
+from typing import Callable, List
 
 import pygame
 
 from .constants import ROOT_DIR, SIZE
-from .core import MainLoop, get_mainloop
+from .core import (
+    MainLoop,
+    get_mainloop,
+    get_challenges,
+    get_entries,
+    get_challenge_data,
+)
 
 TITLE = "title"
 ACCENT = "#48929B"
@@ -36,6 +42,9 @@ class State:
         for event in events:
             if event.type == pygame.QUIT:
                 self.app.states.clear()
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    self.app.states.pop()
 
     def logic(self):
         pass
@@ -50,11 +59,15 @@ class App:
     It is a stacked state machine.
     """
 
+    TITLE = "PGCD Weekly Challenges Showcase"
+
     def __init__(self, initial_state: Callable[["App"], State]):
         pygame.init()
         self.running = True
         self.screen = pygame.display.set_mode(SIZE)
         self.states = [initial_state(self)]
+
+        pygame.display.set_caption(self.TITLE)
 
     @property
     def state(self):
@@ -70,63 +83,40 @@ class App:
             pygame.display.update()
 
 
-class ChallengeSelectState(State):
-    BG_COLOR = 0x151515
-
-    def __init__(self, app: "App"):
+class MenuState(State):
+    def __init__(self, app: "App", title, buttons):
         super().__init__(app)
-        # Challenges are the only files/folders that start with digits
-        self.challenges = [c.stem for c in ROOT_DIR.glob("[0-9]*")]
+        self.title = title
+        self.buttons = buttons
 
-    def logic(self):
-        if len(self.challenges) == 1:
-            self.app.states[-1] = EntrySelectState(self.app, self.challenges[0])
+        self.buttons = [
+            Button(
+                *button,
+                lambda: self.button_click(button),
+                self.button_position(i),
+            )
+            for i, button in enumerate(buttons)
+        ]
 
-
-class EntrySelectState(State):
-    def __init__(self, app: "App", challenge):
-        super().__init__(app)
-        self.challenge = challenge
-        data: dict = json.loads((ROOT_DIR / challenge / "data.json").read_text())
-        self.name = data.get("name", "No name")
-        self.entries = list(self.load_entries())
-
+    @staticmethod
+    def button_position(i):
         padding = 5
         cols = (SIZE[0] - 2 * padding) // Button.TOTAL_SIZE[0]
         col_width = SIZE[0] / cols
 
-        def compute_pos(i):
-            return (
-                padding
-                + (i % cols) * col_width
-                + (col_width - Button.TOTAL_SIZE[0]) / 2,
-                120 + i // cols * (Button.TOTAL_SIZE[1] + padding),
-            )
+        return (
+            padding + (i % cols) * col_width + (col_width - Button.TOTAL_SIZE[0]) / 2,
+            120 + i // cols * (Button.TOTAL_SIZE[1] + padding),
+        )
 
-        self.buttons = [
-            Button(
-                self.challenge, entry, lambda: self.button_click(entry), compute_pos(i)
-            )
-            for i, entry in enumerate(self.load_entries())
-        ]
-
-    def button_click(self, entry):
-        print(entry)
-
-    def load_entries(self):
-        challenge_dir = ROOT_DIR / self.challenge
-        for directory in challenge_dir.iterdir():
-            main = directory / "main.py"
-            if not main.exists():
-                continue
-
-            yield directory.stem
+    def button_click(self, data):
+        raise NotImplemented
 
     def draw(self, screen: pygame.Surface):
         super().draw(screen)
         screen.fill(ACCENT, (0, 0, SIZE[0], 4))
 
-        t = text(self.name, 0xEEEEEE00, 82, TITLE)
+        t = text(self.title, 0xEEEEEE00, 82, TITLE)
         screen.blit(t, t.get_rect(midtop=(SIZE[0] / 2, 20)))
 
         for button in self.buttons:
@@ -139,19 +129,63 @@ class EntrySelectState(State):
             button.handle_events(events)
 
 
+class ChallengeSelectState(MenuState):
+    BG_COLOR = 0x151515
+
+    def __init__(self, app: "App"):
+        super().__init__(
+            app, "Weekly Challenges", [[c, None] for c in get_challenges()]
+        )
+
+    def button_click(self, data):
+        challenge, none = data
+        self.app.states.append(EntrySelectState(self.app, challenge))
+
+
+class EntrySelectState(MenuState):
+    def __init__(self, app: "App", challenge):
+        buttons = [(challenge, entry) for entry in get_entries(challenge)]
+        super().__init__(app, get_challenge_data(challenge).name, buttons)
+        self.challenge = challenge
+
+    def button_click(self, data):
+        challenge, entry = data
+        self.app.states.append(EntryViewState(self.app, self.challenge, entry))
+
+
+class EntryViewState(State):
+    def __init__(self, app: "App", challenge, entry):
+        super().__init__(app)
+
+        self.challenge = challenge
+        self.entry = entry
+
+        self.embedded_app = EmbeddedApp(challenge, entry)
+
+    def handle_events(self, events):
+        super().handle_events(events)
+        self.embedded_app.handle_events(events)
+
+    def draw(self, screen):
+        self.embedded_app.draw(screen)
+
+
 class Button:
     NAME_HEIGHT = 32
     SIZE = (SIZE[0] // 5, SIZE[1] // 5)
     TOTAL_SIZE = (SIZE[0], SIZE[1] + NAME_HEIGHT)
 
     def __init__(self, challenge, entry, callback, position):
+        # If entry is None, it is a button to select a challenge.
         self.challenge = challenge
         self.entry = entry
         self.callback = callback
         self.position = pygame.Vector2(position)
         self.mouse_over = False
 
-        self.app = EmbeddedApp(challenge, entry, (self.position, self.SIZE))
+        self.title = self.entry or get_challenge_data(challenge).name
+
+        self.app = EmbeddedApp(challenge, entry or "base", (self.position, self.SIZE))
 
     @property
     def rect(self):
@@ -164,7 +198,7 @@ class Button:
         self.app.draw(screen)
 
         offset = pygame.Vector2(0, -self.NAME_HEIGHT / 2)
-        t = text(self.entry, ACCENT)
+        t = text(self.title, ACCENT)
         screen.blit(t, t.get_rect(center=self.rect.midbottom + offset))
 
     def handle_events(self, events):
@@ -175,7 +209,7 @@ class Button:
 
         self.app.handle_events(events)
         for event in events:
-            if event.type == pygame.MOUSEBUTTONUP:
+            if event.type == pygame.MOUSEBUTTONDOWN:
                 self.callback()
 
 

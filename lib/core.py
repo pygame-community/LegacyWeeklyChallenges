@@ -1,10 +1,13 @@
 import importlib
+import json
+from collections import namedtuple
+from functools import lru_cache
 from time import time
-from typing import Generator, List, Tuple
+from typing import Generator, List, Tuple, Iterator
 
 import pygame
 
-from .constants import SIZE
+from .constants import SIZE, ROOT_DIR
 
 MainLoop = Generator[None, Tuple[pygame.Surface, List[pygame.event.Event]], None]
 
@@ -39,3 +42,31 @@ def get_mainloop(challenge: str, entry: str) -> MainLoop:
     print(name)
     loop = importlib.import_module(name).mainloop()
     return loop
+
+
+def get_challenges():
+    """"""
+    # Challenges are the only files/folders that start with digits
+    return [c.stem for c in ROOT_DIR.glob("[0-9]*")]
+
+
+def get_entries(challenge: str) -> Iterator[str]:
+    """Get all entries for a given challenge."""
+    challenge_dir = ROOT_DIR / challenge
+    for directory in challenge_dir.iterdir():
+        main = directory / "main.py"
+        if not main.exists():
+            continue
+
+        yield directory.stem
+
+
+ChallengeData = namedtuple("ChallengeData", "name entries_nb")
+
+
+@lru_cache()
+def get_challenge_data(challenge: str) -> ChallengeData:
+    data: dict = json.loads((ROOT_DIR / challenge / "data.json").read_text())
+    name = data.get("name", "No name")
+
+    return ChallengeData(name, sum(1 for _ in get_entries(challenge)))
