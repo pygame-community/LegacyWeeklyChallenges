@@ -1,3 +1,4 @@
+import importlib
 from time import time
 from typing import Generator, List, Tuple
 
@@ -5,9 +6,11 @@ import pygame
 
 from .constants import SIZE
 
+MainLoop = Generator[None, Tuple[pygame.Surface, List[pygame.event.Event]], None]
+
 
 def run(
-    mainloop: Generator[None, Tuple[pygame.Surface, List[pygame.event.Event]], None],
+    mainloop: MainLoop,
     screen_size=SIZE,
 ):
     """Minimal utility that runs a mainloop generator."""
@@ -27,3 +30,12 @@ def run(
 
     end = time()
     print(f"App run for {end - start:02}s at {frames / (end - start)} FPS.")
+
+
+def get_mainloop(challenge: str, entry: str) -> MainLoop:
+    """Utility to import a mainloop."""
+
+    name = f"{challenge}.{entry}.main"
+    print(name)
+    loop = importlib.import_module(name).mainloop()
+    return loop

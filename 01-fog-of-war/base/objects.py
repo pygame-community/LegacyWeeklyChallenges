@@ -1,23 +1,23 @@
-from random import choice, gauss, random, randrange, uniform
+"""
+This file provides objects that can be used to make up
+a basic playground for the challenges.
+
+This code is provided so that you can focus on implementing
+a fog of war, without needed
+Feel free to modify everything in this file to your liking.
+"""
+from random import choice, gauss
 
 import pygame
 
 from lib import SIZE
 from utils import clamp, from_polar, load_image, random_in_rect
 
-# The constants correspond to the orders on the sprite sheets
-DOWN = 0
-RIGHT = 2
-UP = 4
-LEFT = 6
-
 SCREEN = pygame.Rect(0, 0, *SIZE)
 
 
 class Object:
-    pos: pygame.Vector2
-    size: pygame.Vector2
-    sprite: pygame.Surface
+    """The base class for all objects of the game."""
 
     def __init__(self, pos, sprite: pygame.Surface):
         self.pos = pygame.Vector2(pos)
@@ -45,6 +45,7 @@ class Object8Directional(Object):
 
     ACCELERATION = 0.5
     DAMPING = 0.85
+
     # Asymptotic velocity will be solution of
     # x = x * DAMPING + ACCELERATION
     # That is,
