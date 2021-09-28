@@ -10,7 +10,7 @@ from random import choice, gauss
 
 import pygame
 
-from lib import SIZE
+from wclib import SIZE
 from utils import clamp, from_polar, load_image, random_in_rect
 
 SCREEN = pygame.Rect(0, 0, *SIZE)

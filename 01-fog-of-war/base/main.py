@@ -1,3 +1,16 @@
+try:
+    import wclib
+except ImportError:
+    # wclib may not be in the path because of the architecture
+    # of all the challenges and the fact that there are many
+    # way to run them (through the showcase, or on their own)
+    import sys, pathlib
+
+    ROOT_FOLDER = pathlib.Path(__file__).parent.parent.parent
+    sys.path.append(str(ROOT_FOLDER))
+    print(sys.path)
+    import wclib
+
 from operator import attrgetter
 import pygame
 from objects import Ghost, Player, SolidObject
@@ -5,6 +18,12 @@ from objects import Ghost, Player, SolidObject
 BACKGROUND = 0x66856C
 
 __author__ = "Your Discord Tag Goes Here#7777"
+# Uncomment the ones you've done
+__achievements__ = [
+    # "Casual"
+    # "Ambitious"
+    # "Adventurous"
+]
 
 
 def mainloop():
@@ -32,16 +51,4 @@ def mainloop():
 
 
 if __name__ == "__main__":
-    try:
-        import lib
-    except ImportError:
-        # lib may not be in the path because of the architecture
-        # of all the challenges and the fact that there are many
-        # way to run them (through the shwcase, or on their own)
-        import sys, pathlib
-
-        ROOT_FOLDER = pathlib.Path(__file__).parents[3]
-        sys.path.append(str(ROOT_FOLDER))
-        import lib
-
-    lib.run(mainloop())
+    wclib.run(mainloop())

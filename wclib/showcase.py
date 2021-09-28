@@ -23,7 +23,7 @@ ACCENT = "#48929B"
 @lru_cache()
 def font(size=20, name=None):
     name = name or "regular"
-    path = ROOT_DIR / "lib" / "assets" / (name + ".ttf")
+    path = ROOT_DIR / "wclib" / "assets" / (name + ".ttf")
     return pygame.font.Font(path, size)
 
 
