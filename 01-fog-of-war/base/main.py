@@ -1,6 +1,8 @@
 import sys
 from pathlib import Path
 
+from pygame.constants import SRCALPHA
+
 try:
     import wclib
 except ImportError:
@@ -44,6 +46,15 @@ def mainloop():
 
     all_objects = trees + [player] + ghosts
 
+    bg = pygame.Surface(pygame.display.get_surface().get_size(), pygame.SRCALPHA)
+    bg.fill((0,0,0,255))
+
+    def player_vision(screen):
+        size = 150
+        for i in range(255, 50, -5):
+            pygame.draw.circle(screen, (0,0,0,i), player.rect.center, size)
+            size -= 3
+
     clock = pygame.time.Clock()
     while True:
         screen, events = yield
@@ -53,11 +64,14 @@ def mainloop():
 
         for obj in all_objects:
             obj.logic(objects=all_objects)
-
+        
         screen.fill(BACKGROUND)
+        
         for object in sorted(all_objects, key=attrgetter("rect.bottom")):
             object.draw(screen)
-
+        
+        screen.blit(bg,(0,0))
+        player_vision(bg)
         clock.tick(60)
 
 
