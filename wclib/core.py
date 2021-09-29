@@ -39,8 +39,7 @@ def get_mainloop(challenge: str, entry: str) -> MainLoop:
     """Utility to import a mainloop."""
 
     name = f"{challenge}.{entry}.main"
-    print(name)
-    loop = importlib.import_module(name).mainloop()
+    loop = importlib.import_module(name, f"{challenge}.{entry}").mainloop()
     return loop
 
 

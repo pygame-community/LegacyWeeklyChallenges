@@ -1,29 +1,40 @@
+import sys
+from pathlib import Path
+
 try:
     import wclib
 except ImportError:
     # wclib may not be in the path because of the architecture
     # of all the challenges and the fact that there are many
     # way to run them (through the showcase, or on their own)
-    import sys, pathlib
 
-    ROOT_FOLDER = pathlib.Path(__file__).parent.parent.parent
+    ROOT_FOLDER = Path(__file__).parent.parent.parent
     sys.path.append(str(ROOT_FOLDER))
-    print(sys.path)
     import wclib
+
+# This line tells python how to handle the relative imports
+# when you run this file directly.
+__package__ = "01-fog-of-war." + Path(__file__).parent.name
+
+# ---- Recommended: don't modify anything above this line ---- #
+
+# Metadata about your submission
+__author__ = "Your Discord Tag Goes Here#7777"
+__achievements__ = [  # Uncomment the ones you've done
+    # "Casual",
+    # "Ambitious",
+    # "Adventurous",
+]
+
 
 from operator import attrgetter
 import pygame
-from objects import Ghost, Player, SolidObject
+
+# To import the modules in yourname/, you need to use relative imports,
+# otherwise your project will not be compatible with the showcase.
+from .objects import Ghost, Player, SolidObject
 
 BACKGROUND = 0x66856C
-
-__author__ = "Your Discord Tag Goes Here#7777"
-# Uncomment the ones you've done
-__achievements__ = [
-    # "Casual"
-    # "Ambitious"
-    # "Adventurous"
-]
 
 
 def mainloop():

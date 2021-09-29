@@ -86,8 +86,15 @@ In either case, you need to post a screenshot of your entry in `#challenge-submi
 with your files if you don't do a PR, and with some comment if you want. 
 Sharing your code will help others learn, and you may receive good advice too!
 
-
 Have fun !
+
+### Tips
+
+##### Use relative imports
+
+You can structure your code the way you like, but if you use multiple files, 
+it is very recommended that you use *relative imports*, as it is the simplest way to 
+make the import system work both in the showcase and when run directly.
 
 ### Credits
 
