@@ -21,11 +21,11 @@ __package__ = "01-fog-of-war." + Path(__file__).parent.name
 # ---- Recommended: don't modify anything above this line ---- #
 
 # Metadata about your submission
-__author__ = "Your Discord Tag Goes Here#7777"
+__author__ = "CoopERR"
 __achievements__ = [  # Uncomment the ones you've done
-    # "Casual",
-    # "Ambitious",
-    # "Adventurous",
+     "Casual",
+     "Ambitious",
+     "Adventurous",
 ]
 
 
@@ -45,19 +45,26 @@ def mainloop():
     ghosts = [Ghost() for _ in range(16)]
 
     all_objects = trees + [player] + ghosts
+    solid_objects = trees + [player]
 
-    bg = pygame.Surface(pygame.display.get_surface().get_size(), pygame.SRCALPHA)
-    bg.fill((0,0,0,255))
+    fog = pygame.surface.Surface(pygame.display.get_surface().get_size(), pygame.SRCALPHA)
+    fog.fill((0,0,0))
 
-    def player_vision(screen):
+    def field_of_view():
         size = 150
-        for i in range(255, 50, -5):
-            pygame.draw.circle(screen, (0,0,0,i), player.rect.center, size)
-            size -= 3
+        for i in range(200, 0, -1):
+            pygame.draw.circle(fog, (0,0,0,i), player.rect.center, size)
+            size -= 0.9
+
+    def ghost_distance(ghost):
+        distance_x = (player.rect.center[0]-ghost.rect.center[0])
+        distance_y = (player.rect.center[1]-ghost.rect.center[1])
+
+        return (abs(distance_x) + abs(distance_y)) < 150 
 
     clock = pygame.time.Clock()
     while True:
-        screen, events = yield
+        screen, events = yield       
         for event in events:
             if event.type == pygame.QUIT:
                 return
@@ -66,12 +73,18 @@ def mainloop():
             obj.logic(objects=all_objects)
         
         screen.fill(BACKGROUND)
-        
-        for object in sorted(all_objects, key=attrgetter("rect.bottom")):
+                
+        for ghost in sorted(ghosts, key=attrgetter("rect.bottom")):
+            if ghost_distance(ghost):
+                    ghost.draw(screen)
+        for object in sorted(solid_objects, key=attrgetter("rect.bottom")):
             object.draw(screen)
+            
+        field_of_view()
+        screen.blit(fog,(0,0))
+
         
-        screen.blit(bg,(0,0))
-        player_vision(bg)
+
         clock.tick(60)
 
 
