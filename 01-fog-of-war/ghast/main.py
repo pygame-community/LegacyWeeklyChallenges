@@ -37,6 +37,7 @@ from .objects import Ghost, Player, SolidObject
 
 
 def luminance(rgb):
+    # yoinked from some website
     r, g, b = rgb
     return 0.2126 * r + 0.7152 * g + 0.0722 * b
 
@@ -90,14 +91,6 @@ UNRV_BG_AS_INTS = intify(UNRV_BG)
 LIGHTING_GRID_DIMS = 30, 18
 
 
-class LightSource:
-
-    def __init__(self, xy, rgb, radius):
-        self.xy = xy
-        self.rgb = rgb
-        self.radius = radius
-
-
 class LightGrid:
 
     def __init__(self, dims):
@@ -129,7 +122,7 @@ class LightGrid:
             for x in range(max(0, xy1[0]), min(GW, xy2[0] + 1)):
                 for y in range(max(0, xy1[1]), min(GW, xy2[1] + 1)):
                     xy = x, y
-                    # this sorta assumes Player will be first in the list
+                    # this assumes Player will be first in the list
                     if is_player or xy in revealed_cells:
                         sX = (x + 0.5) * SW / GW
                         sY = (y + 0.5) * SH / GH
@@ -149,20 +142,12 @@ class LightGrid:
             for y in range(GH):
                 xy = x, y
                 if xy in all_colors:
+                    # calling set_at is sorta ok here because the grid is small (-_-)
                     self.grid.set_at(xy, intify(blend(all_colors[xy])))
                 elif xy in revealed_cells:
                     self.grid.set_at(xy, RV_BG_AS_INTS)
 
         return visible_cells
-
-    def get_color_at(self, xy):
-        try:
-            return floatify(self.grid.get_at(xy))
-        except ValueError:
-            return 0, 0, 0
-
-    def get_brightness_at(self, xy):
-        return luminance(self.get_color_at(xy))
 
     def draw_bg(self, surface):
         pygame.transform.scale(self.grid, surface.get_size(), surface)
@@ -173,11 +158,11 @@ def mainloop():
     trees = SolidObject.generate_many(36)
     ghosts = [Ghost() for _ in range(16)]
 
-    revealed_cells = set()
-    light_grid = LightGrid(LIGHTING_GRID_DIMS)
-
     all_objects = [player] + trees + ghosts
-    objects_with_light = [o for o in all_objects if o.get_lighting()[0] > 0]
+    objects_that_emit_light = [o for o in all_objects if o.get_lighting()[0] > 0]
+
+    light_grid = LightGrid(LIGHTING_GRID_DIMS)
+    revealed_cells = set()
 
     clock = pygame.time.Clock()
 
@@ -190,7 +175,7 @@ def mainloop():
         for obj in all_objects:
             obj.logic(objects=all_objects)
 
-        vis_cells = light_grid.compute_lighting(screen.get_size(), objects_with_light, revealed_cells)
+        vis_cells = light_grid.compute_lighting(screen.get_size(), objects_that_emit_light, revealed_cells)
 
         light_grid.draw_bg(screen)
 
