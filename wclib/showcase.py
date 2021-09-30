@@ -185,7 +185,7 @@ class Button:
 
         self.title = self.entry or get_challenge_data(challenge).name
 
-        self.app = EmbeddedApp(challenge, entry or "base", (self.position, self.SIZE))
+        self.app = EmbeddedApp(challenge, entry or "arosso17", (self.position, self.SIZE))
 
     @property
     def rect(self):

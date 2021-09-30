@@ -27,7 +27,7 @@ Here a more detailed description of the different levels and the amount of
 
 ### Setup
 
-The setup code in [`base/`](./base) consists of a simple top down game with trees and ghosts moving around.
+The setup code in [`base/`](arosso17) consists of a simple top down game with trees and ghosts moving around.
 To get started, duplicate the whole `base` folder and rename the copy with your username 
 (will call it `yourname/` from now on). All your modifications should be inside the `yourname/` folder,
 otherwise it would be impossible to have a showcase of all the submissions.
