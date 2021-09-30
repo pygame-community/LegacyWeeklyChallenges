@@ -168,6 +168,8 @@ class LayeredVisibility:
         pygame.draw.circle(self.old_surf, (30, 30, 30), self.player.rect.center, self.player.radius)
         old_surf_copy = self.old_surf.copy()
         pygame.draw.circle(old_surf_copy, (255, 255, 255), self.player.rect.center, self.player.radius)
+        for i in range(0, 100, 1):
+            pygame.draw.circle(old_surf_copy, (30+i, 30+i, 30+i), self.player.rect.center, self.player.radius-i)
 
         WIN.blit(self.old_surf, (0, 0))
         WIN.blit(old_surf_copy, (0, 0))
