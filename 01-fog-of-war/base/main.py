@@ -32,29 +32,34 @@ import pygame
 
 # To import the modules in yourname/, you need to use relative imports,
 # otherwise your project will not be compatible with the showcase.
-from .objects import Ghost, Player, SolidObject, SCREEN
-from .fog import FogOfWar
+from .objects import Ghost, Player, SolidObject
 
 BACKGROUND = 0x66856C
 
+def draw_gradient(surf, pos, radius, dep_alpha):
+    for i in range(20, 0, -1):
+        pygame.draw.circle(surf, (0, 0, 0, dep_alpha-(-i)*7), pos, int(radius*i/20))
 
 def mainloop():
     player = Player((100, 100))
     trees = SolidObject.generate_many(36)
     ghosts = [Ghost() for _ in range(16)]
-    fog_of_war = FogOfWar(player)
 
     all_objects = trees + [player] + ghosts
 
     clock = pygame.time.Clock()
+
+    radius = 150
+    surf = pygame.Surface((1024, 768), pygame.SRCALPHA)
+    surf.fill((0, 0, 0))
+    second_surf = pygame.Surface((1024, 768), pygame.SRCALPHA)
+    second_surf.fill((0, 0, 0))
+    second_surf.set_alpha(180)
     while True:
         screen, events = yield
         for event in events:
             if event.type == pygame.QUIT:
                 return
-
-        if not fog_of_war.get_init():
-            fog_of_war.init(screen)
 
         for obj in all_objects:
             obj.logic(objects=all_objects)
@@ -62,13 +67,17 @@ def mainloop():
         screen.fill(BACKGROUND)
         for object in sorted(all_objects, key=attrgetter("rect.bottom")):
             if type(object) is Ghost:
-                if player.pos.distance_to(object.pos) < fog_of_war.radius*1.3:
+                if object.pos.distance_to(player.pos) < radius:
                     object.draw(screen)
             else:
                 object.draw(screen)
 
-        fog_of_war.update()
+        second_surf.fill((0, 0, 0))
 
+        pygame.draw.circle(surf, (0,0,0,0), player.pos+pygame.Vector2(20,20), radius)
+        draw_gradient(second_surf, player.pos+pygame.Vector2(20, 20), radius, 100)
+        screen.blit(second_surf, (0,0))
+        screen.blit(surf, (0,0))
         clock.tick(60)
 
 
