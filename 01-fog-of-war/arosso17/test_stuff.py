@@ -104,10 +104,22 @@ def mainloop():
             object.draw(screen)
         screen.blit(lights, (0, 0))
         screen.blit(fog_of_war, (0, 0))
+
+        # for ghost in ghosts:
+        #     ghost.logic()
+        #     dis = dist(ghost.pos, player.pos)
+        #     if dis < 175:
+        #         ghost.draw(screen)
+
         for ghost in ghosts:
             ghost.logic()
-            if dist(ghost.pos, player.pos) < 175:
+            dis = dist(ghost.pos, player.pos)
+            if dis < 200:
+                ghost.sprite.set_alpha(255)
+                if dis > 100:
+                    ghost.sprite.set_alpha(355 - (355/150)*dis)
                 ghost.draw(screen)
+
         screen.blit(explored_map, (0, 0))
         for i in range(0, 150, 2):
             pygame.draw.circle(fog_of_war, (0, 0, 0, i),
