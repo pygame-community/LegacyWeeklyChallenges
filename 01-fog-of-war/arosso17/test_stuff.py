@@ -128,7 +128,7 @@ def mainloop():
                            (player.pos[0] + player.size[0] / 2, player.pos[1] + player.size[1] / 2), 50)
         pygame.draw.circle(explored_map, (0, 0, 0, 150), [player.pos[0] + player.size[0] / 2, player.pos[1] + player.size[1] / 2], 150)
         clock.tick(FPS)
-        # print(clock.get_fps())
+        print(clock.get_fps())
 
 if __name__ == "__main__":
     wclib.run(mainloop())
