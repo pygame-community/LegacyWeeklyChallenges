@@ -1,15 +1,10 @@
-import importlib
-import json
-import sys
-from functools import lru_cache
-from pathlib import Path
-from typing import Callable, List
+from functools import lru_cache, partial
+from typing import Callable
 
 import pygame
 
 from .constants import ROOT_DIR, SIZE
 from .core import (
-    MainLoop,
     get_mainloop,
     get_challenges,
     get_entries,
@@ -87,12 +82,10 @@ class MenuState(State):
     def __init__(self, app: "App", title, buttons):
         super().__init__(app)
         self.title = title
-        self.buttons = buttons
-
         self.buttons = [
             Button(
                 *button,
-                lambda: self.button_click(button),
+                partial(self.button_click, button),
                 self.button_position(i),
             )
             for i, button in enumerate(buttons)
