@@ -28,8 +28,11 @@ __achievements__ = [
 
 
 from operator import attrgetter
+
 import pygame
 import math
+import numpy
+import random
 
 # To import the modules in yourname/, you need to use relative imports,
 # otherwise your project will not be compatible with the showcase.
@@ -63,6 +66,16 @@ def blend(rgbs):
             return mult(avg_color, max_luminosiy / avg_luminosity)
 
 
+def blend_arrays(arr1, arr2):
+    lumin1 = arr1[:, :, 0] * 0.2126 + arr1[:, :, 1] * 0.7152 + arr1[:, :, 2] * 0.0722
+    lumin1 = numpy.repeat(lumin1[:, :, numpy.newaxis], 3, axis=2)
+
+    lumin2 = arr2[:, :, 0] * 0.2126 + arr2[:, :, 1] * 0.7152 + arr2[:, :, 2] * 0.0722
+    lumin2 = numpy.repeat(lumin2[:, :, numpy.newaxis], 3, axis=2)
+
+    return (arr1 * lumin1 + arr2 * lumin2) / (lumin1 + lumin2)
+
+
 def bound(v, lower, upper):
     return min(max(v, lower), upper)
 
@@ -79,6 +92,14 @@ def mult(rgb, v):
     return tuple(rgb[i] * v for i in range(3))
 
 
+def blur(array, kernel_size):
+    kernel = get_2d_blur_kernel(kernel_size)
+    # yoinked from https://stackoverflow.com/a/65804973
+    array = numpy.apply_along_axis(lambda x: numpy.convolve(x, kernel, mode='same'), 0, array)
+    array = numpy.apply_along_axis(lambda x: numpy.convolve(x, kernel, mode='same'), 1, array)
+    return array
+
+
 BG = (0.4, 0.5, 0.42)  # 0x66856C
 RV_BG = mult(BG, 0.3)
 UNRV_BG = mult(BG, 0.2)
@@ -88,69 +109,104 @@ REVEAL_THRESH = 0.1  # luminosity required to reveal a cell
 RV_BG_AS_INTS = intify(RV_BG)
 UNRV_BG_AS_INTS = intify(UNRV_BG)
 
-LIGHTING_GRID_DIMS = 30, 18
+LIGHTING_GRID_DIMS = 64, 48
+LIGHT_RADIUS = int(LIGHTING_GRID_DIMS[0] / 2)
+GAUSSIAN_KERNEL = 0.09
+
+
+KERNEL_CACHE = {}
+
+
+def get_2d_blur_kernel(size, std_dev=GAUSSIAN_KERNEL):
+    size = int(size)
+    if size not in KERNEL_CACHE:
+        # mmm delicious math
+        x_vals = [((i + 0.5) - size / 2) / (size / 2) for i in range(size)]
+        KERNEL_CACHE[size] = numpy.array([1 / math.sqrt(2*math.pi*std_dev)*math.exp(-0.5*x**2/std_dev) for x in x_vals])
+    return KERNEL_CACHE[size]
 
 
 class LightGrid:
 
     def __init__(self, dims):
-        self.grid = pygame.Surface(dims)
+        self.surf = pygame.Surface(dims)
+
+        self.grass = numpy.zeros([dims[0], dims[1], 3], dtype=numpy.float)
+        for i in range(3):
+            self.grass[:, :, i] = UNRV_BG[i]
+
+        self.lighting = numpy.zeros([dims[0], dims[1], 3], dtype=numpy.float)
+
+        self.luminance = numpy.zeros([dims[0], dims[1]], dtype=numpy.float)
+        self.revealed = self.lighting[:, :, 0] > REVEAL_THRESH
+        self.visible = self.lighting[:, :, 0] > REVEAL_THRESH
 
     def dims(self):
-        return self.grid.get_size()
+        return self.surf.get_size()
 
-    def get_grid_cell(self, screen_size, xy):
-        return (int(xy[0] / screen_size[0] * self.dims()[0]),
-                int(xy[1] / screen_size[1] * self.dims()[1]))
+    def get_grid_cell(self, screen_size, xy, force_inside=False):
+        x = int(xy[0] / screen_size[0] * self.dims()[0])
+        y = int(xy[1] / screen_size[1] * self.dims()[1])
+        if not force_inside:
+            return x, y
+        else:
+            dims = self.dims()
+            return bound(x, 0, dims[0] - 1), bound(y, 0, dims[1] - 1)
 
-    def compute_lighting(self, screen_size, light_sources, revealed_cells):
-        SW, SH = screen_size
-        GW, GH = self.dims()
+    def is_revealed_at(self, screen_size, xy):
+        cell_xy = self.get_grid_cell(screen_size, xy, force_inside=True)
+        return self.revealed[cell_xy[0], cell_xy[1]]
 
-        all_colors = {}  # xy -> list of colors to blend
-        visible_cells = set()
+    def is_visible_at(self, screen_size, xy):
+        cell_xy = self.get_grid_cell(screen_size, xy, force_inside=True)
+        return self.visible[cell_xy[0], cell_xy[1]]
+
+    def compute_lighting(self, screen_size, light_sources):
+        self.lighting[...] = 0
+        self.luminance[...] = 0
 
         for o in light_sources:
             is_player = isinstance(o, Player)
 
             oX, oY = o.rect.midbottom
-            radius, rgb = o.get_lighting()
+            obj_color = o.get_light_color()
 
-            xy1 = self.get_grid_cell(screen_size, (oX - radius, oY - radius))
-            xy2 = self.get_grid_cell(screen_size, (oX + radius, oY + radius))
+            xy = self.get_grid_cell(screen_size, (oX, oY), force_inside=True)
 
-            for x in range(max(0, xy1[0]), min(GW, xy2[0] + 1)):
-                for y in range(max(0, xy1[1]), min(GW, xy2[1] + 1)):
-                    xy = x, y
-                    # this assumes Player will be first in the list
-                    if is_player or xy in revealed_cells:
-                        sX = (x + 0.5) * SW / GW
-                        sY = (y + 0.5) * SH / GH
-                        dist = math.sqrt((sX - oX) ** 2 + (sY - oY) ** 2)
-                        if dist < radius:
-                            c = mult(rgb, (1 - dist / radius) ** 2)
-                            if is_player and luminance(c) > REVEAL_THRESH:
-                                revealed_cells.add(xy)
-                                visible_cells.add(xy)
-                            if xy not in all_colors:
-                                all_colors[xy] = [RV_BG if xy in revealed_cells else UNRV_BG]
-                            all_colors[xy].append(c)
+            if not is_player:
+                obj_color = mult(obj_color, 0.25)
+            else:
+                obj_color = mult(obj_color, 0.75)
+                self.luminance[xy] = luminance(obj_color)
 
-        self.grid.fill(UNRV_BG_AS_INTS)
+            for i in range(3):
+                self.lighting[xy[0]][xy[1]][i] += obj_color[i]
 
-        for x in range(GW):
-            for y in range(GH):
-                xy = x, y
-                if xy in all_colors:
-                    # calling set_at is sorta ok here because the grid is small (-_-)
-                    self.grid.set_at(xy, intify(blend(all_colors[xy])))
-                elif xy in revealed_cells:
-                    self.grid.set_at(xy, RV_BG_AS_INTS)
+        self.lighting = blur(self.lighting, LIGHT_RADIUS)
+        self.lighting[self.lighting > 1] = 1.0
+        self.lighting[self.lighting < 0] = 0.0
 
-        return visible_cells
+        self.luminance = blur(self.luminance, LIGHT_RADIUS * 1.5)
+        self.luminance[self.luminance > 1] = 1.0
+        self.luminance[self.luminance < 0] = 0.0
+
+        dimming = self.luminance * 0.5 + 0.5
+
+        for i in range(3):
+            self.lighting[:, :, i] *= dimming
+
+        self.visible = self.luminance > REVEAL_THRESH
+        self.revealed |= self.luminance > REVEAL_THRESH
+
+        for i in range(3):
+            self.lighting[:, :, i][self.revealed == False] = 0
+            self.grass[:, :, i][self.revealed] = RV_BG[i]
 
     def draw_bg(self, surface):
-        pygame.transform.scale(self.grid, surface.get_size(), surface)
+        res = blend_arrays(self.lighting, self.grass)
+
+        pygame.surfarray.blit_array(self.surf, res * 255)
+        pygame.transform.scale(self.surf, surface.get_size(), surface)
 
 
 def mainloop():
@@ -159,10 +215,9 @@ def mainloop():
     ghosts = [Ghost() for _ in range(16)]
 
     all_objects = [player] + trees + ghosts
-    objects_that_emit_light = [o for o in all_objects if o.get_lighting()[0] > 0]
+    objects_that_emit_light = [o for o in all_objects if o.get_light_color() is not None]
 
     light_grid = LightGrid(LIGHTING_GRID_DIMS)
-    revealed_cells = set()
 
     clock = pygame.time.Clock()
 
@@ -175,13 +230,24 @@ def mainloop():
         for obj in all_objects:
             obj.logic(objects=all_objects)
 
-        vis_cells = light_grid.compute_lighting(screen.get_size(), objects_that_emit_light, revealed_cells)
+        light_grid.compute_lighting(screen.get_size(), objects_that_emit_light)
 
         light_grid.draw_bg(screen)
 
         for object in sorted(all_objects, key=attrgetter("rect.bottom")):
-            cell_xy = light_grid.get_grid_cell(screen.get_size(), object.rect.midbottom)
-            if cell_xy in vis_cells or (isinstance(object, SolidObject) and cell_xy in revealed_cells):
+            is_visible = light_grid.is_visible_at(screen.get_size(), object.rect.midbottom)
+            is_revealed = light_grid.is_revealed_at(screen.get_size(), object.rect.midbottom)
+
+            force_showing = False
+            if isinstance(object, Ghost):
+                if is_visible:
+                    object.set_showing()
+                elif object.was_showing_recently():
+                    force_showing = True
+            elif isinstance(object, SolidObject) and is_revealed:
+                force_showing = True
+
+            if is_visible or force_showing:
                 object.draw(screen)
 
         clock.tick(60)
