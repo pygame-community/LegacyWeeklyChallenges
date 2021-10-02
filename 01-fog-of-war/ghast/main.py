@@ -84,8 +84,12 @@ def intify(rgb):
     return tuple(bound(int(255 * rgb[i]), 0, 255) for i in range(3))
 
 
-def floatify(rgb):
-    return tuple(bound(rgb[i] / 255, 0, 1) for i in range(3))
+def floatify(int_rgb):
+    return tuple(bound(int_rgb[i] / 255, 0, 1) for i in range(3))
+
+
+def hexify(int_rgb):
+    return 0xFF000000 + 0x010000 * int_rgb[0] + 0x000100 * int_rgb[1] + 0x000001 * int_rgb[2]
 
 
 def mult(rgb, v):
@@ -101,8 +105,8 @@ def blur(array, kernel_size):
 
 
 BG = (0.4, 0.5, 0.42)  # 0x66856C
-RV_BG = mult(BG, 0.3)
-UNRV_BG = mult(BG, 0.2)
+RV_BG = mult(BG, 0.5)
+UNRV_BG = mult(BG, 0.3)
 
 REVEAL_THRESH = 0.1  # luminosity required to reveal a cell
 
@@ -111,7 +115,14 @@ UNRV_BG_AS_INTS = intify(UNRV_BG)
 
 LIGHTING_GRID_DIMS = 64, 48
 LIGHT_RADIUS = int(LIGHTING_GRID_DIMS[0] / 2)
-GAUSSIAN_KERNEL = 0.09
+GAUSSIAN_KERNEL = 0.1
+
+PLAYER_DIM = 0.85
+GHOST_DIM = 0.45
+
+TINT_RESOLUTION = 16
+COLORS_TO_TINT = ((102, 133, 108), (70, 102, 85))
+
 
 
 KERNEL_CACHE = {}
@@ -161,6 +172,10 @@ class LightGrid:
         cell_xy = self.get_grid_cell(screen_size, xy, force_inside=True)
         return self.visible[cell_xy[0], cell_xy[1]]
 
+    def get_color_at(self, screen_size, xy):
+        cell_x, cell_y = self.get_grid_cell(screen_size, xy, force_inside=True)
+        return tuple(self.lighting[cell_x, cell_y, i] for i in range(3))
+
     def compute_lighting(self, screen_size, light_sources):
         self.lighting[...] = 0
         self.luminance[...] = 0
@@ -168,16 +183,15 @@ class LightGrid:
         for o in light_sources:
             is_player = isinstance(o, Player)
 
-            oX, oY = o.rect.midbottom
             obj_color = o.get_light_color()
 
-            xy = self.get_grid_cell(screen_size, (oX, oY), force_inside=True)
+            xy = self.get_grid_cell(screen_size, o.rect.midbottom, force_inside=True)
 
-            if not is_player:
-                obj_color = mult(obj_color, 0.25)
-            else:
-                obj_color = mult(obj_color, 0.75)
+            if is_player:
+                obj_color = mult(obj_color, PLAYER_DIM)
                 self.luminance[xy] = luminance(obj_color)
+            else:
+                obj_color = mult(obj_color, GHOST_DIM)
 
             for i in range(3):
                 self.lighting[xy[0]][xy[1]][i] += obj_color[i]
@@ -190,7 +204,7 @@ class LightGrid:
         self.luminance[self.luminance > 1] = 1.0
         self.luminance[self.luminance < 0] = 0.0
 
-        dimming = self.luminance * 0.5 + 0.5
+        dimming = self.luminance * 0.3 + 0.7
 
         for i in range(3):
             self.lighting[:, :, i] *= dimming
@@ -207,6 +221,28 @@ class LightGrid:
 
         pygame.surfarray.blit_array(self.surf, res * 255)
         pygame.transform.scale(self.surf, surface.get_size(), surface)
+
+
+TINTED_IMAGE_CACHE = {}  # (color, img) -> new_image
+
+
+def tint_image(base_img, img_key, color, colors_to_tint):
+    int_color = intify(color)
+    tint_color = floatify([round(int_color[i] / TINT_RESOLUTION) * TINT_RESOLUTION for i in range(3)])
+
+    key = (tint_color, img_key, colors_to_tint)
+
+    if key not in TINTED_IMAGE_CACHE:
+        res = base_img.copy()
+        array = pygame.surfarray.pixels2d(res)
+        for c in colors_to_tint:
+            orig_color_as_hex = hexify(c)
+            tinted_color_as_hex = hexify(intify(blend([floatify(c), tint_color])))
+            array[array == orig_color_as_hex] = tinted_color_as_hex
+
+        TINTED_IMAGE_CACHE[key] = res
+
+    return TINTED_IMAGE_CACHE[key]
 
 
 def mainloop():
@@ -239,6 +275,7 @@ def mainloop():
             is_revealed = light_grid.is_revealed_at(screen.get_size(), object.rect.midbottom)
 
             force_showing = False
+            force_image = None
             if isinstance(object, Ghost):
                 if is_visible:
                     object.set_showing()
@@ -246,9 +283,12 @@ def mainloop():
                     force_showing = True
             elif isinstance(object, SolidObject) and is_revealed:
                 force_showing = True
+                tint_color = light_grid.get_color_at(screen.get_size(), object.rect.midbottom)
+                tint_color = mult(tint_color, 0.666)
+                force_image = tint_image(object.sprite, object.my_sheet_rect, tint_color, COLORS_TO_TINT)
 
             if is_visible or force_showing:
-                object.draw(screen)
+                object.draw(screen, with_sprite=force_image)
 
         clock.tick(60)
 

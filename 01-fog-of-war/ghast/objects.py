@@ -31,8 +31,8 @@ class Object:
     def rect(self):
         return pygame.Rect(self.pos, self.size)
 
-    def draw(self, screen):
-        screen.blit(self.sprite, self.pos)
+    def draw(self, screen, with_sprite=None):
+        screen.blit(self.sprite if with_sprite is None else with_sprite, self.pos)
 
     def logic(self, **kwargs):
         pass
@@ -149,8 +149,8 @@ class SolidObject(Object):
     def __init__(self, pos):
         sheet = load_image("tileset", self.SCALE)
         sheet.set_colorkey(0xFFFFFF)
-        rect = choice(self.SHEET_RECT)
-        rect = [x * self.SCALE for x in rect]
+        self.my_sheet_rect = choice(self.SHEET_RECT)
+        rect = [x * self.SCALE for x in self.my_sheet_rect]
         super().__init__(pos, sheet.subsurface(rect))
 
     @classmethod
