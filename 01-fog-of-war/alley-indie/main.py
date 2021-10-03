@@ -37,6 +37,13 @@ from .objects import Ghost, Player, SolidObject
 BACKGROUND = 0x66856C
 
 
+def draw_circle(fog, pos, radius, fading_value):
+    for i in range(fading_value, -1, -1):
+        c = int(255 - i * (255 / fading_value))
+        color = (c, c, c)
+        pygame.draw.circle(fog, color, pos, radius + i * 2)
+
+
 def mainloop():
     player = Player((100, 100))
     trees = SolidObject.generate_many(36)
@@ -61,8 +68,10 @@ def mainloop():
         for object in sorted(all_objects, key=attrgetter("rect.bottom")):
             object.draw(screen)
         fog.fill((0, 0, 0))
-        pygame.draw.circle(
-            fog, (255, 255, 255), player.pos, player.size[0] + player.size[1])
+        pos = (
+            player.pos[0] + player.size[0] // 2,
+            player.pos[1] + player.size[1] // 2)
+        draw_circle(fog, pos, player.size[0], 100)
         screen.blit(fog, (0 ,0), special_flags=pygame.BLEND_RGBA_MULT)
 
         clock.tick(60)
