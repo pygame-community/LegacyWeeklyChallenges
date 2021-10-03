@@ -13,4 +13,11 @@ The first season started on the 26th of September 2021 and will last about 3 mon
  
 ### List of challenges
 
- 1. **[current]** [Fog of War](./01-fog-of-war) - 26 Sep → 3 oct 2021
+1. [Fog of War](./01-fog-of-war) - 28 Sep → 10 oct 2021
+2. **[current]** [Particle System](./02-particle-system) - 11 oct 2021 → 17 oct 2021
+
+
+---
+In case you find contradictory information, the information posted in the 
+Discord server are always the correct ones. Also, please, if you do find such erroneous information,
+tell the organisers so that they can fix it.
