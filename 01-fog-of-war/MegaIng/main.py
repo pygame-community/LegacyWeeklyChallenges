@@ -63,8 +63,11 @@ class FogOverlay:
                                (0, 0, 0, alpha),
                                center,
                                radius)
-        self.passive_overlay.fill((0, 0, 0, self.base_alpha), special_flags=pygame.BLEND_RGBA_MAX)
-        self.passive_overlay.blit(self.active_overlay, (0, 0), special_flags=pygame.BLEND_RGBA_MIN)
+        r = pygame.Rect(0, 0, self.view_radii[1] * 2, self.view_radii[1] * 2)
+        r.center = center
+        r = r.clip(self.passive_overlay.get_rect())
+        self.passive_overlay.fill((0, 0, 0, self.base_alpha), r, special_flags=pygame.BLEND_RGBA_MAX)
+        self.passive_overlay.blit(self.active_overlay, r, r, special_flags=pygame.BLEND_RGBA_MIN)
 
 
 def mainloop():
@@ -99,7 +102,7 @@ def mainloop():
         screen.blit(fog.passive_overlay, (0, 0))
 
         foreground.fill((0, 0, 0))
-        for obj in sorted(ghosts +[player], key=attrgetter("rect.bottom")):
+        for obj in sorted(ghosts + [player], key=attrgetter("rect.bottom")):
             obj.draw(foreground)
         screen.blit(fog.passive_overlay, (0, 0))
         foreground.blit(fog.active_overlay, (0, 0))
