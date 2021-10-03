@@ -105,7 +105,7 @@ def mainloop():
         foreground.blit(fog.active_overlay, (0, 0))
         screen.blit(foreground, (0, 0))
 
-        clock.tick()
+        clock.tick(60)
 
 
 if __name__ == "__main__":
