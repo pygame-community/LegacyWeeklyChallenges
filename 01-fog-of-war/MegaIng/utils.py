@@ -27,6 +27,12 @@ def clamp(value, mini, maxi):
         return value
 
 
+def interpolate(value, min_in, max_in, min_out, max_out, power=1):
+    in_w = max_in - min_in
+    out_w = max_out - min_out
+    return ((value - min_in) / in_w) ** power * out_w + min_out
+
+
 def random_in_rect(rect):
     """Return a random point uniformly in a rectangle."""
     rect = pygame.Rect(rect)
