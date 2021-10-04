@@ -32,7 +32,6 @@ from operator import attrgetter
 import pygame
 import math
 import numpy
-import random
 
 # To import the modules in yourname/, you need to use relative imports,
 # otherwise your project will not be compatible with the showcase.
@@ -96,45 +95,66 @@ def mult(rgb, v):
     return tuple(rgb[i] * v for i in range(3))
 
 
-def blur(array, kernel_size):
-    kernel = get_2d_blur_kernel(kernel_size)
-    # yoinked from https://stackoverflow.com/a/65804973
-    array = numpy.apply_along_axis(lambda x: numpy.convolve(x, kernel, mode='same'), 0, array)
-    array = numpy.apply_along_axis(lambda x: numpy.convolve(x, kernel, mode='same'), 1, array)
-    return array
-
-
 BG = (0.4, 0.5, 0.42)  # 0x66856C
 RV_BG = mult(BG, 0.5)
 UNRV_BG = mult(BG, 0.3)
 
-REVEAL_THRESH = 0.1  # luminosity required to reveal a cell
+REVEAL_THRESH = 0.1
+GHOST_VIS_THRESH = REVEAL_THRESH / 8
 
 RV_BG_AS_INTS = intify(RV_BG)
 UNRV_BG_AS_INTS = intify(UNRV_BG)
 
 LIGHTING_GRID_DIMS = 64, 48
-LIGHT_RADIUS = int(LIGHTING_GRID_DIMS[0] / 2)
-GAUSSIAN_KERNEL = 0.1
+LIGHT_RADIUS = int(min(LIGHTING_GRID_DIMS) / 2) - 1
+GAUSSIAN_STD_DEV = 0.12
 
-PLAYER_DIM = 0.85
-GHOST_DIM = 0.45
+PLAYER_DIM = 0.9
+GHOST_DIM = 0.55
 
 TINT_RESOLUTION = 16
 COLORS_TO_TINT = ((102, 133, 108), (70, 102, 85))
 
 
+def get_1d_gaussian_kernel(n_points, std_dev=GAUSSIAN_STD_DEV, _cache={}):
+    key = (n_points, std_dev)
+    if key not in _cache:
+        raw_values = []
+        for i in range(n_points):
+            x = ((i + 0.5) - n_points / 2) / (n_points / 2)
+            y = 1 / math.sqrt(2 * math.pi * std_dev) * math.exp(-0.5 * x**2 / std_dev)
+            raw_values.append(y)
+        total_sum = sum(raw_values)
+        normalized_values = [y / total_sum for y in raw_values]
 
-KERNEL_CACHE = {}
+        _cache[key] = numpy.array(normalized_values)
+
+    return _cache[key]
 
 
-def get_2d_blur_kernel(size, std_dev=GAUSSIAN_KERNEL):
-    size = int(size)
-    if size not in KERNEL_CACHE:
-        # mmm delicious math
-        x_vals = [((i + 0.5) - size / 2) / (size / 2) for i in range(size)]
-        KERNEL_CACHE[size] = numpy.array([1 / math.sqrt(2*math.pi*std_dev)*math.exp(-0.5*x**2/std_dev) for x in x_vals])
-    return KERNEL_CACHE[size]
+def blur_array(array, radius: int):
+    kernel = get_1d_gaussian_kernel(radius * 2 + 1)
+
+    # XXX these calls are dreadfully slow on large surfaces
+    # yoinked from https://stackoverflow.com/a/65804973
+    array = numpy.apply_along_axis(lambda x: numpy.convolve(x, kernel, mode='same'), 0, array)
+    array = numpy.apply_along_axis(lambda x: numpy.convolve(x, kernel, mode='same'), 1, array)
+
+    return array
+
+
+def blur_surface(surface: pygame.Surface, radius: int, dest=None) -> pygame.Surface:
+    """Applies a Gaussian blur to the surface and returns the result.
+    """
+    array = pygame.surfarray.pixels3d(surface)
+    array = blur_array(array, radius)
+
+    if dest is None:
+        dest = surface.copy()
+
+    pygame.surfarray.blit_array(dest, array)
+
+    return dest
 
 
 class LightGrid:
@@ -172,6 +192,10 @@ class LightGrid:
         cell_xy = self.get_grid_cell(screen_size, xy, force_inside=True)
         return self.visible[cell_xy[0], cell_xy[1]]
 
+    def get_luminance_at(self, screen_size, xy):
+        cell_xy = self.get_grid_cell(screen_size, xy, force_inside=True)
+        return self.luminance[cell_xy[0], cell_xy[1]]
+
     def get_color_at(self, screen_size, xy):
         cell_x, cell_y = self.get_grid_cell(screen_size, xy, force_inside=True)
         return tuple(self.lighting[cell_x, cell_y, i] for i in range(3))
@@ -179,6 +203,8 @@ class LightGrid:
     def compute_lighting(self, screen_size, light_sources):
         self.lighting[...] = 0
         self.luminance[...] = 0
+
+        max_kernel_val_pow2 = max(get_1d_gaussian_kernel(LIGHT_RADIUS * 2 + 1)) ** 2
 
         for o in light_sources:
             is_player = isinstance(o, Player)
@@ -189,18 +215,19 @@ class LightGrid:
 
             if is_player:
                 obj_color = mult(obj_color, PLAYER_DIM)
-                self.luminance[xy] = luminance(obj_color)
+                self.luminance[xy] = luminance(obj_color) / max_kernel_val_pow2
             else:
                 obj_color = mult(obj_color, GHOST_DIM)
+                pass
 
             for i in range(3):
-                self.lighting[xy[0]][xy[1]][i] += obj_color[i]
+                self.lighting[xy[0]][xy[1]][i] += obj_color[i] / max_kernel_val_pow2
 
-        self.lighting = blur(self.lighting, LIGHT_RADIUS)
+        self.lighting = blur_array(self.lighting, LIGHT_RADIUS)
         self.lighting[self.lighting > 1] = 1.0
         self.lighting[self.lighting < 0] = 0.0
 
-        self.luminance = blur(self.luminance, LIGHT_RADIUS * 1.5)
+        self.luminance = blur_array(self.luminance, LIGHT_RADIUS)
         self.luminance[self.luminance > 1] = 1.0
         self.luminance[self.luminance < 0] = 0.0
 
@@ -223,16 +250,13 @@ class LightGrid:
         pygame.transform.scale(self.surf, surface.get_size(), surface)
 
 
-TINTED_IMAGE_CACHE = {}  # (color, img) -> new_image
-
-
-def tint_image(base_img, img_key, color, colors_to_tint):
+def tint_image(base_img, img_key, color, colors_to_tint, _cache={}):
     int_color = intify(color)
     tint_color = floatify([round(int_color[i] / TINT_RESOLUTION) * TINT_RESOLUTION for i in range(3)])
 
     key = (tint_color, img_key, colors_to_tint)
 
-    if key not in TINTED_IMAGE_CACHE:
+    if key not in _cache:
         res = base_img.copy()
         array = pygame.surfarray.pixels2d(res)
         for c in colors_to_tint:
@@ -240,9 +264,9 @@ def tint_image(base_img, img_key, color, colors_to_tint):
             tinted_color_as_hex = hexify(intify(blend([floatify(c), tint_color])))
             array[array == orig_color_as_hex] = tinted_color_as_hex
 
-        TINTED_IMAGE_CACHE[key] = res
+            _cache[key] = res
 
-    return TINTED_IMAGE_CACHE[key]
+    return _cache[key]
 
 
 def mainloop():
@@ -270,25 +294,33 @@ def mainloop():
 
         light_grid.draw_bg(screen)
 
-        for object in sorted(all_objects, key=attrgetter("rect.bottom")):
-            is_visible = light_grid.is_visible_at(screen.get_size(), object.rect.midbottom)
-            is_revealed = light_grid.is_revealed_at(screen.get_size(), object.rect.midbottom)
+        for obj in sorted(all_objects, key=attrgetter("rect.bottom")):
+            is_visible = light_grid.is_visible_at(screen.get_size(), obj.rect.midbottom)
+            is_revealed = light_grid.is_revealed_at(screen.get_size(), obj.rect.midbottom)
 
             force_showing = False
             force_image = None
-            if isinstance(object, Ghost):
+            if isinstance(obj, Ghost) or isinstance(obj, Player):
                 if is_visible:
-                    object.set_showing()
-                elif object.was_showing_recently():
+                    obj.sprite.set_alpha(255)
+                elif is_revealed:
+                    lumin = light_grid.get_luminance_at(screen.get_size(), obj.rect.midbottom)
+                    if lumin >= REVEAL_THRESH:
+                        obj.sprite.set_alpha(255)
+                    elif lumin <= GHOST_VIS_THRESH:
+                        obj.sprite.set_alpha(0)
+                    else:
+                        a = (lumin - GHOST_VIS_THRESH) / (REVEAL_THRESH - GHOST_VIS_THRESH)
+                        obj.sprite.set_alpha(int(a * 255))
                     force_showing = True
-            elif isinstance(object, SolidObject) and is_revealed:
+            elif isinstance(obj, SolidObject) and is_revealed:
                 force_showing = True
-                tint_color = light_grid.get_color_at(screen.get_size(), object.rect.midbottom)
-                tint_color = mult(tint_color, 0.666)
-                force_image = tint_image(object.sprite, object.my_sheet_rect, tint_color, COLORS_TO_TINT)
+                tint_color = light_grid.get_color_at(screen.get_size(), obj.rect.midbottom)
+                tint_color = mult(tint_color, 0.8)
+                force_image = tint_image(obj.sprite, obj.my_sheet_rect, tint_color, COLORS_TO_TINT)
 
             if is_visible or force_showing:
-                object.draw(screen, with_sprite=force_image)
+                obj.draw(screen, with_sprite=force_image)
 
         clock.tick(60)
 

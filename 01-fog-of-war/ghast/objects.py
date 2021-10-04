@@ -102,8 +102,6 @@ class Ghost(Object8Directional):
         super().__init__(pos)
         self.goal = self.new_goal()
 
-        self.force_showing = 0
-
     def new_goal(self):
         direction = from_polar(60, gauss(self.velocity.as_polar()[1], 30))
         return self.rect.center + direction
@@ -119,20 +117,10 @@ class Ghost(Object8Directional):
             self.goal - self.rect.center
         ).normalize() * self.ACCELERATION
 
-        # to prevent flickering
-        if self.force_showing > 0:
-            self.force_showing -= 1
-
         super().logic(**kwargs)
 
     def get_light_color(self):
         return (0.65, 0.35, 0.65)
-
-    def set_showing(self):
-        self.force_showing = 30
-
-    def was_showing_recently(self):
-        return self.force_showing > 0
 
 
 class SolidObject(Object):
