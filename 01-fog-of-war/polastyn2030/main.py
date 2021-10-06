@@ -55,8 +55,8 @@ def mainloop():
             obj.logic(objects=all_objects)
 
         screen.fill(BACKGROUND)
-        for object in sorted(all_objects, key=attrgetter("rect.bottom")):
-            object.draw(screen)
+        for obj in sorted(all_objects, key=attrgetter("rect.bottom")):
+            obj.draw(screen)
 
         clock.tick(60)
 
