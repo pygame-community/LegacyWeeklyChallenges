@@ -33,12 +33,14 @@ import pygame
 # To import the modules in yourname/, you need to use relative imports,
 # otherwise your project will not be compatible with the showcase.
 from .objects import Ghost, Player, SolidObject
+from .fog import FogArea
 
 BACKGROUND = 0x66856C
 
 
 def mainloop():
     player = Player((100, 100))
+    fog = FogArea(100, 100, 5)
     trees = SolidObject.generate_many(36)
     ghosts = [Ghost() for _ in range(16)]
 
@@ -54,9 +56,13 @@ def mainloop():
         for obj in all_objects:
             obj.logic(objects=all_objects)
 
+        fog.logic(player)
+
         screen.fill(BACKGROUND)
         for obj in sorted(all_objects, key=attrgetter("rect.bottom")):
             obj.draw(screen)
+
+        fog.draw(screen)
 
         clock.tick(60)
 
