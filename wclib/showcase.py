@@ -226,19 +226,38 @@ class EmbeddedApp:
         self.missing_requirements = get_missing_requirements(challenge, entry)
 
         self.mainloop = self.load_mainloop()
-        self.mainloop.send((self.virtual_screen, []))
+        self.mainloop_next()
+
+    def mainloop_next(self, events=(), _first=False):
+        try:
+            events = list(self.modify_events(events))
+            if _first:
+                next(self.mainloop)
+            self.mainloop.send((self.virtual_screen, events))
+        except StopIteration:
+            pass
+        except TypeError as e:
+            # Yuck!
+            if e.args == ("can't send non-None value to a just-started generator",):
+                return self.mainloop_next(events, True)
+            else:
+                # Double yuck!
+                print("Error:", e)
+                print(traceback.print_exc())
+                self.mainloop = self.crashed_mainloop(e)
+        except Exception as e:  # Or BaseException ?
+            print("Error:", e)
+            print(traceback.print_exc())
+            self.mainloop = self.crashed_mainloop(e)
 
     def load_mainloop(self):
         if self.missing_requirements:
             loop = self.install_mainloop()
-            next(loop)
         else:
             try:
                 loop = get_mainloop(self.challenge, self.entry)
-                next(loop)
             except Exception as e:
                 loop = self.crashed_mainloop(e)
-                next(loop)
 
         return loop
 
@@ -246,15 +265,7 @@ class EmbeddedApp:
         if not self.mainloop:
             self.mainloop = self.load_mainloop()
 
-        try:
-            events = list(self.modify_events(events))
-            self.mainloop.send((self.virtual_screen, events))
-        except StopIteration:
-            pass
-        except Exception as e:  # Or BaseException ?
-            print("Error:", e)
-            print(traceback.print_exc())
-            self.mainloop = self.crashed_mainloop(e)
+        self.mainloop_next(events)
 
     def modify_mouse_pos(self, pos):
         return (
