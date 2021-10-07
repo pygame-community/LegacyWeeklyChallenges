@@ -1,4 +1,4 @@
-# Copyright <2021> <gresm - user on github> - MIT LICENSE
+# Copyright <2021> <gresm - user on github.com> - MIT LICENSE
 #
 # Permission is hereby granted, free of charge,
 # to any person obtaining a copy of this software and associated documentation files (the "Software"),
