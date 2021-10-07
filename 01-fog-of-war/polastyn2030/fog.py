@@ -20,6 +20,10 @@ class InfiniteMap:
     def set(self, pos, value):
         self.map[pos] = value
 
+    def remove(self, pos):
+        if pos in self.map:
+            del self.map[pos]
+
     def clear(self):
         self.map = {}
 
@@ -30,9 +34,10 @@ class FogArea:
         self.rect_h = rect_h
         self.discovered = InfiniteMap()
         self.lighted_area = InfiniteMap()
+        self.more_lighted_area = InfiniteMap()
         self.max_steps = max_visibility
         self._trans_tile = pg.Surface((rect_w, rect_h), pg.SRCALPHA)
-        self._trans_tile.fill((0, 0, 0, 0))
+        self._trans_tile.fill((0, 0, 0, 64))
         self._fog_of_war = self._trans_tile.copy()
         self._fog_of_war.fill((0, 0, 0, 125))
         self._unknown_area_tile = self._trans_tile.copy()
@@ -48,9 +53,6 @@ class FogArea:
     def grid_to_pos(self, grid):
         return grid[0] * self.rect_w, grid[1] * self.rect_h
 
-    def in_visible_range(self, check_pos):
-        return not not self.lighted_area.get(self.pos_to_grid(check_pos))
-
     def get_mask(self, size: tuple[int, int]):
         mask = pg.Surface(size, pg.SRCALPHA)
         x_grid = (size[0] - size[0] % self.rect_w) // self.rect_w
@@ -62,10 +64,14 @@ class FogArea:
             while j <= y_grid:
                 tile_pos = (i, j)
                 if self.discovered.get(tile_pos):
-                    if self.in_visible_range(tile_pos):
-                        pass
+                    if self.lighted_area.get(tile_pos):
+                        if not self.more_lighted_area.get(tile_pos):
+                            mask.blit(self._trans_tile, self.grid_to_pos(tile_pos))
                     else:
                         mask.blit(self._fog_of_war, self.grid_to_pos(tile_pos))
+
+                        if self.more_lighted_area.get(tile_pos):
+                            self.more_lighted_area.remove(tile_pos)
                 else:
                     mask.blit(self._unknown_area_tile, self.grid_to_pos(tile_pos))
                 j += 1
@@ -84,3 +90,10 @@ class FogArea:
             check.all_true()
             self.lighted_area.set((x, y), 1)
             self.discovered.set((x, y), 1)
+
+        for x, y, check in Flood(pos[0], pos[1], self.max_steps//2):
+            check.all_true()
+            self.more_lighted_area.set((x, y), 1)
+
+    def lighted_up(self, pos):
+        return self.lighted_area.get(self.pos_to_grid(pos))

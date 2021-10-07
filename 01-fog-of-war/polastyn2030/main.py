@@ -40,7 +40,7 @@ BACKGROUND = 0x66856C
 
 def mainloop():
     player = Player((100, 100))
-    fog = FogArea(100, 100, 5)
+    fog = FogArea(20, 20, 10)
     trees = SolidObject.generate_many(36)
     ghosts = [Ghost() for _ in range(16)]
 
@@ -60,7 +60,8 @@ def mainloop():
 
         screen.fill(BACKGROUND)
         for obj in sorted(all_objects, key=attrgetter("rect.bottom")):
-            obj.draw(screen)
+            if not isinstance(obj, Ghost) or fog.lighted_up(obj.pos):
+                obj.draw(screen)
 
         fog.draw(screen)
 

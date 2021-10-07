@@ -68,11 +68,6 @@ class PossibleMovement:
         self.right = False
         self.down = False
 
-        self.left_teleport: Tuple[int, int] = (-1, -1)
-        self.up_teleport: Tuple[int, int] = (-1, -1)
-        self.right_teleport: Tuple[int, int] = (-1, -1)
-        self.down_teleport: Tuple[int, int] = (-1, -1)
-
     def get_movement(self, pos: Tuple[int, int]):
         raw = self.raw_movement(pos)
         ret: Set[Tuple[int, int]] = set()
@@ -91,34 +86,14 @@ class PossibleMovement:
         return ret
 
     def raw_movement(self, pos: Tuple[int, int], reset: bool = True):
-        _pos = pos
         ret: List[Tuple[int, int]] = []
 
-        if self.left_teleport != (-1, -1):
-            pos = self.left_teleport
-            if reset:
-                self.left_teleport = (-1, -1)
         ret.append((pos[0] - 1, pos[1]))
-        pos = _pos
 
-        if self.up_teleport != (-1, -1):
-            pos = self.up_teleport
-            if reset:
-                self.up_teleport = (-1, -1)
         ret.append((pos[0], pos[1] - 1))
-        pos = _pos
 
-        if self.right_teleport != (-1, -1):
-            pos = self.right_teleport
-            if reset:
-                self.right_teleport = (-1, -1)
         ret.append((pos[0] + 1, pos[1]))
-        pos = _pos
 
-        if self.down_teleport != (-1, -1):
-            pos = self.down_teleport
-            if reset:
-                self.down_teleport = (-1, -1)
         ret.append((pos[0], pos[1] + 1))
 
         return ret
@@ -126,13 +101,13 @@ class PossibleMovement:
     def all_true(self):
         self.left = True
         self.up = True
-        self.up = True
+        self.right = True
         self.down = True
 
     def all_false(self):
         self.left = False
         self.up = False
-        self.up = False
+        self.right = False
         self.down = False
 
 
