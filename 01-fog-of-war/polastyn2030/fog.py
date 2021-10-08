@@ -36,12 +36,22 @@ class FogArea:
         self.lighted_area = InfiniteMap()
         self.more_lighted_area = InfiniteMap()
         self.max_steps = max_visibility
+        self._semi_trans = 64
+        self._fog_of_war = 125
+        self._unknown = 255
         self._trans_tile = pg.Surface((rect_w, rect_h), pg.SRCALPHA)
-        self._trans_tile.fill((0, 0, 0, 64))
-        self._fog_of_war = self._trans_tile.copy()
-        self._fog_of_war.fill((0, 0, 0, 125))
-        self._unknown_area_tile = self._trans_tile.copy()
-        self._unknown_area_tile.fill((0, 0, 0))
+        self._trans_tile.fill((0, 0, 0, 0))
+
+        self._created_tiles: dict[int, pg.Surface] = {}
+
+    def _get_tile(self, trans):
+        if trans in self._created_tiles:
+            return self._created_tiles[trans]
+
+        copy = self._trans_tile.copy()
+        copy.fill((0, 0, 0, trans))
+        self._created_tiles[trans] = copy
+        return copy
 
     def pos_to_grid(self, pos):
         fixed_x = pos[0] - pos[0] % self.rect_w
@@ -65,15 +75,18 @@ class FogArea:
                 tile_pos = (i, j)
                 if self.discovered.get(tile_pos):
                     if self.lighted_area.get(tile_pos):
-                        if not self.more_lighted_area.get(tile_pos):
-                            mask.blit(self._trans_tile, self.grid_to_pos(tile_pos))
+                        if self.more_lighted_area.get(tile_pos):
+                            by = self.more_lighted_area.get(tile_pos)
+                            mask.blit(self._get_tile(self._semi_trans+by*5), self.grid_to_pos(tile_pos))
+                        else:
+                            mask.blit(self._get_tile(self._semi_trans), self.grid_to_pos(tile_pos))
                     else:
-                        mask.blit(self._fog_of_war, self.grid_to_pos(tile_pos))
+                        mask.blit(self._get_tile(self._fog_of_war), self.grid_to_pos(tile_pos))
 
                         if self.more_lighted_area.get(tile_pos):
                             self.more_lighted_area.remove(tile_pos)
                 else:
-                    mask.blit(self._unknown_area_tile, self.grid_to_pos(tile_pos))
+                    mask.blit(self._get_tile(self._unknown), self.grid_to_pos(tile_pos))
                 j += 1
             i += 1
         return mask
@@ -86,14 +99,15 @@ class FogArea:
 
         pos = self.pos_to_grid(player.pos)
 
-        for x, y, check in Flood(pos[0], pos[1], self.max_steps):
+        for x, y, step, check in Flood(pos[0], pos[1], self.max_steps):
             check.all_true()
             self.lighted_area.set((x, y), 1)
             self.discovered.set((x, y), 1)
+            self.more_lighted_area.set((x, y), step + 1)
 
-        for x, y, check in Flood(pos[0], pos[1], self.max_steps//2):
-            check.all_true()
-            self.more_lighted_area.set((x, y), 1)
+        # for x, y, step, check in Flood(pos[0], pos[1], self.max_steps//2):
+        #     check.all_true()
+        #     self.more_lighted_area.set((x, y), step + 1)
 
     def lighted_up(self, pos):
         return self.lighted_area.get(self.pos_to_grid(pos))
