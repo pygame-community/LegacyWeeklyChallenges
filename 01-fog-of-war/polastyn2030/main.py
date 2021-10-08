@@ -60,7 +60,7 @@ def mainloop():
 
         screen.fill(BACKGROUND)
         for obj in sorted(all_objects, key=attrgetter("rect.bottom")):
-            if not isinstance(obj, Ghost) or fog.lighted_up(obj.pos):
+            if not isinstance(obj, Ghost) or fog.lighted_up(obj.rect.center):
                 obj.draw(screen)
 
         fog.draw(screen)
