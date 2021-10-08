@@ -34,7 +34,7 @@ class Flood:
 
 
 class FloodIter:
-    iterator: Iterator[Tuple[int, int]]
+    iterator: Iterator[Tuple[int, int, int]]
 
     def __init__(self, flood_info: Flood):
         self.flood_info = flood_info
@@ -54,10 +54,10 @@ class FloodIter:
     def __iter__(self) -> "FloodIter":
         return self.start()
 
-    def __next__(self) -> Tuple[int, int, "PossibleMovement"]:
+    def __next__(self) -> Tuple[int, int, int, "PossibleMovement"]:
         if self.first_time:
             self.first_time = False
-            return self.flood_info.start_x, self.flood_info.start_y, self.possible_movement
+            return self.flood_info.start_x, self.flood_info.start_y, 0, self.possible_movement
         return next(self.iterator) + (self.possible_movement,)
 
 
@@ -85,16 +85,12 @@ class PossibleMovement:
             ret.add(raw[3])
         return ret
 
-    def raw_movement(self, pos: Tuple[int, int], reset: bool = True):
-        ret: List[Tuple[int, int]] = []
-
-        ret.append((pos[0] - 1, pos[1]))
-
-        ret.append((pos[0], pos[1] - 1))
-
-        ret.append((pos[0] + 1, pos[1]))
-
-        ret.append((pos[0], pos[1] + 1))
+    # noinspection PyMethodMayBeStatic
+    def raw_movement(self, pos: Tuple[int, int]):
+        ret: List[Tuple[int, int]] = [
+            (pos[0] - 1, pos[1]), (pos[0], pos[1] - 1),
+            (pos[0] + 1, pos[1]), (pos[0], pos[1] + 1)
+        ]
 
         return ret
 
@@ -111,7 +107,10 @@ class PossibleMovement:
         self.down = False
 
 
-def iterator(start_pos: Tuple[int, int], is_correct: PossibleMovement, max_depth: int) -> Iterator[Tuple[int, int]]:
+def iterator(
+        start_pos: Tuple[int, int], is_correct: PossibleMovement, max_depth: int
+) -> Iterator[Tuple[int, int, int]]:
+
     routes: Set[Tuple[int, int]] = set()
     visited: Set[Tuple[int, int]] = set()
 
@@ -130,7 +129,7 @@ def iterator(start_pos: Tuple[int, int], is_correct: PossibleMovement, max_depth
             visited.add(rout)
             new_routes.update(get_correct_spread(rout))
             old_routes.add(rout)
-            yield rout
+            yield rout + (cnt,)
         cnt += 1
 
         routes.update(new_routes)
