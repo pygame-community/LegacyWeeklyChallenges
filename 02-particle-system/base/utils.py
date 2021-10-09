@@ -53,3 +53,9 @@ def clamp_vector(v: pygame.Vector2, max_length):
     if v.length() > max_length:
         return v.normalize() * max_length
     return v
+
+
+def segments(points):
+    """Return all the segments made from adjacent pairs of points in the list.
+    Also return the segment made of the last and first point."""
+    return zip(points, points[1:] + [points[0]])
