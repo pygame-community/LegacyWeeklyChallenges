@@ -47,13 +47,14 @@ class Object:
     def draw(self, screen):
         screen.blit(self.rotated_sprite, self.rect)
 
-        # Corners
+        # Goal: wrap around the screen.
         w, h = SIZE
         tl = 0, 0
         tr = w, 0
         br = w, h
         bl = 0, h
 
+        shifts = []
         for a, b, offset in [
             (tl, tr, (0, h)),
             (bl, br, (0, -h)),
@@ -62,11 +63,25 @@ class Object:
         ]:
             # For each side of the screen that it overlaps
             if self.rect.clipline(a, b):
+                shifts.append(offset)
                 # Draw the spaceship at the other edge too.
                 screen.blit(
                     self.rotated_sprite,
                     self.rotated_sprite.get_rect(center=self.center + offset),
                 )
+
+        # Take care of the corners of the screen.
+        # Here I assume that no object can touch two sides of the screen
+        # at the same time. If so, the code wouldn't be correct, but still
+        # produce the expected result -.-'
+        assert len(shifts) <= 2
+        if len(shifts) == 2:
+            screen.blit(
+                self.rotated_sprite,
+                self.rotated_sprite.get_rect(
+                    center=self.center + shifts[0] + shifts[1]
+                ),
+            )
 
     def logic(self, **kwargs):
         # self.vel = clamp_vector(self.vel, self.MAX_VEL)
