@@ -32,7 +32,7 @@ import pygame
 
 # To import the modules in yourname/, you need to use relative imports,
 # otherwise your project will not be compatible with the showcase.
-from .objects import Player
+from .objects import *
 
 BACKGROUND = 0x66856C
 
@@ -40,7 +40,7 @@ BACKGROUND = 0x66856C
 def mainloop():
     player = Player((100, 100), (0, 0))
 
-    all_objects = [player]
+    objects = {player} | Asteroid.generate_many()
 
     clock = pygame.time.Clock()
     while True:
@@ -49,12 +49,18 @@ def mainloop():
             if event.type == pygame.QUIT:
                 return
 
-        for obj in all_objects:
-            obj.logic(objects=all_objects)
+        dead = set()
+        new_objects = set()
+        for obj in objects:
+            obj.logic(events=events, objects=objects, new_objects=new_objects)
+            if not obj.alive:
+                dead.add(obj)
+        objects.difference_update(dead)
+        objects.update(new_objects)
 
         screen.fill(BACKGROUND)
-        # for object in sorted(all_objects, key=attrgetter("rect.bottom")):
-        for obj in all_objects:
+        # for object in sorted(objects, key=attrgetter("rect.bottom")):
+        for obj in objects:
             obj.draw(screen)
 
         clock.tick(60)
