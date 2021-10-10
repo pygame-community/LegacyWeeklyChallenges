@@ -163,14 +163,59 @@ class Bullet(Object):
 
 class Asteroid(Object):
     AVG_SPEED = 1
+    EXPLOSION_SPEED_BOOST = 1.8
 
     def __init__(self, pos, vel, size=4, color=None):
         assert 1 <= size <= 4
+        self.level = size
         # We copy to change the color
-        sprite = load_image(f"asteroid-{16*2**size}").copy()
-        sprite.fill(color or self.random_color(), special_flags=pygame.BLEND_RGB_MULT)
+        self.color = color or self.random_color()
 
-        super().__init__(pos, vel, sprite)
+        super().__init__(pos, vel, self.colored_image(size, self.color))
+
+    @staticmethod
+    @lru_cache(100)
+    def colored_image(size, color):
+        sprite = load_image(f"asteroid-{16*2**size}").copy()
+        sprite.fill(color, special_flags=pygame.BLEND_RGB_MULT)
+        return sprite
+
+    def logic(self, **kwargs):
+        super().logic(**kwargs)
+
+        objects = kwargs.get("objects", set())
+        new_objects = kwargs["new_objects"]
+
+        for obj in objects:
+            if not obj.alive:
+                continue
+
+            if isinstance(obj, Bullet):
+                # Detect if the bullet and asteroid collide.
+                if obj.center.distance_to(self.center) < self.radius:
+                    obj.alive = False
+                    self.explode(obj, new_objects)
+                    break
+
+    def explode(self, bullet, new_objects: set):
+        self.alive = False
+        if self.level > 1:
+            # We spawn two smaller asteroids in the direction perpendicular to the collision.
+            perp_velocity = pygame.Vector2(bullet.vel.y, -bullet.vel.x)
+            perp_velocity.scale_to_length(
+                self.vel.length() * self.EXPLOSION_SPEED_BOOST
+            )
+            for mult in (-1, 1):
+                new_objects.add(
+                    Asteroid(
+                        self.center, perp_velocity * mult, self.level - 1, self.color
+                    )
+                )
+
+    @property
+    def radius(self):
+        # The 1.2 is to be nicer to the player
+        return self.sprite.get_width() / 2 * 1.2
 
     def random_color(self):
         r, g, b = hsv_to_rgb(uniform(0, 1), 1, 1)
