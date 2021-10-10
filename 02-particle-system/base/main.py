@@ -34,36 +34,30 @@ import pygame
 # otherwise your project will not be compatible with the showcase.
 from .objects import *
 
-BACKGROUND = 0x66856C
+BACKGROUND = 0x0F1012
 
 
 def mainloop():
+    pygame.init()
+
     player = Player((100, 100), (0, 0))
+    state = State(player, FpsCounter(60), *Asteroid.generate_many())
 
-    objects = {player} | Asteroid.generate_many()
-
-    clock = pygame.time.Clock()
     while True:
         screen, events = yield
         for event in events:
             if event.type == pygame.QUIT:
                 return
+            else:
+                state.handle_event(event)
 
-        dead = set()
-        new_objects = set()
-        for obj in objects:
-            obj.logic(events=events, objects=objects, new_objects=new_objects)
-            if not obj.alive:
-                dead.add(obj)
-        objects.difference_update(dead)
-        objects.update(new_objects)
+        # Note: the logic for collisions is in the Asteroids class.
+        # This may seem arbitrary, but the only collisions that we consider
+        # are with asteroids.
+        state.logic()
 
         screen.fill(BACKGROUND)
-        # for object in sorted(objects, key=attrgetter("rect.bottom")):
-        for obj in objects:
-            obj.draw(screen)
-
-        clock.tick(60)
+        state.draw(screen)
 
 
 if __name__ == "__main__":
