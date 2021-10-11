@@ -23,7 +23,7 @@ __author__ = "Emc235#2196"
 __achievements__ = [  # Uncomment the ones you've done
     "Casual",
     "Ambitious",
-    "Adventurous"
+    "Adventurous",
 ]
 
 

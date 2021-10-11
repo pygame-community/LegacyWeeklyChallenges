@@ -23,9 +23,9 @@ __package__ = "01-fog-of-war." + Path(__file__).parent.name
 # Metadata about your submission
 __author__ = "CoopERR"
 __achievements__ = [  # Uncomment the ones you've done
-     "Casual",
-     "Ambitious",
-     "Adventurous",
+    "Casual",
+    "Ambitious",
+    "Adventurous",
 ]
 
 
@@ -48,42 +48,40 @@ def mainloop():
     solid_objects = trees + [player]
 
     fog = pygame.surface.Surface(pygame.display.get_surface().get_size(), pygame.SRCALPHA)
-    fog.fill((0,0,0))
+    fog.fill((0, 0, 0))
 
     def field_of_view():
         size = 150
         for i in range(200, 0, -1):
-            pygame.draw.circle(fog, (0,0,0,i), player.rect.center, size)
+            pygame.draw.circle(fog, (0, 0, 0, i), player.rect.center, size)
             size -= 0.9
 
     def ghost_distance(ghost):
-        distance_x = (player.rect.center[0]-ghost.rect.center[0])
-        distance_y = (player.rect.center[1]-ghost.rect.center[1])
+        distance_x = player.rect.center[0] - ghost.rect.center[0]
+        distance_y = player.rect.center[1] - ghost.rect.center[1]
 
-        return (abs(distance_x) + abs(distance_y)) < 150 
+        return (abs(distance_x) + abs(distance_y)) < 150
 
     clock = pygame.time.Clock()
     while True:
-        screen, events = yield       
+        screen, events = yield
         for event in events:
             if event.type == pygame.QUIT:
                 return
 
         for obj in all_objects:
             obj.logic(objects=all_objects)
-        
+
         screen.fill(BACKGROUND)
-                
+
         for ghost in sorted(ghosts, key=attrgetter("rect.bottom")):
             if ghost_distance(ghost):
-                    ghost.draw(screen)
+                ghost.draw(screen)
         for object in sorted(solid_objects, key=attrgetter("rect.bottom")):
             object.draw(screen)
-            
-        field_of_view()
-        screen.blit(fog,(0,0))
 
-        
+        field_of_view()
+        screen.blit(fog, (0, 0))
 
         clock.tick(60)
 

@@ -101,14 +101,10 @@ class Ghost(Object8Directional):
 
     def logic(self, **kwargs):
         middle_area = SCREEN.inflate(-30, -30)
-        while self.rect.collidepoint(self.goal) or not middle_area.collidepoint(
-            self.goal
-        ):
+        while self.rect.collidepoint(self.goal) or not middle_area.collidepoint(self.goal):
             self.goal = self.new_goal()
 
-        self.acceleration = (
-            self.goal - self.rect.center
-        ).normalize() * self.ACCELERATION
+        self.acceleration = (self.goal - self.rect.center).normalize() * self.ACCELERATION
         super().logic(**kwargs)
 
 
@@ -141,96 +137,125 @@ class SolidObject(Object):
                 objects.append(obj)
         return objects
 
-class Darkness():
+
+class Darkness:
     def __init__(self, min_light=0, reveal_light=40):
         self.rect = SCREEN.copy()
 
-        self.min_light = min_light #minimum light level
-        self.reveal_light = reveal_light #how light an uncovered part of the map is
+        self.min_light = min_light  # minimum light level
+        self.reveal_light = reveal_light  # how light an uncovered part of the map is
 
         self.surface = pygame.Surface((SCREEN.w, SCREEN.h), pygame.SRCALPHA)
-        self.surface.fill((0,0,0,255-min_light))
+        self.surface.fill((0, 0, 0, 255 - min_light))
 
-        #uncovered part of the map
+        # uncovered part of the map
         self.shown_surface = self.surface.copy()
 
-        
     def draw(self, screen, light):
 
-        #draw darkness
-        self.surface.blit(self.shown_surface, (0,0), special_flags=pygame.BLEND_RGBA_MIN)
-        screen.blit(self.surface, (0,0) )
+        # draw darkness
+        self.surface.blit(self.shown_surface, (0, 0), special_flags=pygame.BLEND_RGBA_MIN)
+        screen.blit(self.surface, (0, 0))
+
+        # clear light
+        pygame.gfxdraw.box(self.surface, light.rect, (0, 0, 0, 255 - self.min_light))
 
 
-        #clear light
-        pygame.gfxdraw.box(self.surface, light.rect, (0,0,0,255-self.min_light))
-
-
-class Light():
+class Light:
     def __init__(self, darkness, pos, light, max_light_radius, min_light_radius, radius):
         self.radius = radius
 
-        #strength of the light, drops off to 0 at distance radius
+        # strength of the light, drops off to 0 at distance radius
         self.light = light
-        #radius up to which the light is as bright as possible
+        # radius up to which the light is as bright as possible
         self.max_light_radius = max_light_radius
 
         self.min_light_radius = min_light_radius
 
         self.pos = pygame.Vector2(pos)
-        self.rect = pygame.Rect(self.pos.x, self.pos.y, self.radius*2, self.radius*2)
+        self.rect = pygame.Rect(self.pos.x, self.pos.y, self.radius * 2, self.radius * 2)
 
         self.darkness = darkness
         self.create_surface()
 
-    #create the actual light surface
+    # create the actual light surface
     def create_surface(self):
         import pygame.gfxdraw
 
-        
         self.surface = pygame.Surface((self.rect.w, self.rect.h), flags=pygame.SRCALPHA)
-        self.surface.fill((0,0,0,0))
+        self.surface.fill((0, 0, 0, 0))
 
-        #draw center bright point
-        self.max_light_surface = pygame.Surface((self.max_light_radius*2, self.max_light_radius*2), flags=pygame.SRCALPHA)
-        pygame.gfxdraw.filled_circle(self.max_light_surface, self.max_light_radius, self.max_light_radius, self.max_light_radius, (0,0,0, self.light ))
+        # draw center bright point
+        self.max_light_surface = pygame.Surface(
+            (self.max_light_radius * 2, self.max_light_radius * 2),
+            flags=pygame.SRCALPHA,
+        )
+        pygame.gfxdraw.filled_circle(
+            self.max_light_surface,
+            self.max_light_radius,
+            self.max_light_radius,
+            self.max_light_radius,
+            (0, 0, 0, self.light),
+        )
 
-        self.surface.blit(self.max_light_surface, (self.radius-self.max_light_radius, self.radius-self.max_light_radius))
+        self.surface.blit(
+            self.max_light_surface,
+            (self.radius - self.max_light_radius, self.radius - self.max_light_radius),
+        )
 
-        #how much dimmer the light should get per pixel
-        light_change_per_pixel = (self.light )/(self.radius-self.max_light_radius)
+        # how much dimmer the light should get per pixel
+        light_change_per_pixel = (self.light) / (self.radius - self.max_light_radius)
 
-        min_light_level = self.light-(light_change_per_pixel*(self.min_light_radius-self.max_light_radius) )
+        min_light_level = self.light - (
+            light_change_per_pixel * (self.min_light_radius - self.max_light_radius)
+        )
 
-        #draw fade
-        #reversed to prevent gaps in the drawing
-        for i in reversed(range( (self.radius-(self.max_light_radius))*1 )):
-            
+        # draw fade
+        # reversed to prevent gaps in the drawing
+        for i in reversed(range((self.radius - (self.max_light_radius)) * 1)):
+
             pix = i
-            
-            dist_from_center = self.max_light_radius+pix
-            light_level = clamp(int(self.light-(light_change_per_pixel*pix)), min_light_level, 255-self.darkness.min_light)
-            colour = (0,0,0, light_level)
 
-            pygame.gfxdraw.filled_circle(self.surface, self.rect.w//2, self.rect.h//2, int(self.max_light_radius+pix), colour)
+            dist_from_center = self.max_light_radius + pix
+            light_level = clamp(
+                int(self.light - (light_change_per_pixel * pix)),
+                min_light_level,
+                255 - self.darkness.min_light,
+            )
+            colour = (0, 0, 0, light_level)
 
-        #draw full_surface (surface that will be permanently drawn on the FOW)
-        self.full_surface = pygame.Surface((self.radius*2, self.radius*2), flags=pygame.SRCALPHA)
-        self.full_surface.fill( (0,0,0,255) )
-        pygame.gfxdraw.filled_circle(self.full_surface, self.radius, self.radius, self.radius, (0,128,0,255-self.darkness.reveal_light))
+            pygame.gfxdraw.filled_circle(
+                self.surface,
+                self.rect.w // 2,
+                self.rect.h // 2,
+                int(self.max_light_radius + pix),
+                colour,
+            )
 
+        # draw full_surface (surface that will be permanently drawn on the FOW)
+        self.full_surface = pygame.Surface(
+            (self.radius * 2, self.radius * 2), flags=pygame.SRCALPHA
+        )
+        self.full_surface.fill((0, 0, 0, 255))
+        pygame.gfxdraw.filled_circle(
+            self.full_surface,
+            self.radius,
+            self.radius,
+            self.radius,
+            (0, 128, 0, 255 - self.darkness.reveal_light),
+        )
 
     def get_visible_objects(self, objects):
         visible_objects = []
         for obj in objects:
             visible = True
 
-            if hasattr(obj, "velocity"): #ghosts, basically
-                dx = obj.rect.centerx-self.rect.centerx
-                dy = obj.rect.centery-self.rect.centery
-                dist = ( (dx**2) + (dy**2) )**0.5
+            if hasattr(obj, "velocity"):  # ghosts, basically
+                dx = obj.rect.centerx - self.rect.centerx
+                dy = obj.rect.centery - self.rect.centery
+                dist = ((dx ** 2) + (dy ** 2)) ** 0.5
 
-                #object not within range
+                # object not within range
                 if dist > self.radius:
                     visible = False
 
@@ -247,99 +272,113 @@ class Light():
 
         self.draw_surface = self.surface.copy()
 
-        #get objects in range
+        # get objects in range
         objects_in_range = []
         dists = []
         for obj in visible_objects:
             if type(obj) == Player:
                 continue
-            
-            dx = obj.rect.centerx-self.rect.centerx
-            dy = obj.rect.centery-self.rect.centery
-            dist = ( (dx**2) + (dy**2) )**0.5
 
-            #object within range
+            dx = obj.rect.centerx - self.rect.centerx
+            dy = obj.rect.centery - self.rect.centery
+            dist = ((dx ** 2) + (dy ** 2)) ** 0.5
+
+            # object within range
             if dist <= self.radius:
                 objects_in_range.append(obj)
                 dists.append(dist)
 
-        #create shadows
+        # create shadows
         self_center_pos = pygame.Vector2(self.pos)
-        self_center_pos.x += self.rect.w/2
-        self_center_pos.y += self.rect.h/2
-        
-        for i,obj in enumerate(objects_in_range):
+        self_center_pos.x += self.rect.w / 2
+        self_center_pos.y += self.rect.h / 2
+
+        for i, obj in enumerate(objects_in_range):
             center_pos = pygame.Vector2(obj.pos)
-            center_pos.x += obj.rect.w/2
-            center_pos.y += obj.rect.h/2
+            center_pos.x += obj.rect.w / 2
+            center_pos.y += obj.rect.h / 2
 
-            angle = pygame.Vector2(0,0).angle_to(center_pos-self_center_pos)
+            angle = pygame.Vector2(0, 0).angle_to(center_pos - self_center_pos)
 
-            shadow_start_length = (obj.rect.w+obj.rect.h)/2
+            shadow_start_length = (obj.rect.w + obj.rect.h) / 2
 
             dist = dists[i]
 
-            #create the vertices of the shadow polygon
+            # create the vertices of the shadow polygon
 
-            #"start" points are closest to the object
-            #"side" points are the points which are at the edge of the light radius
-            #"end" points are points that are used to make the shadow complete and prevent gaps from being left
-            shadow_start_left = pygame.Vector2((-shadow_start_length/2, 0))
-            shadow_start_left.rotate_ip(angle+90)
+            # "start" points are closest to the object
+            # "side" points are the points which are at the edge of the light radius
+            # "end" points are points that are used to make the shadow complete and prevent gaps from being left
+            shadow_start_left = pygame.Vector2((-shadow_start_length / 2, 0))
+            shadow_start_left.rotate_ip(angle + 90)
             shadow_start_left += center_pos
 
-            
-            shadow_side_left = (shadow_start_left-self_center_pos)
+            shadow_side_left = shadow_start_left - self_center_pos
             shadow_side_left.scale_to_length(self.radius)
             shadow_side_left += self_center_pos
 
-            shadow_end_left = center_pos-self_center_pos
+            shadow_end_left = center_pos - self_center_pos
             shadow_end_left.scale_to_length(self.radius)
             shadow_end_left += shadow_side_left
 
-            shadow_start_right = pygame.Vector2((shadow_start_length/2, 0))
-            shadow_start_right.rotate_ip(angle+90)
+            shadow_start_right = pygame.Vector2((shadow_start_length / 2, 0))
+            shadow_start_right.rotate_ip(angle + 90)
             shadow_start_right += center_pos
 
-            shadow_side_right = (shadow_start_right-self_center_pos)
+            shadow_side_right = shadow_start_right - self_center_pos
             shadow_side_right.scale_to_length(self.radius)
             shadow_side_right += self_center_pos
 
-            shadow_end_right = center_pos-self_center_pos
+            shadow_end_right = center_pos - self_center_pos
             shadow_end_right.scale_to_length(self.radius)
             shadow_end_right += shadow_side_right
 
-
-
-            pygame.gfxdraw.filled_circle(self.draw_surface, int(center_pos.x-self.pos.x), int(center_pos.y-self.pos.y), int(shadow_start_length//2) , (0,0,0,0))
+            pygame.gfxdraw.filled_circle(
+                self.draw_surface,
+                int(center_pos.x - self.pos.x),
+                int(center_pos.y - self.pos.y),
+                int(shadow_start_length // 2),
+                (0, 0, 0, 0),
+            )
 
             ##uncomment these and you can see the points in action
             ##green - start, blue - side, red - end
-            #pygame.gfxdraw.filled_circle(screen, int(shadow_start_left.x), int(shadow_start_left.y), 5 , (0,255,0,128))
-            #pygame.gfxdraw.filled_circle(screen, int(shadow_start_right.x), int(shadow_start_right.y), 5 , (0,255,0,128))
+            # pygame.gfxdraw.filled_circle(screen, int(shadow_start_left.x), int(shadow_start_left.y), 5 , (0,255,0,128))
+            # pygame.gfxdraw.filled_circle(screen, int(shadow_start_right.x), int(shadow_start_right.y), 5 , (0,255,0,128))
 
-            #pygame.gfxdraw.filled_circle(screen, int(shadow_side_left.x), int(shadow_side_left.y), 7 , (255,0,0,128))
-            #pygame.gfxdraw.filled_circle(screen, int(shadow_side_right.x), int(shadow_side_right.y), 7 , (255,0,0,128))
+            # pygame.gfxdraw.filled_circle(screen, int(shadow_side_left.x), int(shadow_side_left.y), 7 , (255,0,0,128))
+            # pygame.gfxdraw.filled_circle(screen, int(shadow_side_right.x), int(shadow_side_right.y), 7 , (255,0,0,128))
 
-            #pygame.gfxdraw.filled_circle(screen, int(shadow_end_left.x), int(shadow_end_left.y), 9 , (0,0,255,128))
-            #pygame.gfxdraw.filled_circle(screen, int(shadow_end_right.x), int(shadow_end_right.y), 9 , (0,0,255,128))
+            # pygame.gfxdraw.filled_circle(screen, int(shadow_end_left.x), int(shadow_end_left.y), 9 , (0,0,255,128))
+            # pygame.gfxdraw.filled_circle(screen, int(shadow_end_right.x), int(shadow_end_right.y), 9 , (0,0,255,128))
 
-            #offset so they can be relative to the draw surface
+            # offset so they can be relative to the draw surface
             shadow_start_left -= self.pos
             shadow_start_right -= self.pos
             shadow_side_left -= self.pos
             shadow_side_right -= self.pos
             shadow_end_left -= self.pos
             shadow_end_right -= self.pos
-            
-            
-            pygame.gfxdraw.filled_polygon(self.draw_surface, [shadow_start_left, shadow_side_left, shadow_end_left, shadow_end_right, shadow_side_right, shadow_start_right], (0,0,0,0) )
 
-        
-        self.darkness.surface.blit(self.draw_surface, self.rect, special_flags=pygame.BLEND_RGBA_SUB)
+            pygame.gfxdraw.filled_polygon(
+                self.draw_surface,
+                [
+                    shadow_start_left,
+                    shadow_side_left,
+                    shadow_end_left,
+                    shadow_end_right,
+                    shadow_side_right,
+                    shadow_start_right,
+                ],
+                (0, 0, 0, 0),
+            )
 
+        self.darkness.surface.blit(
+            self.draw_surface, self.rect, special_flags=pygame.BLEND_RGBA_SUB
+        )
 
     def draw_uncovered(self, screen):
-        #draw the uncovered parts of the map
-        self.darkness.shown_surface.blit(self.full_surface, self.rect, special_flags=pygame.BLEND_RGBA_MIN)
-        
+        # draw the uncovered parts of the map
+        self.darkness.shown_surface.blit(
+            self.full_surface, self.rect, special_flags=pygame.BLEND_RGBA_MIN
+        )

@@ -38,8 +38,10 @@ import random
 
 BACKGROUND = 0x66856C
 
+
 def dist(pos, other):
-    return np.sqrt((pos[0]-other[0])**2 + (pos[1]-other[1])**2)
+    return np.sqrt((pos[0] - other[0]) ** 2 + (pos[1] - other[1]) ** 2)
+
 
 def mainloop():
     player = Player((100, 100))
@@ -73,26 +75,60 @@ def mainloop():
 
             lights = pygame.Surface((screen.get_width(), screen.get_height()), pygame.SRCALPHA)
             fog_of_war = pygame.Surface((screen.get_width(), screen.get_height()), pygame.SRCALPHA)
-            explored_map = pygame.Surface((screen.get_width(), screen.get_height()), pygame.SRCALPHA)
-            pygame.draw.rect(explored_map, (0, 0, 0, 255), [0, 0, screen.get_width(), screen.get_height()])
+            explored_map = pygame.Surface(
+                (screen.get_width(), screen.get_height()), pygame.SRCALPHA
+            )
+            pygame.draw.rect(
+                explored_map,
+                (0, 0, 0, 255),
+                [0, 0, screen.get_width(), screen.get_height()],
+            )
 
             for obj in trees:
                 if obj.rect[2] == 144:
-                    pygame.draw.circle(lights, (234, 206, 9, 15),
-                                       (obj.rect[0] + 32, obj.rect[1] + 94), 45, 20)
-                    pygame.draw.circle(lights, (234, 206, 9, 15),
-                                       (obj.rect[0] - 32 + obj.rect[2], obj.rect[1] + 94), 45, 20)
-                    pygame.draw.circle(lights, (234, 206, 9, 40),
-                                       (obj.rect[0] + 32, obj.rect[1] + 94), 25)
-                    pygame.draw.circle(lights, (234, 206, 9, 40),
-                                       (obj.rect[0] - 32 + obj.rect[2], obj.rect[1] + 94), 25)
-                    pygame.draw.rect(lights, (234, 206, 9, 150),
-                                     (obj.rect[0] + 21, obj.rect[1] + 84, 21, 18))
-                    pygame.draw.rect(lights, (234, 206, 9, 150),
-                                     (obj.rect[0] - 45 + obj.rect[2], obj.rect[1] + 84, 21, 18))
+                    pygame.draw.circle(
+                        lights,
+                        (234, 206, 9, 15),
+                        (obj.rect[0] + 32, obj.rect[1] + 94),
+                        45,
+                        20,
+                    )
+                    pygame.draw.circle(
+                        lights,
+                        (234, 206, 9, 15),
+                        (obj.rect[0] - 32 + obj.rect[2], obj.rect[1] + 94),
+                        45,
+                        20,
+                    )
+                    pygame.draw.circle(
+                        lights,
+                        (234, 206, 9, 40),
+                        (obj.rect[0] + 32, obj.rect[1] + 94),
+                        25,
+                    )
+                    pygame.draw.circle(
+                        lights,
+                        (234, 206, 9, 40),
+                        (obj.rect[0] - 32 + obj.rect[2], obj.rect[1] + 94),
+                        25,
+                    )
+                    pygame.draw.rect(
+                        lights,
+                        (234, 206, 9, 150),
+                        (obj.rect[0] + 21, obj.rect[1] + 84, 21, 18),
+                    )
+                    pygame.draw.rect(
+                        lights,
+                        (234, 206, 9, 150),
+                        (obj.rect[0] - 45 + obj.rect[2], obj.rect[1] + 84, 21, 18),
+                    )
             # for pic
             explored_map.blit(fog, (0, 0))
-            pygame.draw.rect(fog_of_war, (0, 0, 0, 150), [0, 0, screen.get_width(), screen.get_height()])
+            pygame.draw.rect(
+                fog_of_war,
+                (0, 0, 0, 150),
+                [0, 0, screen.get_width(), screen.get_height()],
+            )
             first = False
         for event in events:
             if event.type == pygame.QUIT:
@@ -117,18 +153,36 @@ def mainloop():
             if dis < 200:
                 ghost.sprite.set_alpha(255)
                 if dis > 100:
-                    ghost.sprite.set_alpha(355 - (355/150)*dis)
+                    ghost.sprite.set_alpha(355 - (355 / 150) * dis)
                 ghost.draw(screen)
 
         screen.blit(explored_map, (0, 0))
         for i in range(0, 150, 2):
-            pygame.draw.circle(fog_of_war, (0, 0, 0, i),
-                               (player.pos[0] + player.size[0] / 2, player.pos[1] + player.size[1] / 2), i + 50, 2)
-        pygame.draw.circle(fog_of_war, (0, 0, 0, 0),
-                           (player.pos[0] + player.size[0] / 2, player.pos[1] + player.size[1] / 2), 50)
-        pygame.draw.circle(explored_map, (0, 0, 0, 150), [player.pos[0] + player.size[0] / 2, player.pos[1] + player.size[1] / 2], 150)
+            pygame.draw.circle(
+                fog_of_war,
+                (0, 0, 0, i),
+                (
+                    player.pos[0] + player.size[0] / 2,
+                    player.pos[1] + player.size[1] / 2,
+                ),
+                i + 50,
+                2,
+            )
+        pygame.draw.circle(
+            fog_of_war,
+            (0, 0, 0, 0),
+            (player.pos[0] + player.size[0] / 2, player.pos[1] + player.size[1] / 2),
+            50,
+        )
+        pygame.draw.circle(
+            explored_map,
+            (0, 0, 0, 150),
+            [player.pos[0] + player.size[0] / 2, player.pos[1] + player.size[1] / 2],
+            150,
+        )
         clock.tick(FPS)
         print(clock.get_fps())
+
 
 if __name__ == "__main__":
     wclib.run(mainloop())

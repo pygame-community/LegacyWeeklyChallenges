@@ -8,12 +8,13 @@ Feel free to modify everything in this file to your liking.
 """
 from random import choice, gauss
 import math
-import pygame,pygame.gfxdraw
+import pygame, pygame.gfxdraw
 
 from wclib import SIZE
 from .utils import clamp, from_polar, load_image, random_in_rect
 
 SCREEN = pygame.Rect(0, 0, *SIZE)
+
 
 class Object:
     """The base class for all objects of the game."""
@@ -100,14 +101,10 @@ class Ghost(Object8Directional):
 
     def logic(self, **kwargs):
         middle_area = SCREEN.inflate(-30, -30)
-        while self.rect.collidepoint(self.goal) or not middle_area.collidepoint(
-            self.goal
-        ):
+        while self.rect.collidepoint(self.goal) or not middle_area.collidepoint(self.goal):
             self.goal = self.new_goal()
 
-        self.acceleration = (
-            self.goal - self.rect.center
-        ).normalize() * self.ACCELERATION
+        self.acceleration = (self.goal - self.rect.center).normalize() * self.ACCELERATION
         super().logic(**kwargs)
 
 
@@ -140,19 +137,20 @@ class SolidObject(Object):
                 objects.append(obj)
         return objects
 
-class Fog():
-    def __init__(self,player):
-        self.maskSurf = pygame.Surface(SCREEN.size,pygame.SRCALPHA)
-        self.maskSurf.fill((0,0,0))
+
+class Fog:
+    def __init__(self, player):
+        self.maskSurf = pygame.Surface(SCREEN.size, pygame.SRCALPHA)
+        self.maskSurf.fill((0, 0, 0))
 
         self.player = player
 
         self.addRadius = 0
         self.isAdd = False
 
-        self.rect = pygame.Rect(0,0,125*2,125*2)
+        self.rect = pygame.Rect(0, 0, 125 * 2, 125 * 2)
 
-    def draw(self,screen):
+    def draw(self, screen):
         if self.addRadius <= 0:
             self.isAdd = True
         elif self.addRadius >= 10:
@@ -162,20 +160,25 @@ class Fog():
             self.addRadius += 0.2
         else:
             self.addRadius -= 0.2
-            
-        smoothRadius = 135#225
-        
+
+        smoothRadius = 135  # 225
+
         alpha = 210
-        
+
         for alp in range(200):
             alpha -= 1
-            pygame.draw.circle(self.maskSurf,(0,0,0,alpha),self.player.rect.center,smoothRadius)
+            pygame.draw.circle(
+                self.maskSurf, (0, 0, 0, alpha), self.player.rect.center, smoothRadius
+            )
             smoothRadius -= 1
         self.rect.center = self.player.rect.center
 
-        screen.blit(self.maskSurf,(0,0))
+        screen.blit(self.maskSurf, (0, 0))
 
-    def get_dist(self,ghost):
-        dist = [(self.player.rect.center[0]-ghost.rect.center[0])**2,(self.player.rect.center[1]-ghost.rect.center[1])**2]
+    def get_dist(self, ghost):
+        dist = [
+            (self.player.rect.center[0] - ghost.rect.center[0]) ** 2,
+            (self.player.rect.center[1] - ghost.rect.center[1]) ** 2,
+        ]
 
-        return math.sqrt(dist[0]+dist[1])
+        return math.sqrt(dist[0] + dist[1])

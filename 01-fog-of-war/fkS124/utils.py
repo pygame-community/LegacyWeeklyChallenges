@@ -30,9 +30,7 @@ def clamp(value, mini, maxi):
 def random_in_rect(rect):
     """Return a random point uniformly in a rectangle."""
     rect = pygame.Rect(rect)
-    return pygame.Vector2(
-        uniform(rect.left, rect.right), uniform(rect.top, rect.bottom)
-    )
+    return pygame.Vector2(uniform(rect.left, rect.right), uniform(rect.top, rect.bottom))
 
 
 def from_polar(rho, theta):

@@ -22,8 +22,8 @@ __package__ = "01-fog-of-war." + Path(__file__).parent.name
 __author__ = "RoboMarchello#0570"
 __achievements__ = [  # Uncomment the ones you've done
     "Casual",
-     "Ambitious",
-     "Adventurous",
+    "Ambitious",
+    "Adventurous",
 ]
 
 
@@ -57,7 +57,7 @@ def mainloop():
             obj.logic(objects=all_objects)
 
         screen.fill(BACKGROUND)
-        
+
         for object in sorted(all_objects, key=attrgetter("rect.bottom")):
             if ghosts.count(object) >= 1:
                 if fog.get_dist(object) < 130:

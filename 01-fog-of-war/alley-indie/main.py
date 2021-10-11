@@ -68,11 +68,9 @@ def mainloop():
         for object in sorted(all_objects, key=attrgetter("rect.bottom")):
             object.draw(screen)
         fog.fill((0, 0, 0))
-        pos = (
-            player.pos[0] + player.size[0] // 2,
-            player.pos[1] + player.size[1] // 2)
+        pos = (player.pos[0] + player.size[0] // 2, player.pos[1] + player.size[1] // 2)
         draw_circle(fog, pos, player.size[0], 100)
-        screen.blit(fog, (0 ,0), special_flags=pygame.BLEND_RGBA_MULT)
+        screen.blit(fog, (0, 0), special_flags=pygame.BLEND_RGBA_MULT)
 
         clock.tick(60)
 

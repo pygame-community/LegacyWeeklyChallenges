@@ -8,9 +8,10 @@ Feel free to modify everything in this file to your liking.
 """
 from random import choice, gauss
 
-#custom import
+# custom import
 from math import sqrt
-#custom import
+
+# custom import
 
 import pygame
 
@@ -105,25 +106,22 @@ class Ghost(Object8Directional):
 
     def logic(self, **kwargs):
         middle_area = SCREEN.inflate(-30, -30)
-        while self.rect.collidepoint(self.goal) or not middle_area.collidepoint(
-            self.goal
-        ):
+        while self.rect.collidepoint(self.goal) or not middle_area.collidepoint(self.goal):
             self.goal = self.new_goal()
 
-        self.acceleration = (
-            self.goal - self.rect.center
-        ).normalize() * self.ACCELERATION
+        self.acceleration = (self.goal - self.rect.center).normalize() * self.ACCELERATION
         super().logic(**kwargs)
 
-    #custom method
+    # custom method
     def draw(self, screen, plr_rect, light_r):
         surface = pygame.Surface.copy(self.sprite)
         ghost_rect = self.rect.center
-        distance = sqrt((plr_rect[0]-ghost_rect[0])**2 + (plr_rect[1]-ghost_rect[1])**2)
-        distance = distance/light_r*255
-        surface.set_alpha(255-distance)
+        distance = sqrt((plr_rect[0] - ghost_rect[0]) ** 2 + (plr_rect[1] - ghost_rect[1]) ** 2)
+        distance = distance / light_r * 255
+        surface.set_alpha(255 - distance)
         screen.blit(surface, self.pos)
-    #custom method
+
+    # custom method
 
 
 class SolidObject(Object):
@@ -154,4 +152,3 @@ class SolidObject(Object):
             if not any(obj.rect.colliderect(other.rect) for other in objects):
                 objects.append(obj)
         return objects
-
