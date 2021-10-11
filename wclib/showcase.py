@@ -114,6 +114,7 @@ class MenuState(State):
 
         self.scroll = 0
         self.scroll_momentum = 0
+        self.timer = 0
 
         self.clock = pygame.time.Clock()
 
@@ -138,6 +139,11 @@ class MenuState(State):
 
     def logic(self):
         self.clock.tick(60)
+
+        # we load one app per frame, for smoother UX
+        if self.timer < len(self.buttons):
+            self.buttons[self.timer].app.load()
+        self.timer += 1
 
         if self.scrollable_surf is None:
             return
@@ -313,8 +319,12 @@ class EmbeddedApp:
         # It is discarded every time there is a call to mainloop_next.
         self.scaled_virtual_screen: Optional[pygame.Surface] = None
 
-        self.mainloop = self.load_mainloop()
-        self.mainloop_next()
+        self.mainloop = None
+
+    def load(self):
+        if self.mainloop is None:
+            self.mainloop = self.load_mainloop()
+            self.mainloop_next()
 
     def mainloop_next(self, events=(), _first=False):
         # Erase the cache
