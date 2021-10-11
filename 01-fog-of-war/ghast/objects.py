@@ -1,6 +1,7 @@
 """
 This file provides objects that can be used to make up
 a basic playground for the challenges.
+
 This code is provided so that you can focus on implementing
 a fog of war, without needed
 Feel free to modify everything in this file to your liking.
@@ -30,11 +31,14 @@ class Object:
     def rect(self):
         return pygame.Rect(self.pos, self.size)
 
-    def draw(self, screen):
-        screen.blit(self.sprite, self.pos)
+    def draw(self, screen, with_sprite=None):
+        screen.blit(self.sprite if with_sprite is None else with_sprite, self.pos)
 
     def logic(self, **kwargs):
         pass
+
+    def get_light_color(self):
+        return None
 
 
 class Object8Directional(Object):
@@ -82,6 +86,9 @@ class Player(Object8Directional):
         self.acceleration = pygame.Vector2(direction_x, direction_y) * self.ACCELERATION
         super().logic(**kwargs)
 
+    def get_light_color(self):
+        return (0.55, 0.75, 0.95)
+
 
 class Ghost(Object8Directional):
     SHEET = "pink_ghost"
@@ -104,7 +111,11 @@ class Ghost(Object8Directional):
             self.goal = self.new_goal()
 
         self.acceleration = (self.goal - self.rect.center).normalize() * self.ACCELERATION
+
         super().logic(**kwargs)
+
+    def get_light_color(self):
+        return (0.65, 0.35, 0.65)
 
 
 class SolidObject(Object):
@@ -121,8 +132,8 @@ class SolidObject(Object):
     def __init__(self, pos):
         sheet = load_image("tileset", self.SCALE)
         sheet.set_colorkey(0xFFFFFF)
-        rect = choice(self.SHEET_RECT)
-        rect = [x * self.SCALE for x in rect]
+        self.my_sheet_rect = choice(self.SHEET_RECT)
+        rect = [x * self.SCALE for x in self.my_sheet_rect]
         super().__init__(pos, sheet.subsurface(rect))
 
     @classmethod
