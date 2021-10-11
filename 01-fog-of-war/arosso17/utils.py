@@ -38,4 +38,3 @@ def from_polar(rho, theta):
     v = pygame.Vector2()
     v.from_polar((rho, theta))
     return v
-
