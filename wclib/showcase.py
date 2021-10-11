@@ -9,7 +9,6 @@ import pygame
 
 from .constants import ROOT_DIR, SIZE
 from .core import (
-    MainLoop,
     get_mainloop,
     get_challenges,
     get_entries,
@@ -87,8 +86,6 @@ class MenuState(State):
     def __init__(self, app: "App", title, buttons):
         super().__init__(app)
         self.title = title
-        self.buttons = buttons
-
         self.buttons = [
             Button(
                 *button,
