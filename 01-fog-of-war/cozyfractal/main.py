@@ -62,6 +62,7 @@ def mainloop():
         screen.fill(BACKGROUND)
 
         shadow.draw(screen, player, all_objects)
+        clock.tick(60)
 
 
 if __name__ == "__main__":

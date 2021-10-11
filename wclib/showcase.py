@@ -157,7 +157,6 @@ class MenuState(State):
 
         if self.scroll != 0:
             events = [self.fix_event(e) for e in events]
-            print(events)
 
         for button in self.buttons:
             button.handle_events(events)
