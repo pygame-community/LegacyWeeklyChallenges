@@ -4,22 +4,16 @@ import sys
 from functools import lru_cache, partial
 import traceback
 from pathlib import Path
+from random import shuffle
 from threading import Thread
 from typing import Callable, List
 
 import pygame
 
 from .constants import ROOT_DIR, SIZE
-from .core import (
-    get_mainloop,
-    get_challenges,
-    get_entries,
-    get_challenge_data,
-    get_missing_requirements,
-    install_missing_requirements,
-)
+from .core import *
 
-TITLE = "title"
+TITLE_FONT = "title"
 ACCENT = "#48929B"
 
 
@@ -67,7 +61,7 @@ class App:
     def __init__(self, initial_state: Callable[["App"], State]):
         pygame.init()
         self.running = True
-        self.screen = pygame.display.set_mode(SIZE)
+        self.screen = pygame.display.set_mode(SIZE, pygame.SCALED)
         self.states = [initial_state(self)]
 
         pygame.display.set_caption(self.TITLE)
@@ -107,7 +101,7 @@ class MenuState(State):
 
         return (
             padding + (i % cols) * col_width + (col_width - Button.TOTAL_SIZE[0]) / 2,
-            120 + i // cols * (Button.TOTAL_SIZE[1] + padding),
+            100 + i // cols * (Button.TOTAL_SIZE[1] + padding),
         )
 
     def button_click(self, data):
@@ -117,7 +111,7 @@ class MenuState(State):
         super().draw(screen)
         screen.fill(ACCENT, (0, 0, SIZE[0], 4))
 
-        t = text(self.title, 0xEEEEEE00, 82, TITLE)
+        t = text(self.title, 0xEEEEEE00, 82, TITLE_FONT)
         screen.blit(t, t.get_rect(midtop=(SIZE[0] / 2, 20)))
 
         for button in self.buttons:
@@ -144,6 +138,7 @@ class ChallengeSelectState(MenuState):
 class EntrySelectState(MenuState):
     def __init__(self, app: "App", challenge):
         buttons = [(challenge, entry) for entry in get_entries(challenge)]
+        shuffle(buttons)
         super().__init__(app, get_challenge_data(challenge).name, buttons)
         self.challenge = challenge
 
@@ -171,7 +166,7 @@ class EntryViewState(State):
 
 class Button:
     NAME_HEIGHT = 32
-    SIZE = (SIZE[0] // 5, SIZE[1] // 5)
+    SIZE = (SIZE[0] // 6, SIZE[1] // 6)
     TOTAL_SIZE = (SIZE[0], SIZE[1] + NAME_HEIGHT)
 
     def __init__(self, challenge, entry, callback, position):
@@ -208,7 +203,7 @@ class Button:
 
         self.app.handle_events(events)
         for event in events:
-            if event.type == pygame.MOUSEBUTTONDOWN:
+            if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                 self.callback()
 
 
@@ -236,13 +231,8 @@ class EmbeddedApp:
             if e.args == ("can't send non-None value to a just-started generator",):
                 return self.mainloop_next(events, True)
             else:
-                # Double yuck!
-                print("Error:", e)
-                print(traceback.print_exc())
                 self.mainloop = self.crashed_mainloop(e)
         except Exception as e:  # Or BaseException ?
-            print("Error:", e)
-            print(traceback.print_exc())
             self.mainloop = self.crashed_mainloop(e)
 
     def load_mainloop(self):
@@ -298,9 +288,12 @@ class EmbeddedApp:
             return
 
         if self.rect.size != self.virtual_screen.get_size():
-            pygame.transform.smoothscale(
-                self.virtual_screen, self.rect.size, screen.subsurface(self.rect)
-            )
+            try:
+                pygame.transform.smoothscale(
+                    self.virtual_screen, self.rect.size, screen.subsurface(self.rect)
+                )
+            except ValueError:
+                pass
         else:
             screen.blit(self.virtual_screen, self.rect)
 
@@ -350,26 +343,20 @@ class EmbeddedApp:
                 color = "#4B7B8C"
             pygame.draw.rect(screen, color, install_rect, border_radius=10)
             # Button text
-            txt = (
-                "Install via pip"
-                if not installing
-                else "Installing" + "." * (timer // 30 % 4)
-            )
+            txt = "Install via pip" if not installing else "Installing" + "." * (timer // 30 % 4)
             t = text(txt, "white", 80)
             screen.blit(t, t.get_rect(center=install_rect.center))
 
             # installation finished!
             if installing and not install_thread.is_alive():
                 self.mainloop = None
-                self.missing_requirements = get_missing_requirements(
-                    self.challenge, self.entry
-                )
+                self.missing_requirements = get_missing_requirements(self.challenge, self.entry)
                 print("Still missing after install:", self.missing_requirements)
                 return
 
     def crashed_mainloop(self, error):
-        print(error)
-        print(traceback.print_exc())
+        print("Error:", error, file=sys.stderr)
+        traceback.print_tb(error.__traceback__, file=sys.stderr)
         screen, events = yield
 
         t = text(f"Crashed: {error}", "red", 30)

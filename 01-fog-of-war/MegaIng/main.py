@@ -1,7 +1,6 @@
 import sys
 from pathlib import Path
 
-from MegaIng.utils import interpolate
 
 try:
     import wclib
@@ -34,6 +33,7 @@ import pygame
 # To import the modules in yourname/, you need to use relative imports,
 # otherwise your project will not be compatible with the showcase.
 from .objects import Ghost, Player, SolidObject
+from .utils import interpolate
 
 BACKGROUND = (0x66, 0x85, 0x6C)
 
