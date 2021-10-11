@@ -1,7 +1,7 @@
 import importlib
 import json
 import sys
-from functools import lru_cache
+from functools import lru_cache, partial
 from pathlib import Path
 from typing import Callable, List
 
@@ -92,7 +92,7 @@ class MenuState(State):
         self.buttons = [
             Button(
                 *button,
-                lambda: self.button_click(button),
+                partial(self.button_click, button),
                 self.button_position(i),
             )
             for i, button in enumerate(buttons)
