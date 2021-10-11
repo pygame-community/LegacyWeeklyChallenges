@@ -5,7 +5,7 @@ from functools import lru_cache
 from functools import partial
 from random import shuffle
 from threading import Thread
-from typing import Callable
+from typing import Callable, Optional
 
 import pygame
 
@@ -112,6 +112,8 @@ class MenuState(State):
             self.scrollable_surf = None
         self.scroll = 0
 
+        self.clock = pygame.time.Clock()
+
     def button_position(self, i):
         gaps = self.GAPS
         cols = SIZE[0] // (Button.TOTAL_SIZE[0] + gaps)
@@ -124,6 +126,9 @@ class MenuState(State):
 
     def button_click(self, data):
         raise NotImplemented
+
+    def logic(self):
+        self.clock.tick(60)
 
     def draw(self, screen: pygame.Surface):
         if self.scrollable_surf is not None and screen is not self.scrollable_surf:
@@ -271,10 +276,19 @@ class EmbeddedApp:
         self.virtual_screen = pygame.Surface(SIZE)
         self.missing_requirements = get_missing_requirements(challenge, entry)
 
+        # This one is for performance improvement.
+        # Most buttons are not to be redrawn nor scaled every frame,
+        # So we keep the scaled surface if we can.
+        # It is discarded every time there is a call to mainloop_next.
+        self.scaled_virtual_screen: Optional[pygame.Surface] = None
+
         self.mainloop = self.load_mainloop()
         self.mainloop_next()
 
     def mainloop_next(self, events=(), _first=False):
+        # Erase the cache
+        self.scaled_virtual_screen = None
+
         try:
             events = list(self.modify_events(events))
             if _first:
@@ -344,12 +358,11 @@ class EmbeddedApp:
             return
 
         if self.rect.size != self.virtual_screen.get_size():
-            try:
-                pygame.transform.smoothscale(
-                    self.virtual_screen, self.rect.size, screen.subsurface(self.rect)
+            if self.scaled_virtual_screen is None:
+                self.scaled_virtual_screen = pygame.transform.smoothscale(
+                    self.virtual_screen, self.rect.size
                 )
-            except ValueError:
-                pass
+            screen.blit(self.scaled_virtual_screen, self.rect)
         else:
             screen.blit(self.virtual_screen, self.rect)
 
