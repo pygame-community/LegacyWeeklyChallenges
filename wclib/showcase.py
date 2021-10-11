@@ -2,7 +2,9 @@ import importlib
 import json
 import sys
 from functools import lru_cache, partial
+import traceback
 from pathlib import Path
+from threading import Thread
 from typing import Callable, List
 
 import pygame
@@ -13,6 +15,8 @@ from .core import (
     get_challenges,
     get_entries,
     get_challenge_data,
+    get_missing_requirements,
+    install_missing_requirements,
 )
 
 TITLE = "title"
@@ -214,25 +218,165 @@ class EmbeddedApp:
         self.entry = entry
         self.rect = pygame.Rect(rect)
         self.virtual_screen = pygame.Surface(SIZE)
+        self.missing_requirements = get_missing_requirements(challenge, entry)
 
-        self.mainloop = get_mainloop(challenge, entry)
-        next(self.mainloop)
-        self.mainloop.send((self.virtual_screen, []))
+        self.mainloop = self.load_mainloop()
+        self.mainloop_next()
 
-        self.crashed = False
+    def mainloop_next(self, events=(), _first=False):
+        try:
+            events = list(self.modify_events(events))
+            if _first:
+                next(self.mainloop)
+            self.mainloop.send((self.virtual_screen, events))
+        except StopIteration:
+            pass
+        except TypeError as e:
+            # Yuck!
+            if e.args == ("can't send non-None value to a just-started generator",):
+                return self.mainloop_next(events, True)
+            else:
+                # Double yuck!
+                print("Error:", e)
+                print(traceback.print_exc())
+                self.mainloop = self.crashed_mainloop(e)
+        except Exception as e:  # Or BaseException ?
+            print("Error:", e)
+            print(traceback.print_exc())
+            self.mainloop = self.crashed_mainloop(e)
+
+    def load_mainloop(self):
+        if self.missing_requirements:
+            loop = self.install_mainloop()
+        else:
+            try:
+                loop = get_mainloop(self.challenge, self.entry)
+            except Exception as e:
+                loop = self.crashed_mainloop(e)
+
+        return loop
 
     def handle_events(self, events):
-        try:
-            self.mainloop.send((self.virtual_screen, events))
-        except Exception:  # Or BaseException ?
-            self.crashed = True
-            t = text("Crashed", "red", 30)
-            self.virtual_screen.blit(t, t.get_rect(center=self.virtual_screen.get_rect().center))
+        if not self.mainloop:
+            self.mainloop = self.load_mainloop()
+
+        self.mainloop_next(events)
+
+    def modify_mouse_pos(self, pos):
+        return (
+            (pos[0] - self.rect.x) * self.virtual_screen.get_width() // self.rect.w,
+            (pos[1] - self.rect.y) * self.virtual_screen.get_height() // self.rect.h,
+        )
+
+    def modify_mouse_rel(self, pos):
+        return (
+            (pos[0]) * self.virtual_screen.get_width() // self.rect.width,
+            (pos[1]) * self.virtual_screen.get_height() // self.rect.height,
+        )
+
+    def modify_events(self, events):
+        for event in events:
+            # We don't modify events as they may be used by other EmbeddedApps.
+            if event.type in (pygame.MOUSEBUTTONDOWN, pygame.MOUSEBUTTONUP):
+                yield pygame.event.Event(
+                    event.type,
+                    button=event.button,
+                    pos=self.modify_mouse_pos(event.pos),
+                )
+            elif event.type == pygame.MOUSEMOTION:
+                yield pygame.event.Event(
+                    event.type,
+                    buttons=event.buttons,
+                    pos=self.modify_mouse_pos(event.pos),
+                    rel=self.modify_mouse_rel(event.rel),
+                )
+            else:
+                yield event
 
     def draw(self, screen: pygame.Surface):
+        if not self.mainloop:
+            return
+
         if self.rect.size != self.virtual_screen.get_size():
             pygame.transform.smoothscale(
                 self.virtual_screen, self.rect.size, screen.subsurface(self.rect)
             )
         else:
             screen.blit(self.virtual_screen, self.rect)
+
+    def install_mainloop(self):
+        w, h = SIZE
+        install_rect = pygame.Rect(0, 0, 600, 100)
+        install_rect.midbottom = (w / 2, h - 100)
+        mouse = (0, 0)
+        installing = False
+        install_thread = None
+        timer = 0
+        clock = pygame.time.Clock()
+
+        while True:
+            timer += 1
+            clock.tick(60)
+            screen, events = yield
+
+            for event in events:
+                if event.type == pygame.MOUSEMOTION:
+                    mouse = event.pos
+                if (
+                    event.type == pygame.MOUSEBUTTONDOWN
+                    and install_rect.collidepoint(mouse)
+                    and not installing
+                ):
+                    installing = True
+                    install_thread = Thread(
+                        target=install_missing_requirements,
+                        args=(self.challenge, self.entry),
+                    )
+                    install_thread.start()
+
+            screen.fill("#272822")
+            t = text("Missing requirements:", "white", 90)
+            r = screen.blit(t, t.get_rect(midtop=(w / 2, 50)))
+
+            for req in self.missing_requirements:
+                t = text(req, "white", 72)
+                r.top += 30
+                r = screen.blit(t, t.get_rect(midtop=r.midbottom))
+
+            # install button
+            if install_rect.collidepoint(mouse):
+                color = "#6B9BAC"
+            else:
+                color = "#4B7B8C"
+            pygame.draw.rect(screen, color, install_rect, border_radius=10)
+            # Button text
+            txt = (
+                "Install via pip"
+                if not installing
+                else "Installing" + "." * (timer // 30 % 4)
+            )
+            t = text(txt, "white", 80)
+            screen.blit(t, t.get_rect(center=install_rect.center))
+
+            # installation finished!
+            if installing and not install_thread.is_alive():
+                self.mainloop = None
+                self.missing_requirements = get_missing_requirements(
+                    self.challenge, self.entry
+                )
+                print("Still missing after install:", self.missing_requirements)
+                return
+
+    def crashed_mainloop(self, error):
+        print(error)
+        print(traceback.print_exc())
+        screen, events = yield
+
+        t = text(f"Crashed: {error}", "red", 30)
+        r = screen.blit(t, t.get_rect(center=screen.get_rect().center))
+        t = text("Check the console for details.", "red", 30)
+        screen.blit(t, t.get_rect(midtop=r.midbottom))
+
+        while True:
+            # Do nothing.
+            screen, events = yield
