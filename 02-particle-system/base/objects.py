@@ -84,7 +84,12 @@ class Object:
 
     def collide(self, other: "Object") -> bool:
         """Whether two objects collide."""
-        return self.center.distance_to(other.center) <= self.radius + other.radius
+        # The distance must be modified because everything wraps
+        dx = (self.center.x - other.center.x) % SIZE[0]
+        dx = min(dx, SIZE[0] - dx)
+        dy = (self.center.y - other.center.y) % SIZE[1]
+        dy = min(dy, SIZE[1] - dy)
+        return (dx ** 2 + dy ** 2) <= (self.radius + other.radius) ** 2
 
     @property
     def rotated_sprite(self):
@@ -139,6 +144,9 @@ class Object:
                     center=self.center + shifts[0] + shifts[1]
                 ),
             )
+
+        # To see the exact size of the hitboxes
+        # pygame.draw.circle(screen, "red", self.center, self.radius, width=1)
 
     def logic(self, **kwargs):
         # self.vel = clamp_vector(self.vel, self.MAX_VEL)
