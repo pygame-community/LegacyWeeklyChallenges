@@ -1,12 +1,11 @@
-import importlib
-import json
 import sys
-from functools import lru_cache, partial
 import traceback
-from pathlib import Path
+from _operator import attrgetter
+from functools import lru_cache
+from functools import partial
 from random import shuffle
 from threading import Thread
-from typing import Callable, List
+from typing import Callable
 
 import pygame
 
@@ -27,6 +26,16 @@ def font(size=20, name=None):
 @lru_cache()
 def text(txt, color, size=20, font_name=None):
     return font(size, font_name).render(str(txt), True, color)
+
+
+def clamp(value, mini, maxi):
+    """Clamp value between mini and maxi"""
+    if value < mini:
+        return mini
+    elif maxi < value:
+        return maxi
+    else:
+        return value
 
 
 class State:
@@ -81,6 +90,9 @@ class App:
 
 
 class MenuState(State):
+    SCROLL_SPEED = 10
+    GAPS = 20  # pixels between each button
+
     def __init__(self, app: "App", title, buttons):
         super().__init__(app)
         self.title = title
@@ -92,27 +104,45 @@ class MenuState(State):
             )
             for i, button in enumerate(buttons)
         ]
+        total_height = self.buttons[-1].rect.bottom + self.GAPS * 2
 
-    @staticmethod
-    def button_position(i):
-        padding = 5
-        cols = (SIZE[0] - 2 * padding) // Button.TOTAL_SIZE[0]
-        col_width = SIZE[0] / cols
+        if total_height > SIZE[1]:
+            self.scrollable_surf = pygame.Surface((SIZE[0], total_height))
+        else:
+            self.scrollable_surf = None
+        self.scroll = 0
+
+    def button_position(self, i):
+        gaps = self.GAPS
+        cols = SIZE[0] // (Button.TOTAL_SIZE[0] + gaps)
+        start = (SIZE[0] - cols * Button.TOTAL_SIZE[0] - (cols - 1) * gaps) / 2
 
         return (
-            padding + (i % cols) * col_width + (col_width - Button.TOTAL_SIZE[0]) / 2,
-            100 + i // cols * (Button.TOTAL_SIZE[1] + padding),
+            start + (i % cols) * (Button.TOTAL_SIZE[0] + gaps),
+            130 + i // cols * (Button.TOTAL_SIZE[1] + gaps),
         )
 
     def button_click(self, data):
         raise NotImplemented
 
     def draw(self, screen: pygame.Surface):
+        if self.scrollable_surf is not None and screen is not self.scrollable_surf:
+            # Swap screen and self.scrollable_surf
+            self.draw(self.scrollable_surf)
+            screen.blit(self.scrollable_surf.subsurface(0, self.scroll, *SIZE), (0, 0))
+
+            if self.scroll <= 100:
+                t = text("Scroll down!", ACCENT)
+                t.set_alpha(int((1 - self.scroll / 100) * 255))
+                screen.blit(t, t.get_rect(bottomright=SIZE - pygame.Vector2(10, 10)))
+
+            return
+
         super().draw(screen)
         screen.fill(ACCENT, (0, 0, SIZE[0], 4))
 
         t = text(self.title, 0xEEEEEE00, 82, TITLE_FONT)
-        screen.blit(t, t.get_rect(midtop=(SIZE[0] / 2, 20)))
+        screen.blit(t, t.get_rect(midtop=(SIZE[0] / 2, self.GAPS * 1.5)))
 
         for button in self.buttons:
             button.draw(screen)
@@ -120,8 +150,34 @@ class MenuState(State):
     def handle_events(self, events):
         super().handle_events(events)
 
+        for event in events:
+            if event.type == pygame.MOUSEWHEEL and self.scrollable_surf:
+                self.scroll += event.y * self.SCROLL_SPEED
+                self.scroll = clamp(self.scroll, 0, self.scrollable_surf.get_height() - SIZE[1])
+
+        if self.scroll != 0:
+            events = [self.fix_event(e) for e in events]
+            print(events)
+
         for button in self.buttons:
             button.handle_events(events)
+
+    def fix_event(self, event):
+        # We return new event to not interfere with other objects using events
+        if event.type in (pygame.MOUSEBUTTONDOWN, pygame.MOUSEBUTTONUP):
+            return pygame.event.Event(
+                event.type,
+                button=event.button,
+                pos=(event.pos[0], event.pos[1] + self.scroll),
+            )
+        elif event.type == pygame.MOUSEMOTION:
+            return pygame.event.Event(
+                event.type,
+                buttons=event.buttons,
+                pos=(event.pos[0], event.pos[1] + self.scroll),
+                rel=event.rel,
+            )
+        return event
 
 
 class ChallengeSelectState(MenuState):
@@ -166,7 +222,7 @@ class EntryViewState(State):
 
 class Button:
     NAME_HEIGHT = 32
-    SIZE = (SIZE[0] // 6, SIZE[1] // 6)
+    SIZE = (SIZE[0] // 5, SIZE[1] // 5)
     TOTAL_SIZE = (SIZE[0], SIZE[1] + NAME_HEIGHT)
 
     def __init__(self, challenge, entry, callback, position):
@@ -196,15 +252,16 @@ class Button:
         screen.blit(t, t.get_rect(center=self.rect.midbottom + offset))
 
     def handle_events(self, events):
-        self.mouse_over = self.rect.collidepoint(pygame.mouse.get_pos())
-
-        if not self.mouse_over:
-            return
-
-        self.app.handle_events(events)
         for event in events:
             if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-                self.callback()
+                if self.rect.collidepoint(event.pos):
+                    self.callback()
+
+            if event.type == pygame.MOUSEMOTION:
+                self.mouse_over = self.rect.collidepoint(event.pos)
+
+        if self.mouse_over:
+            self.app.handle_events(events)
 
 
 class EmbeddedApp:
