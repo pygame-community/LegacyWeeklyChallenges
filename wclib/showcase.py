@@ -91,6 +91,7 @@ class App:
 
 class MenuState(State):
     SCROLL_SPEED = 10
+    SCROLL_FRICTION = 0.8
     GAPS = 20  # pixels between each button
 
     def __init__(self, app: "App", title, buttons):
@@ -110,9 +111,17 @@ class MenuState(State):
             self.scrollable_surf = pygame.Surface((SIZE[0], total_height))
         else:
             self.scrollable_surf = None
+
         self.scroll = 0
+        self.scroll_momentum = 0
 
         self.clock = pygame.time.Clock()
+
+    @property
+    def max_scroll(self):
+        if self.scrollable_surf is None:
+            return 0
+        return self.scrollable_surf.get_height() - SIZE[1]
 
     def button_position(self, i):
         gaps = self.GAPS
@@ -130,11 +139,33 @@ class MenuState(State):
     def logic(self):
         self.clock.tick(60)
 
+        if self.scrollable_surf is None:
+            return
+
+        self.scroll_momentum *= self.SCROLL_FRICTION
+        self.scroll += self.scroll_momentum
+
+        t = 0.7
+        if self.scroll <= 0:
+            target = 0
+        elif self.scroll >= self.max_scroll:
+            target = self.max_scroll
+        else:
+            return
+
+        self.scroll_momentum = self.scroll_momentum * t + (1 - t) * ((target - self.scroll) / 4)
+
     def draw(self, screen: pygame.Surface):
         if self.scrollable_surf is not None and screen is not self.scrollable_surf:
             # Swap screen and self.scrollable_surf
             self.draw(self.scrollable_surf)
-            screen.blit(self.scrollable_surf.subsurface(0, self.scroll, *SIZE), (0, 0))
+            screen.blit(self.scrollable_surf, (0, -self.scroll))
+
+            if self.scroll < 0:
+                screen.fill(ACCENT, (0, 0, SIZE[0], -self.scroll))
+            elif self.scroll > self.max_scroll:
+                bottom_blank = self.scroll - self.max_scroll
+                screen.fill(self.BG_COLOR, (0, SIZE[1] - bottom_blank, SIZE[0], bottom_blank))
 
             if self.scroll <= 100:
                 t = text("Scroll down!", ACCENT)
@@ -157,8 +188,8 @@ class MenuState(State):
 
         for event in events:
             if event.type == pygame.MOUSEWHEEL and self.scrollable_surf:
-                self.scroll += event.y * self.SCROLL_SPEED
-                self.scroll = clamp(self.scroll, 0, self.scrollable_surf.get_height() - SIZE[1])
+                self.scroll_momentum += event.y * self.SCROLL_SPEED
+                # self.scroll = clamp(self.scroll, 0, self.scrollable_surf.get_height() - SIZE[1])
 
         if self.scroll != 0:
             events = [self.fix_event(e) for e in events]
