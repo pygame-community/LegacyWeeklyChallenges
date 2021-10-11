@@ -78,7 +78,6 @@ class Object8Directional(Object):
 
 
 class Player(Object8Directional):
-
     def logic(self, **kwargs):
         pressed = pygame.key.get_pressed()
         direction_x = pressed[pygame.K_RIGHT] - pressed[pygame.K_LEFT]
@@ -108,14 +107,10 @@ class Ghost(Object8Directional):
 
     def logic(self, **kwargs):
         middle_area = SCREEN.inflate(-30, -30)
-        while self.rect.collidepoint(self.goal) or not middle_area.collidepoint(
-            self.goal
-        ):
+        while self.rect.collidepoint(self.goal) or not middle_area.collidepoint(self.goal):
             self.goal = self.new_goal()
 
-        self.acceleration = (
-            self.goal - self.rect.center
-        ).normalize() * self.ACCELERATION
+        self.acceleration = (self.goal - self.rect.center).normalize() * self.ACCELERATION
 
         super().logic(**kwargs)
 

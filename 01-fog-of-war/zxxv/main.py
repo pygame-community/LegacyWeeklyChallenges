@@ -40,24 +40,28 @@ FOG_COLOR = (0, 0, 0, 0)
 
 
 class Game:
-    '''
+    """
     Game object to control updating object initialization, logic updates, and drawing the fog.
-    '''
+    """
+
     def __init__(self):
-        self.players = [Player((100, 100), 200, 'arrow'), Player((400, 400), 200, 'wasd')]
+        self.players = [
+            Player((100, 100), 200, "arrow"),
+            Player((400, 400), 200, "wasd"),
+        ]
         self.trees = SolidObject.generate_many(36)
         self.ghosts = [Ghost() for _ in range(16)]
 
-        self.all_objects = self.ghosts + self.trees + self.players 
+        self.all_objects = self.ghosts + self.trees + self.players
 
         self.fog_surface = pygame.Surface(wclib.SIZE)
         self.fog_surface.fill(FOG_COLOR)
-    
+
     def update(self, screen, events):
         # Logic
         for obj in self.all_objects:
             obj.logic(objects=self.all_objects)
-        
+
         # Draw
         screen.fill(BACKGROUND)
         for object in sorted(self.all_objects, key=attrgetter("rect.bottom")):
@@ -69,13 +73,17 @@ class Game:
         k = 100
         for i in range(k):
             for player in self.players:
-            # for i in range(k):
-                pygame.draw.circle(self.fog_surface, ((255//k)*i, (255//k)*i, (255//k)*i, 50), player.center_pos, player.radius - i)
+                # for i in range(k):
+                pygame.draw.circle(
+                    self.fog_surface,
+                    ((255 // k) * i, (255 // k) * i, (255 // k) * i, 50),
+                    player.center_pos,
+                    player.radius - i,
+                )
         for tree in self.trees:
             tree.draw(self.fog_surface)
         screen.blit(self.fog_surface, (0, 0), special_flags=pygame.BLEND_RGBA_MIN)
 
-    
 
 def mainloop():
     # player = Player((100, 100))

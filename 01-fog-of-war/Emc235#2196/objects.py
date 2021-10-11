@@ -70,14 +70,14 @@ class Object8Directional(Object):
         self.velocity += self.acceleration
         self.pos += self.velocity
         self.sprite = self.get_image()
-        self.pos.x = clamp(self.pos.x, 0, SIZE[0]-self.sprite.get_width())
-        self.pos.y = clamp(self.pos.y, 0, SIZE[1]-self.sprite.get_height())
+        self.pos.x = clamp(self.pos.x, 0, SIZE[0] - self.sprite.get_width())
+        self.pos.y = clamp(self.pos.y, 0, SIZE[1] - self.sprite.get_height())
 
 
 class Player(Object8Directional):
     def __init__(self, pos) -> None:
         super().__init__(pos)
-        self.radius = self.sprite.get_height()*2 + self.sprite.get_height()
+        self.radius = self.sprite.get_height() * 2 + self.sprite.get_height()
 
     def logic(self, **kwargs):
         pressed = pygame.key.get_pressed()
@@ -110,15 +110,20 @@ class Ghost(Object8Directional):
             self.goal = self.new_goal()
 
         self.acceleration = (
-            self.goal - self.rect.center
-        ).normalize() * self.ACCELERATION * kwargs.get("dt", 1)
+            (self.goal - self.rect.center).normalize() * self.ACCELERATION * kwargs.get("dt", 1)
+        )
         super().logic(**kwargs)
 
     def draw(self, screen):
-        if self.pos.distance_to(self.player.rect.center) < self.player.radius or\
-           pygame.math.Vector2(self.rect.topright).distance_to(self.player.rect.center) < self.player.radius or\
-           pygame.math.Vector2(self.rect.bottomright).distance_to(self.player.rect.center) < self.player.radius or\
-           pygame.math.Vector2(self.rect.bottomleft).distance_to(self.player.rect.center) < self.player.radius:
+        if (
+            self.pos.distance_to(self.player.rect.center) < self.player.radius
+            or pygame.math.Vector2(self.rect.topright).distance_to(self.player.rect.center)
+            < self.player.radius
+            or pygame.math.Vector2(self.rect.bottomright).distance_to(self.player.rect.center)
+            < self.player.radius
+            or pygame.math.Vector2(self.rect.bottomleft).distance_to(self.player.rect.center)
+            < self.player.radius
+        ):
             screen.blit(self.sprite, self.pos)
 
 
@@ -167,9 +172,16 @@ class LayeredVisibility:
 
         pygame.draw.circle(self.old_surf, (30, 30, 30), self.player.rect.center, self.player.radius)
         old_surf_copy = self.old_surf.copy()
-        pygame.draw.circle(old_surf_copy, (255, 255, 255), self.player.rect.center, self.player.radius)
+        pygame.draw.circle(
+            old_surf_copy, (255, 255, 255), self.player.rect.center, self.player.radius
+        )
         for i in range(0, 100, 1):
-            pygame.draw.circle(old_surf_copy, (30+i, 30+i, 30+i), self.player.rect.center, self.player.radius-i)
+            pygame.draw.circle(
+                old_surf_copy,
+                (30 + i, 30 + i, 30 + i),
+                self.player.rect.center,
+                self.player.radius - i,
+            )
 
         WIN.blit(self.old_surf, (0, 0))
         WIN.blit(old_surf_copy, (0, 0))

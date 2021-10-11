@@ -43,12 +43,18 @@ class FloodIter:
         self.asking_routes: Set[Tuple[int, int]] = set()
         self.possible_movement = PossibleMovement()
         self.first_time: bool = True
-        self.iterator = iterator((self.flood_info.start_x, self.flood_info.start_y), self.possible_movement,
-                                 self.flood_info.max_iterations)
+        self.iterator = iterator(
+            (self.flood_info.start_x, self.flood_info.start_y),
+            self.possible_movement,
+            self.flood_info.max_iterations,
+        )
 
     def start(self):
-        self.iterator = iterator((self.flood_info.start_x, self.flood_info.start_y), self.possible_movement,
-                                 self.flood_info.max_iterations)
+        self.iterator = iterator(
+            (self.flood_info.start_x, self.flood_info.start_y),
+            self.possible_movement,
+            self.flood_info.max_iterations,
+        )
         return self
 
     def __iter__(self) -> "FloodIter":
@@ -57,7 +63,12 @@ class FloodIter:
     def __next__(self) -> Tuple[int, int, int, "PossibleMovement"]:
         if self.first_time:
             self.first_time = False
-            return self.flood_info.start_x, self.flood_info.start_y, 0, self.possible_movement
+            return (
+                self.flood_info.start_x,
+                self.flood_info.start_y,
+                0,
+                self.possible_movement,
+            )
         return next(self.iterator) + (self.possible_movement,)
 
 
@@ -88,8 +99,10 @@ class PossibleMovement:
     # noinspection PyMethodMayBeStatic
     def raw_movement(self, pos: Tuple[int, int]):
         ret: List[Tuple[int, int]] = [
-            (pos[0] - 1, pos[1]), (pos[0], pos[1] - 1),
-            (pos[0] + 1, pos[1]), (pos[0], pos[1] + 1)
+            (pos[0] - 1, pos[1]),
+            (pos[0], pos[1] - 1),
+            (pos[0] + 1, pos[1]),
+            (pos[0], pos[1] + 1),
         ]
 
         return ret
@@ -108,7 +121,7 @@ class PossibleMovement:
 
 
 def iterator(
-        start_pos: Tuple[int, int], is_correct: PossibleMovement, max_depth: int
+    start_pos: Tuple[int, int], is_correct: PossibleMovement, max_depth: int
 ) -> Iterator[Tuple[int, int, int]]:
 
     routes: Set[Tuple[int, int]] = set()

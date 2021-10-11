@@ -50,7 +50,7 @@ def mainloop():
     light = pygame.Surface((200, 200), pygame.SRCALPHA)
     light.fill((255, 255, 255, 0))
     for i in range(100):
-        pygame.draw.circle(light, 3*[0]+[i], (100, 100), 100-i)
+        pygame.draw.circle(light, 3 * [0] + [i], (100, 100), 100 - i)
 
     # how slowly we want fog to come back
     fog_persistance = 4
@@ -76,7 +76,7 @@ def mainloop():
 
         # make ghosts disappear if they are out of player view range
         for ghost in ghosts:
-            ghost.sprite.set_alpha((120 - ghost.pos.distance_to(player.pos))*4)
+            ghost.sprite.set_alpha((120 - ghost.pos.distance_to(player.pos)) * 4)
 
         # draw all objects
         for obj in sorted(all_objects, key=attrgetter("rect.bottom")):
@@ -94,7 +94,9 @@ def mainloop():
         # blit the fog
         screen.blit(dark, (0, 0))
         if __name__ == "__main__":
-            pygame.display.set_caption(f"{__author__}'s fog of war   -   {int(clock.get_fps())}/60FPS")
+            pygame.display.set_caption(
+                f"{__author__}'s fog of war   -   {int(clock.get_fps())}/60FPS"
+            )
         clock.tick(60)
 
 

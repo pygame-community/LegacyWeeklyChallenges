@@ -59,8 +59,8 @@ def mainloop():
         fog.logic(player, menu)
         menu.logic()
 
-        #screen.fill(BACKGROUND)
-        #for object in sorted(all_objects, key=attrgetter("rect.bottom")):
+        # screen.fill(BACKGROUND)
+        # for object in sorted(all_objects, key=attrgetter("rect.bottom")):
         #    object.draw(screen)
         fog.draw(screen, all_objects)
         menu.draw(screen)

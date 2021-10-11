@@ -122,7 +122,7 @@ def get_1d_gaussian_kernel(n_points, std_dev=GAUSSIAN_STD_DEV, _cache={}):
         raw_values = []
         for i in range(n_points):
             x = ((i + 0.5) - n_points / 2) / (n_points / 2)
-            y = 1 / math.sqrt(2 * math.pi * std_dev) * math.exp(-0.5 * x**2 / std_dev)
+            y = 1 / math.sqrt(2 * math.pi * std_dev) * math.exp(-0.5 * x ** 2 / std_dev)
             raw_values.append(y)
         total_sum = sum(raw_values)
         normalized_values = [y / total_sum for y in raw_values]
@@ -137,15 +137,14 @@ def blur_array(array, radius: int):
 
     # XXX these calls are dreadfully slow on large surfaces
     # yoinked from https://stackoverflow.com/a/65804973
-    array = numpy.apply_along_axis(lambda x: numpy.convolve(x, kernel, mode='same'), 0, array)
-    array = numpy.apply_along_axis(lambda x: numpy.convolve(x, kernel, mode='same'), 1, array)
+    array = numpy.apply_along_axis(lambda x: numpy.convolve(x, kernel, mode="same"), 0, array)
+    array = numpy.apply_along_axis(lambda x: numpy.convolve(x, kernel, mode="same"), 1, array)
 
     return array
 
 
 def blur_surface(surface: pygame.Surface, radius: int, dest=None) -> pygame.Surface:
-    """Applies a Gaussian blur to the surface and returns the result.
-    """
+    """Applies a Gaussian blur to the surface and returns the result."""
     array = pygame.surfarray.pixels3d(surface)
     array = blur_array(array, radius)
 
@@ -158,7 +157,6 @@ def blur_surface(surface: pygame.Surface, radius: int, dest=None) -> pygame.Surf
 
 
 class LightGrid:
-
     def __init__(self, dims):
         self.surf = pygame.Surface(dims)
 
@@ -252,7 +250,9 @@ class LightGrid:
 
 def tint_image(base_img, img_key, color, colors_to_tint, _cache={}):
     int_color = intify(color)
-    tint_color = floatify([round(int_color[i] / TINT_RESOLUTION) * TINT_RESOLUTION for i in range(3)])
+    tint_color = floatify(
+        [round(int_color[i] / TINT_RESOLUTION) * TINT_RESOLUTION for i in range(3)]
+    )
 
     key = (tint_color, img_key, colors_to_tint)
 

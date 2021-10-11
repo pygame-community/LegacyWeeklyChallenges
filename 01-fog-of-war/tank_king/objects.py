@@ -103,14 +103,10 @@ class Ghost(Object8Directional):
 
     def logic(self, **kwargs):
         middle_area = SCREEN.inflate(-30, -30)
-        while self.rect.collidepoint(self.goal) or not middle_area.collidepoint(
-                self.goal
-        ):
+        while self.rect.collidepoint(self.goal) or not middle_area.collidepoint(self.goal):
             self.goal = self.new_goal()
 
-        self.acceleration = (
-                                    self.goal - self.rect.center
-                            ).normalize() * self.ACCELERATION
+        self.acceleration = (self.goal - self.rect.center).normalize() * self.ACCELERATION
         super().logic(**kwargs)
 
 
@@ -175,7 +171,9 @@ class LightGlow:
         for i in range(layers):
             k = i * self.glow
             k = clamp(k, 0, 255)
-            pygame.draw.circle(self.surf, (k, k, k), self.surf.get_rect().center, self.radius - i * 3)
+            pygame.draw.circle(
+                self.surf, (k, k, k), self.surf.get_rect().center, self.radius - i * 3
+            )
 
 
 class DarkOverlay:
@@ -183,7 +181,10 @@ class DarkOverlay:
         self.surf = pygame.Surface(SCREEN.size)
         self.light = LightGlow()
         self.cell_size = 16 * 2
-        self.grid = [[0 * random.random() for _ in range(SCREEN.w // self.cell_size)] for _ in range(SCREEN.h // self.cell_size)]
+        self.grid = [
+            [0 * random.random() for _ in range(SCREEN.w // self.cell_size)]
+            for _ in range(SCREEN.h // self.cell_size)
+        ]
 
     def draw(self, surf: pygame.Surface, pos):
         # self.light.update_glow()
@@ -203,5 +204,9 @@ class DarkOverlay:
                     k -= (11 - self.light.glow) * 2
                 k = clamp(k, 0, 255)
                 pygame.draw.rect(self.surf, (k, k, k), (col * size, row * size, size, size))
-        self.surf.blit(self.light.surf, self.light.surf.get_rect(center=pos), special_flags=pygame.BLEND_RGBA_MAX)
+        self.surf.blit(
+            self.light.surf,
+            self.light.surf.get_rect(center=pos),
+            special_flags=pygame.BLEND_RGBA_MAX,
+        )
         surf.blit(self.surf, (0, 0), special_flags=pygame.BLEND_RGBA_MULT)

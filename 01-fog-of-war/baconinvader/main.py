@@ -39,15 +39,13 @@ BACKGROUND = 0x66856C
 
 def mainloop():
     darkness = Darkness()
-    #originally I was going to have support for multiple lights but I'm a busy man okay
-    light = Light(darkness, (100,100), 255, 100, 150, 150)
+    # originally I was going to have support for multiple lights but I'm a busy man okay
+    light = Light(darkness, (100, 100), 255, 100, 150, 150)
     player = Player((100, 100))
     trees = SolidObject.generate_many(36)
     ghosts = [Ghost() for _ in range(16)]
 
     all_objects = trees + [player] + ghosts
-
-    
 
     clock = pygame.time.Clock()
     while True:
@@ -65,10 +63,10 @@ def mainloop():
         for object in sorted(visible_objects, key=attrgetter("rect.bottom")):
             object.draw(screen)
 
-        #move light to player
-        light.pos.x = player.rect.centerx-light.radius
-        light.pos.y = player.rect.centery-light.radius
-        
+        # move light to player
+        light.pos.x = player.rect.centerx - light.radius
+        light.pos.y = player.rect.centery - light.radius
+
         light.update()
         light.draw(screen, visible_objects)
         darkness.draw(screen, light)

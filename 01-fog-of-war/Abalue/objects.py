@@ -125,14 +125,10 @@ class Ghost(Object8Directional):
 
     def logic(self, **kwargs):
         middle_area = SCREEN.inflate(-30, -30)
-        while self.rect.collidepoint(self.goal) or not middle_area.collidepoint(
-            self.goal
-        ):
+        while self.rect.collidepoint(self.goal) or not middle_area.collidepoint(self.goal):
             self.goal = self.new_goal()
 
-        self.acceleration = (
-            self.goal - self.rect.center
-        ).normalize() * self.ACCELERATION
+        self.acceleration = (self.goal - self.rect.center).normalize() * self.ACCELERATION
 
         for object in kwargs["objects"]:
             if isinstance(object, Player):
@@ -173,7 +169,7 @@ class SolidObject(Object):
 class Menu:
     def __init__(self):
         # Should be a subclass of object but I'm lazy
-        self.sprite =pygame.Surface((1, 1))
+        self.sprite = pygame.Surface((1, 1))
         self.pos = pygame.Vector2(-2, -2)
         #
 
@@ -184,7 +180,7 @@ class Menu:
         pygame.font.init()
         self.FONT = pygame.font.SysFont("helvetica", self.FONT_SIZE)
         self.FONT_COLOR = pygame.Color(5, 45, 165)
-        __achievements__ = [ # can't grab from main to avoid recursive issues :(
+        __achievements__ = [  # can't grab from main to avoid recursive issues :(
             "Default",
             "Casual",
             "Ambitious",
@@ -192,7 +188,9 @@ class Menu:
         ]
         self.ACHIEVEMENTS = [self.FONT.render(a, True, self.FONT_COLOR) for a in __achievements__]
         self.gaps = [20] * len(self.ACHIEVEMENTS)
-        self.OPEN_ME_TXT = self.FONT.render("press tab to toggle menu...", True, pygame.Color(255, 255, 255))
+        self.OPEN_ME_TXT = self.FONT.render(
+            "press tab to toggle menu...", True, pygame.Color(255, 255, 255)
+        )
 
         self.open = False
         self.has_opened = False
@@ -234,7 +232,11 @@ class Menu:
                 if self.gaps[i] < 40:
                     self.gaps[i] += 2
                     self.gaps[i] = min(self.gaps[i], 40)
-                pygame.draw.rect(surface, pygame.Color(220, 220, 220), (self.rect.x, 40 + i * 50, self.rect.w, 50))
+                pygame.draw.rect(
+                    surface,
+                    pygame.Color(220, 220, 220),
+                    (self.rect.x, 40 + i * 50, self.rect.w, 50),
+                )
             else:
                 if self.gaps[i] > 20:
                     self.gaps[i] -= 2
@@ -253,8 +255,12 @@ class Fog(Renderer):
         self.FADE_ITERS = 40
         self.COLOR = pygame.Color(0, 0, 0, 255)
 
-        self.ALPHA_RANGE = [int((self.FADE_ITERS - i - 1) / self.FADE_ITERS * 200) for i in range(self.FADE_ITERS)]
-        self.RADIUS_RANGE = [self.RADIUS - self.FADE_LEN * i / self.FADE_ITERS for i in range(self.FADE_ITERS)]
+        self.ALPHA_RANGE = [
+            int((self.FADE_ITERS - i - 1) / self.FADE_ITERS * 200) for i in range(self.FADE_ITERS)
+        ]
+        self.RADIUS_RANGE = [
+            self.RADIUS - self.FADE_LEN * i / self.FADE_ITERS for i in range(self.FADE_ITERS)
+        ]
 
         self.pos = pygame.Vector2(player_rect.center)
         self.size = pygame.Vector2(pygame.display.get_window_size()) * 2
@@ -267,13 +273,23 @@ class Fog(Renderer):
         self.player_mask.fill(pygame.Color(254, 254, 254, 255))
         self.player_mask_casual = pygame.Surface((self.RADIUS * 2, self.RADIUS * 2)).convert_alpha()
         self.player_mask_casual.fill(pygame.Color(254, 254, 254, 255))
-        pygame.draw.circle(self.player_mask_casual, pygame.Color(0, 0, 0, 0), (self.RADIUS, self.RADIUS), self.RADIUS)
+        pygame.draw.circle(
+            self.player_mask_casual,
+            pygame.Color(0, 0, 0, 0),
+            (self.RADIUS, self.RADIUS),
+            self.RADIUS,
+        )
 
         # add player view mask
         for i in range(self.FADE_ITERS):
             color = pygame.Color(self.COLOR)
             color.a = self.ALPHA_RANGE[i]
-            pygame.draw.circle(self.player_mask, color, (self.RADIUS, self.RADIUS), self.RADIUS_RANGE[i])
+            pygame.draw.circle(
+                self.player_mask,
+                color,
+                (self.RADIUS, self.RADIUS),
+                self.RADIUS_RANGE[i],
+            )
 
     def logic(self, player, menu):
         self.pos.update(player.rect.center)
@@ -298,11 +314,19 @@ class Fog(Renderer):
         # draw objects
         for object in sorted(all_objects, key=attrgetter("rect.bottom")):
             if isinstance(object, Ghost):
-                fade = min(self.RADIUS, self.RADIUS * 5 / 3 - object.dist_to_player * 1.4) / self.RADIUS * 255
+                fade = (
+                    min(self.RADIUS, self.RADIUS * 5 / 3 - object.dist_to_player * 1.4)
+                    / self.RADIUS
+                    * 255
+                )
                 object.sprite.set_alpha(fade)
-                self.player_surf.blit(object.sprite, object.pos - self.pos + (self.RADIUS, self.RADIUS))
+                self.player_surf.blit(
+                    object.sprite, object.pos - self.pos + (self.RADIUS, self.RADIUS)
+                )
             else:
-                self.player_surf.blit(object.sprite, object.pos - self.pos + (self.RADIUS, self.RADIUS))
+                self.player_surf.blit(
+                    object.sprite, object.pos - self.pos + (self.RADIUS, self.RADIUS)
+                )
                 if isinstance(object, Player):
                     player = object
             if not isinstance(object, Object8Directional):
@@ -320,4 +344,7 @@ class Fog(Renderer):
             self.player_surf.blit(self.player_mask_casual, (0, 0))
         self.player_surf.set_colorkey(pygame.Color(254, 254, 254))
         screen.blit(self.explore_surf, (0, 0))
-        screen.blit(self.player_surf, pygame.Vector2(player.rect.center) - (self.RADIUS, self.RADIUS))
+        screen.blit(
+            self.player_surf,
+            pygame.Vector2(player.rect.center) - (self.RADIUS, self.RADIUS),
+        )

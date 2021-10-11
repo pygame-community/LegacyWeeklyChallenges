@@ -39,9 +39,7 @@ BACKGROUND = 0x66856C
 
 def draw_gradient(surf, pos, radius, dep_alpha):
     for i in range(20, 0, -1):
-        pygame.draw.circle(
-            surf, (0, 0, 0, dep_alpha - (-i) * 7), pos, int(radius * i / 20)
-        )
+        pygame.draw.circle(surf, (0, 0, 0, dep_alpha - (-i) * 7), pos, int(radius * i / 20))
 
 
 def mainloop():
@@ -78,9 +76,7 @@ def mainloop():
 
         second_surf.fill((0, 0, 0))
 
-        pygame.draw.circle(
-            surf, (0, 0, 0, 0), player.pos + pygame.Vector2(20, 20), radius
-        )
+        pygame.draw.circle(surf, (0, 0, 0, 0), player.pos + pygame.Vector2(20, 20), radius)
         draw_gradient(second_surf, player.pos + pygame.Vector2(20, 20), radius, 100)
         screen.blit(second_surf, (0, 0))
         screen.blit(surf, (0, 0))

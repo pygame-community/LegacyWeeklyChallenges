@@ -39,7 +39,14 @@ BACKGROUND = (0x66, 0x85, 0x6C)
 
 
 class FogOverlay:
-    def __init__(self, player: Player, view_radii: tuple[int, int], alpha_radii: tuple[int, int], base_alpha: int, steps: int):
+    def __init__(
+        self,
+        player: Player,
+        view_radii: tuple[int, int],
+        alpha_radii: tuple[int, int],
+        base_alpha: int,
+        steps: int,
+    ):
         self.player = player
         self.view_radii = view_radii
         self.alpha_radii = alpha_radii
@@ -52,31 +59,29 @@ class FogOverlay:
 
     def update_overlays(self):
         self.active_overlay.fill((0, 0, 0, 255))  # Solid black
-        center = self.player.pos + self.player.size / 2  # Center on player, looks slightly better than topleft
+        center = (
+            self.player.pos + self.player.size / 2
+        )  # Center on player, looks slightly better than topleft
         for radius, alpha in (
-                (interpolate(i, 0, self.steps, *self.view_radii),
-                 interpolate(i, 0, self.steps, *self.alpha_radii, power=2)
-                 )
-                for i in reversed(range(self.steps))
+            (
+                interpolate(i, 0, self.steps, *self.view_radii),
+                interpolate(i, 0, self.steps, *self.alpha_radii, power=2),
+            )
+            for i in reversed(range(self.steps))
         ):
-            pygame.draw.circle(self.active_overlay,
-                               (0, 0, 0, alpha),
-                               center,
-                               radius)
+            pygame.draw.circle(self.active_overlay, (0, 0, 0, alpha), center, radius)
         r = pygame.Rect(0, 0, self.view_radii[1] * 2, self.view_radii[1] * 2)
         r.center = center
         r = r.clip(self.passive_overlay.get_rect())
-        self.passive_overlay.fill((0, 0, 0, self.base_alpha), r, special_flags=pygame.BLEND_RGBA_MAX)
+        self.passive_overlay.fill(
+            (0, 0, 0, self.base_alpha), r, special_flags=pygame.BLEND_RGBA_MAX
+        )
         self.passive_overlay.blit(self.active_overlay, r, r, special_flags=pygame.BLEND_RGBA_MIN)
 
 
 def mainloop():
     player = Player((100, 100))
-    fog = FogOverlay(player,
-                     view_radii=(50, 200),
-                     alpha_radii=(0, 250),
-                     base_alpha=150,
-                     steps=100)
+    fog = FogOverlay(player, view_radii=(50, 200), alpha_radii=(0, 250), base_alpha=150, steps=100)
     trees = SolidObject.generate_many(36)
     ghosts = [Ghost() for _ in range(16)]
 

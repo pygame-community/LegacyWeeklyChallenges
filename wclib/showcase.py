@@ -130,9 +130,7 @@ class ChallengeSelectState(MenuState):
     BG_COLOR = 0x151515
 
     def __init__(self, app: "App"):
-        super().__init__(
-            app, "Weekly Challenges", [[c, None] for c in get_challenges()]
-        )
+        super().__init__(app, "Weekly Challenges", [[c, None] for c in get_challenges()])
 
     def button_click(self, data):
         challenge, none = data
@@ -229,9 +227,7 @@ class EmbeddedApp:
         except Exception:  # Or BaseException ?
             self.crashed = True
             t = text("Crashed", "red", 30)
-            self.virtual_screen.blit(
-                t, t.get_rect(center=self.virtual_screen.get_rect().center)
-            )
+            self.virtual_screen.blit(t, t.get_rect(center=self.virtual_screen.get_rect().center))
 
     def draw(self, screen: pygame.Surface):
         if self.rect.size != self.virtual_screen.get_size():

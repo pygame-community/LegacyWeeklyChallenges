@@ -101,14 +101,10 @@ class Ghost(Object8Directional):
 
     def logic(self, **kwargs):
         middle_area = SCREEN.inflate(-30, -30)
-        while self.rect.collidepoint(self.goal) or not middle_area.collidepoint(
-            self.goal
-        ):
+        while self.rect.collidepoint(self.goal) or not middle_area.collidepoint(self.goal):
             self.goal = self.new_goal()
 
-        self.acceleration = (
-            self.goal - self.rect.center
-        ).normalize() * self.ACCELERATION
+        self.acceleration = (self.goal - self.rect.center).normalize() * self.ACCELERATION
         super().logic(**kwargs)
 
 
@@ -134,7 +130,7 @@ class SolidObject(Object):
     def generate_many(cls, nb=16, max_tries=1000):
         objects = []
         tries = 0  # avoids infinite loop
-        while len(objects) < nb and tries < max_tries:            
+        while len(objects) < nb and tries < max_tries:
             pos = random_in_rect(SCREEN)
             obj = cls(pos)
             if not any(obj.rect.colliderect(other.rect) for other in objects):
