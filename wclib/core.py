@@ -13,6 +13,19 @@ from .constants import SIZE, ROOT_DIR
 
 MainLoop = Generator[None, Tuple[pygame.Surface, List[pygame.event.Event]], None]
 
+__all__ = [
+    "MainLoop",
+    "run",
+    "get_missing_requirements",
+    "get_requirements",
+    "install_missing_requirements",
+    "get_mainloop",
+    "get_challenges",
+    "get_entries",
+    "ChallengeData",
+    "get_challenge_data",
+]
+
 
 def run(
     mainloop: MainLoop,
@@ -50,9 +63,7 @@ def get_requirements(challenge: str, entry: str) -> List[str]:
         if line and not line.startswith("#"):
             # Common possible mistakes
             assert not " " in line, f"Space in the requirements of {challenge}/{entry}."
-            assert (
-                not "." in line
-            ), f"Package with '.' in the requirements of {challenge}/{entry}."
+            assert not "." in line, f"Package with '.' in the requirements of {challenge}/{entry}."
             requirements.append(line)
     return requirements
 
