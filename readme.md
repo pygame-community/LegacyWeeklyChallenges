@@ -17,6 +17,15 @@ The first season started on the 26th of September 2021 and will last about 3 mon
 2. **[current]** [Particle System](./02-particle-system) - 11 oct 2021 → 25 oct 2021
 
 
+### Detailed instruction
+
+You need to read [the detailed instructions](./general_instructions.md)
+in order to participate. They contain:
+ - the submission process;
+ - what you are allowed to do;
+ - the utilities provided to you;
+ - some various tips for the challenges.
+
 ---
 In case you find contradictory information, the information posted in the 
 Discord server are always the correct ones. Also, please, if you do find such erroneous information,

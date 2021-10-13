@@ -11,9 +11,8 @@ so it is very handy to have a system already implemented for when a game jam com
 `C`hallenger `P`oints they provide:
 
 - Casual `+3 CP`: Have 3 different particle effects of your choice in the game 
-    (for instance: asteroid explosion, ship damage, thrusters, stars, asteroids clear fireworks, bullets, warning as approaching asteroids...)
 - Ambitious `+2 CP`: Have 6 different particles effects and handle 1000 particles at 60 FPS
-- Adventurous `+1 CP`: Have 9 effects
+- Adventurous `+1 CP`: Have the asteroids break in pieces that together make up the original sprite.
 
 In any case, your particle system should be:
 - independent of the rest of your code (for instance, in it own file) 
@@ -23,12 +22,50 @@ In any case, your particle system should be:
 
 ### Setup
 
-The setup code in [`base/`](./base) consists of a simple top down game with trees and ghosts moving around.
-To get started, duplicate the whole `base` folder and rename the copy with your username
-(will call it `yourname/` from now on). All your modifications should be inside the `yourname/` folder,
+The setup code in [`base/`](./base) consists of a simple Asteroids clone with a ship that moves around and fires on asteroids.
+The code is a bit more complex than last time, so here's an overview.
+
+- [`main.py`](./base/main.py) contains basic boilerplate, with every method delegated to a `State` object.
+- [`objects.py](./base/objects.py) contains many things:
+  - The `State` class, that represent everything in the game. It is probably the place were you will 
+      want to create your particle system / particle manager. This class contains all the `Object`s of the game,
+      and is accessible from any object as `obj.state`. In order to add an object to the state, use `state.add(new_object)`,
+      it will then be drawn and updated each frame automatically. Objects are removed from the state when `obj.alive == False`.
+  - The `Object` class, base class of all objects of the game (`Player`, `Asteroid`, `Bullet`). It takes care of 
+      drawing correctly the rotated sprites, detecting collisions and moving objects according to their velocity.
+      You probably don't need to modify it.
+  - The `Player` class implements event handling and firing. It contains a `on_asteroid_collision()`
+      method that is called whenever the ship collides with an asteroid. It is a good place to add particles.
+      An other good place is `Player.logic()` to emit particles every frame.
+  - The `Asteroid` class dispatches the collision with other objects and manages its own explosion.
+      The `explode` method is a nice place to add particles.
+  - The `Bullet` class doesn't do much, except dying after a given time.
+  - The `FpsCounter` class is a wrapper around `pygame.time.Clock` so it manages the FPS but also 
+      displays them. You can toggle the display with the `F` key.
+
+To get started, **duplicate** the whole `base` folder and rename the copy with your username
+(we will call it `yourname/` from now on). All your modifications should be inside the `yourname/` folder,
 otherwise it would be impossible to have a showcase of all the submissions.
 
+> PLEASE. Do not modify the base folder.
+
+Further instructions are 
+
 Have fun !
+
+### Tips
+
+**Tip 1**: If you are struggling to find places to add particles, here are a few, but there are countless others!
+> asteroid explosion, ship damage, thrusters, stars, asteroids clear fireworks, bullets, warning as approaching asteroids...
+
+**Tip 2**: You can remove completely the code with the asteroids if you want to, it is there only to sparkle your 
+creativity. If you want to, you can just create a "particle showcase" with lots of nice handcrafted effects going on at the same time.
+I strongly suggest this option if you have not used object-oriented programming before, as the setup code make heavy use of it.
+However, this challenge is a good chance to get more familiar with OOP.
+
+**Tip 3**: If you have never made particles before, don't start by making something generic.
+Make something specific, then think about how you could make it more reusable. 
+Usable comes first, reusable comes second.
 
 ### Credits
 

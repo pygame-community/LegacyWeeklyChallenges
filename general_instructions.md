@@ -3,7 +3,8 @@
 ### Achievements
 
 In each challenge, there are different stages of success, *Casual*, *Ambitious*
-and *Adventurous*
+and *Adventurous*.
+
 Succeeding in the casual stage is enough to complete the challenge,
 however, in order to provide more challenge for the most adventurous
 and ambitious of you, we provide two more puzzles.
@@ -13,10 +14,18 @@ stuck on the same thing.
 
 ### Setup Code
 
-The setup code in [`base/`](./base) consists of a simple top down game with trees and ghosts moving around.
-To get started, duplicate the whole `base` folder and rename the copy with your username
+The setup code in the challenge `base/` folder consists of a simple game prototype.
+It is meant to be used as a starting point and for inspiration. However, you can
+completely remove it and start something from scratch if you want to. 
+If you want to, you can also use a small game that you were already developing,
+but it should not have already solved the challenge: the part of the submission
+that solves the challenge must be *new* work.
+
+To get started, **duplicate** the whole `base` folder and rename the copy with your username
 (will call it `yourname/` from now on). All your modifications should be inside the `yourname/` folder,
 otherwise it would be impossible to have a showcase of all the submissions.
+
+> Please do NOT modify the base folder. Copy and paste it instead.
 
 In this `yourname/` folder, you'll find a `main.py` file. This is the entry point of your submission and where
 most of your code will go.
@@ -58,6 +67,19 @@ If you are used to classes, you can also have all your code in a class, for inst
 then you only need a statement like `mainloop = App.run` if the `run()` method is your main loop,
 to have your submission discovered.
 
+### External modules
+
+It is possible to use modules others than pygame in your submission.
+However, please try to keep it as the minimum possible.
+Keep in mind also that people may have trouble installing your requirements,
+and then won't be able to play your entry.
+
+In order to use external modules, you need to have a `requirements.txt` file
+at the root of your submission. This file contains the name of the modules
+that you need, one by line but without any version specified.
+
+Users will be prompted to install them when running your entry (without just having the game crash).
+
 ### Submitting your entry
 
 Before the deadline, make sure that your entry is runnable both via the showcase,
@@ -80,3 +102,16 @@ You can structure your code the way you like, but if you use multiple files,
 it is very recommended that you use *relative imports*, as it is the simplest way to
 make the import system work both in the showcase and when run directly.
 
+Using relative imports means that if your folder looks like this:
+```
+yourname/
+├── main.py
+└── utils.py
+```
+And you want to import function `foo` from `utils.py` in your `main.py`,
+you use
+```python
+from .utils import foo
+```
+Where the dot in front of `.utils` signifies that python needs to look inside the
+same directory (here, the `yourname/` directory).

@@ -9,12 +9,15 @@ ASSETS = SUBMISSION_DIR.parent / "assets"
 
 
 @lru_cache()
-def load_image(name: str, scale=1):
+def load_image(name: str, scale=1, alpha=True):
     image = pygame.image.load(ASSETS / f"{name}.png")
     if scale != 1:
         new_size = image.get_width() * scale, image.get_height() * scale
         image = pygame.transform.scale(image, new_size)
-    return image.convert_alpha()
+    if alpha:
+        return image.convert_alpha()
+    else:
+        return image.convert()
 
 
 @lru_cache()
@@ -36,9 +39,7 @@ def clamp(value, mini, maxi):
 def random_in_rect(rect):
     """Return a random point uniformly in a rectangle."""
     rect = pygame.Rect(rect)
-    return pygame.Vector2(
-        uniform(rect.left, rect.right), uniform(rect.top, rect.bottom)
-    )
+    return pygame.Vector2(uniform(rect.left, rect.right), uniform(rect.top, rect.bottom))
 
 
 def from_polar(rho, theta):
