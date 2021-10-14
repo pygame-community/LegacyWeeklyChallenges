@@ -78,9 +78,15 @@ class FogArea:
                     if self.lighted_area.get(tile_pos):
                         if self.more_lighted_area.get(tile_pos):
                             by = self.more_lighted_area.get(tile_pos)
-                            mask.blit(self._get_tile(self._smooth_trans+by*5), self.grid_to_pos(tile_pos))
+                            mask.blit(
+                                self._get_tile(self._smooth_trans + by * 5),
+                                self.grid_to_pos(tile_pos),
+                            )
                         else:
-                            mask.blit(self._get_tile(self._semi_trans), self.grid_to_pos(tile_pos))
+                            mask.blit(
+                                self._get_tile(self._semi_trans),
+                                self.grid_to_pos(tile_pos),
+                            )
                     else:
                         mask.blit(self._get_tile(self._fog_of_war), self.grid_to_pos(tile_pos))
 
@@ -107,7 +113,7 @@ class FogArea:
             self.discovered.set((x, y), 1)
             # self.more_lighted_area.set((x, y), step + 1)
 
-        for x, y, step, check in Flood(pos[0], pos[1], self.max_steps//2):
+        for x, y, step, check in Flood(pos[0], pos[1], self.max_steps // 2):
             check.all_true()
             self.more_lighted_area.set((x, y), step + 1)
 

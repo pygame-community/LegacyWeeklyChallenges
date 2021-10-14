@@ -1,11 +1,17 @@
 """
 This file provides objects that can be used to make up
 a basic playground for the challenges.
+
 This code is provided so that you can focus on implementing
 a fog of war, without needed
 Feel free to modify everything in this file to your liking.
 """
 from random import choice, gauss
+
+# custom import
+from math import sqrt
+
+# custom import
 
 import pygame
 
@@ -105,6 +111,17 @@ class Ghost(Object8Directional):
 
         self.acceleration = (self.goal - self.rect.center).normalize() * self.ACCELERATION
         super().logic(**kwargs)
+
+    # custom method
+    def draw(self, screen, plr_rect, light_r):
+        surface = pygame.Surface.copy(self.sprite)
+        ghost_rect = self.rect.center
+        distance = sqrt((plr_rect[0] - ghost_rect[0]) ** 2 + (plr_rect[1] - ghost_rect[1]) ** 2)
+        distance = distance / light_r * 255
+        surface.set_alpha(255 - distance)
+        screen.blit(surface, self.pos)
+
+    # custom method
 
 
 class SolidObject(Object):

@@ -1,6 +1,7 @@
 """
 This file provides objects that can be used to make up
 a basic playground for the challenges.
+
 This code is provided so that you can focus on implementing
 a fog of war, without needed
 Feel free to modify everything in this file to your liking.
@@ -29,6 +30,10 @@ class Object:
     @property
     def rect(self):
         return pygame.Rect(self.pos, self.size)
+
+    @property
+    def center_pos(self):
+        return self.pos + pygame.Vector2(self.size // 2, self.size // 2)
 
     def draw(self, screen):
         screen.blit(self.sprite, self.pos)
@@ -69,15 +74,33 @@ class Object8Directional(Object):
         self.pos += self.velocity
         self.sprite = self.get_image()
 
-        self.pos.x = clamp(self.pos.x, 0, SIZE[0])
-        self.pos.y = clamp(self.pos.y, 0, SIZE[1])
+        self.pos.x = clamp(self.pos.x, 0, SIZE[0] - self.size[0])
+        self.pos.y = clamp(self.pos.y, 0, SIZE[1] - self.size[1])
 
 
 class Player(Object8Directional):
+    def __init__(self, pos, radius: float, keymap="arrow"):
+        self.radius = radius
+        if keymap == "arrow":
+            self.keys = {
+                "up": pygame.K_UP,
+                "left": pygame.K_LEFT,
+                "down": pygame.K_DOWN,
+                "right": pygame.K_RIGHT,
+            }
+        else:
+            self.keys = {
+                "up": pygame.K_w,
+                "left": pygame.K_a,
+                "down": pygame.K_s,
+                "right": pygame.K_d,
+            }
+        super().__init__(pos)
+
     def logic(self, **kwargs):
         pressed = pygame.key.get_pressed()
-        direction_x = pressed[pygame.K_RIGHT] - pressed[pygame.K_LEFT]
-        direction_y = pressed[pygame.K_DOWN] - pressed[pygame.K_UP]
+        direction_x = pressed[self.keys["right"]] - pressed[self.keys["left"]]
+        direction_y = pressed[self.keys["down"]] - pressed[self.keys["up"]]
 
         self.acceleration = pygame.Vector2(direction_x, direction_y) * self.ACCELERATION
         super().logic(**kwargs)
