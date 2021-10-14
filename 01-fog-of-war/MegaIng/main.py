@@ -1,7 +1,6 @@
 import sys
 from pathlib import Path
-
-from MegaIng.utils import interpolate
+from typing import Tuple
 
 try:
     import wclib
@@ -34,6 +33,7 @@ import pygame
 # To import the modules in yourname/, you need to use relative imports,
 # otherwise your project will not be compatible with the showcase.
 from .objects import Ghost, Player, SolidObject
+from .utils import interpolate
 
 BACKGROUND = (0x66, 0x85, 0x6C)
 
@@ -42,8 +42,8 @@ class FogOverlay:
     def __init__(
         self,
         player: Player,
-        view_radii: tuple[int, int],
-        alpha_radii: tuple[int, int],
+        view_radii: Tuple[int, int],
+        alpha_radii: Tuple[int, int],
         base_alpha: int,
         steps: int,
     ):

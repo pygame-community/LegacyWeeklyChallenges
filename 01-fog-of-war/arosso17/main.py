@@ -182,7 +182,7 @@ def mainloop():
             150,
         )
         clock.tick(FPS)
-        print(clock.get_fps())
+        # print(clock.get_fps())
 
 
 if __name__ == "__main__":
