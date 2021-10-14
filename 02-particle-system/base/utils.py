@@ -17,7 +17,6 @@ __all__ = [
     "random_in_rect",
     "from_polar",
     "clamp_vector",
-    "segments",
     "text",
 ]
 
@@ -28,6 +27,7 @@ SCREEN = pygame.Rect(0, 0, *SIZE)
 
 @lru_cache()
 def load_image(name: str, scale=1, alpha=True):
+    """Load a image from the disk and caches the results."""
     image = pygame.image.load(ASSETS / f"{name}.png")
     if scale != 1:
         new_size = image.get_width() * scale, image.get_height() * scale
@@ -68,16 +68,10 @@ def from_polar(rho, theta):
 
 
 def clamp_vector(v: pygame.Vector2, max_length):
-    """Ensure that a vector ahs a magnitude less than max_length."""
+    """Ensure that a vector has a magnitude less than max_length."""
     if v.length() > max_length:
         return v.normalize() * max_length
     return v
-
-
-def segments(points):
-    """Return all the segments made from adjacent pairs of points in the list.
-    Also return the segment made of the last and first point."""
-    return zip(points, points[1:] + [points[0]])
 
 
 @lru_cache()

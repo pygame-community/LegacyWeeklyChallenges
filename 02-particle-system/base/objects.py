@@ -57,15 +57,23 @@ class State:
 
 
 class Object:
-    """The base class for all objects of the game."""
+    """
+    The base class for all objects of the game.
 
+    Controls:
+     - [d] Show the hitboxes for debugging.
+    """
+
+    # Controls the order of draw.
+    # Objects are sorted according to Z before drawing.
     Z = 0
 
     # All the objects are considered circles,
-    # Their hitbox is scaled by the given amount, to the advantage of the player.
+    # Their hit-box is scaled by the given amount, to the advantage of the player.
     HIT_BOX_SCALE = 1.2
 
     def __init__(self, pos, vel, sprite: pygame.Surface):
+        # The state is set when the object is added to a state.
         self.state: "State" = None
         self.center = pygame.Vector2(pos)
         self.vel = pygame.Vector2(vel)
@@ -102,6 +110,7 @@ class Object:
         return rotate_image(self.sprite, int(self.rotation))
 
     def get_rect(self):
+        """Compute the rectangle containing the object."""
         return self.rotated_sprite.get_rect(center=self.center)
 
     def handle_event(self, event):
@@ -126,7 +135,7 @@ class Object:
             (tl, bl, (w, 0)),
             (tr, br, (-w, 0)),
         ]:
-            # For each side of the screen that it overlaps
+            # For each side [a,b] of the screen that it overlaps
             if self.rect.clipline(a, b):
                 shifts.append(offset)
                 # Draw the spaceship at the other edge too.
@@ -195,6 +204,7 @@ class Player(Object):
         self.speed += raw_acceleration * self.ACCELERATION
         self.speed *= self.FRICTION  # friction
 
+        # The min term makes it harder to turn at slow speed.
         self.rotation += rotation_acc * self.ROTATION_ACCELERATION * min(1.0, 0.4 + abs(self.speed))
 
         self.vel.from_polar((self.speed, self.INITIAL_ROTATION - self.rotation))
@@ -208,6 +218,9 @@ class Player(Object):
         self.fire_cooldown = self.FIRE_COOLDOWN
         bullet = Bullet(self.center, 270 - self.rotation)
         self.state.add(bullet)
+
+        # You can add particles here too.
+        ...
 
     def on_asteroid_collision(self, asteroid: "Asteroid"):
         # For simplicity I just explode the asteroid, but depending on what you aim for,
@@ -235,6 +248,9 @@ class Bullet(Object):
 
         if self.time_to_live <= 0:
             self.alive = False
+
+        # Maybe some trail particles here ? You can put particles EVERYWHERE. Really.
+        ...
 
 
 class Asteroid(Object):
@@ -284,7 +300,8 @@ class Asteroid(Object):
                     Asteroid(self.center, perp_velocity * mult, self.level - 1, self.color)
                 )
 
-        # Add particles here.
+        # You'll add particles here for sure ;)
+        ...
 
     def random_color(self):
         r, g, b = hsv_to_rgb(uniform(0, 1), 0.8, 0.8)
@@ -292,10 +309,12 @@ class Asteroid(Object):
 
     @classmethod
     def generate_many(cls, nb=10):
+        """Return a set of nb Asteroids randomly generated."""
         objects = set()
         for _ in range(nb):
             angle = uniform(0, 360)
-            pos = SCREEN.center + from_polar(gauss(SIZE[1] / 2, SIZE[1] / 12), angle)
+            distance_from_center = gauss(SIZE[1] / 2, SIZE[1] / 12)
+            pos = SCREEN.center + from_polar(distance_from_center, angle)
             vel = from_polar(gauss(cls.AVG_SPEED, cls.AVG_SPEED / 6), gauss(180 + angle, 30))
             size = choices([1, 2, 3, 4], [4, 3, 2, 1])[0]
             objects.add(cls(pos, vel, size))
