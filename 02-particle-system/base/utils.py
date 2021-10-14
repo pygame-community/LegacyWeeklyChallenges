@@ -4,8 +4,26 @@ from random import uniform
 
 import pygame
 
+from wclib.constants import SIZE, ROOT_DIR
+
+__all__ = [
+    "SIZE",
+    "SUBMISSION_DIR",
+    "ASSETS",
+    "SCREEN",
+    "load_image",
+    "rotate_image",
+    "clamp",
+    "random_in_rect",
+    "from_polar",
+    "clamp_vector",
+    "segments",
+    "text",
+]
+
 SUBMISSION_DIR = Path(__file__).parent
 ASSETS = SUBMISSION_DIR.parent / "assets"
+SCREEN = pygame.Rect(0, 0, *SIZE)
 
 
 @lru_cache()
@@ -60,3 +78,26 @@ def segments(points):
     """Return all the segments made from adjacent pairs of points in the list.
     Also return the segment made of the last and first point."""
     return zip(points, points[1:] + [points[0]])
+
+
+@lru_cache()
+def font(size=20, name=None):
+    """
+    Load a font from its name in the wclib/assets folder.
+
+    If a Path object is given as the name, this path will be used instead.
+    Results are cached.
+    """
+
+    name = name or "regular"
+    if isinstance(name, Path):
+        path = name
+    else:
+        path = ROOT_DIR / "wclib" / "assets" / (name + ".ttf")
+    return pygame.font.Font(path, size)
+
+
+@lru_cache(5000)
+def text(txt, color, size=20, font_name=None):
+    """Render a text on a surface. Results are cached."""
+    return font(size, font_name).render(str(txt), True, color)

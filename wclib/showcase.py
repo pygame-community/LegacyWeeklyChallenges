@@ -17,13 +17,15 @@ ACCENT = "#48929B"
 
 @lru_cache()
 def font(size=20, name=None):
+    """Load a font from the wclib/assets folder. Results are cached."""
     name = name or "regular"
     path = ROOT_DIR / "wclib" / "assets" / (name + ".ttf")
     return pygame.font.Font(path, size)
 
 
-@lru_cache()
+@lru_cache(5000)
 def text(txt, color, size=20, font_name=None):
+    """Render a text on a surface. Results are cached."""
     return font(size, font_name).render(str(txt), True, color)
 
 

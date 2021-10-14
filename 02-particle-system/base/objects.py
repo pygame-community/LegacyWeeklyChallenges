@@ -7,19 +7,18 @@ your particle system, without needing to implement a game that
 goes with it too.
 Feel free to modify everything in this file to your liking.
 """
+
 import time
 from collections import deque
 from colorsys import hsv_to_rgb
+from functools import lru_cache
 from operator import attrgetter
-from random import choice, gauss, choices
+from random import gauss, choices, uniform
 
 import pygame
 
-from wclib import SIZE
-from wclib.showcase import text
+# noinspection PyPackages
 from .utils import *
-
-SCREEN = pygame.Rect(0, 0, *SIZE)
 
 
 class State:
@@ -305,48 +304,51 @@ class Asteroid(Object):
 
 
 class FpsCounter(Object):
+    """
+    A wrapper around pygame.time.Clock that shows the FPS on screen.
+
+    Controls:
+     - [F] Toggles the display of FPS
+     - [U] Toggles the capping of FPS
+    """
+
     Z = 1000
+    REMEMBER = 30
 
     def __init__(self, fps):
         self.hidden = False
+        self.cap_fps = True
         self.target_fps = fps
         self.clock = pygame.time.Clock()
-        self.last_frames = deque([time.time()], maxlen=10)
-        self.last_sleeps = deque([0.0], maxlen=9)
+        self.frame_starts = deque([time.time()], maxlen=self.REMEMBER)
 
         dummy_surface = pygame.Surface((1, 1))
         super().__init__((4, 8), (0, 0), dummy_surface)
 
     def handle_event(self, event):
-        if event.type == pygame.KEYDOWN and event.key == pygame.K_f:
-            self.hidden = not self.hidden
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_f:
+                self.hidden = not self.hidden
+            elif event.key == pygame.K_u:
+                self.cap_fps = not self.cap_fps
 
     def logic(self, **kwargs):
-        self.last_frames.append(time.time())
-        self.clock.tick(self.target_fps)
-        end_sleep = time.time()
-        self.last_sleeps.append(end_sleep - self.last_frames[-1])
+        # Passing 0 to tick() removes the cap on FPS.
+        self.clock.tick(self.target_fps * self.cap_fps)
+
+        self.frame_starts.append(time.time())
 
     @property
     def current_fps(self):
-        if len(self.last_frames) <= 1:
+        if len(self.frame_starts) <= 1:
             return 0
-        seconds = self.last_frames[-1] - self.last_frames[0]
-        return int((len(self.last_frames) - 1) / seconds)
-
-    @property
-    def theoretical_fps(self):
-        if len(self.last_frames) <= 1:
-            return 0
-        seconds = self.last_frames[-1] - self.last_frames[0] - sum(self.last_sleeps)
-        return int((len(self.last_frames) - 1) / seconds)
+        seconds = self.frame_starts[-1] - self.frame_starts[0]
+        return (len(self.frame_starts) - 1) / seconds
 
     def draw(self, screen):
         if self.hidden:
             return
 
         color = "#89C4F4"
-        t = text(f"FPS: {self.current_fps}", color)
-        r = screen.blit(t, self.center)
-        t = text(f"Theoretical: {self.theoretical_fps}", color)
-        screen.blit(t, r.bottomleft)
+        t = text(f"FPS: {int(self.current_fps)}", color)
+        screen.blit(t, self.center)

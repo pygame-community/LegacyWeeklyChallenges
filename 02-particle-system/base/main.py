@@ -26,12 +26,9 @@ __achievements__ = [  # Uncomment the ones you've done
     # "Adventurous",
 ]
 
-
-from operator import attrgetter
-import pygame
-
 # To import the modules in yourname/, you need to use relative imports,
 # otherwise your project will not be compatible with the showcase.
+# noinspection PyPackages
 from .objects import *
 
 BACKGROUND = 0x0F1012
@@ -40,7 +37,8 @@ BACKGROUND = 0x0F1012
 def mainloop():
     pygame.init()
 
-    player = Player((100, 100), (0, 0))
+    player = Player((SIZE[0] / 2, SIZE[1] / 2), (0, 0))
+    # The state is just a collection of all the objects in the game
     state = State(player, FpsCounter(60), *Asteroid.generate_many())
 
     while True:
