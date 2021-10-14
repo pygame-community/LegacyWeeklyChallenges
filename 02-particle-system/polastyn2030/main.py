@@ -19,7 +19,7 @@ __package__ = "02-particle-system." + Path(__file__).parent.name
 # ---- Recommended: don't modify anything above this line ---- #
 
 # Metadata about your submission
-__author__ = "CozyFractal#0042"  # Put yours!
+__author__ = "polastyn#7640"  # Put yours!
 __achievements__ = [  # Uncomment the ones you've done
     # "Casual",
     # "Ambitious",
