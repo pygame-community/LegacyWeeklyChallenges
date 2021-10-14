@@ -1,5 +1,7 @@
 import importlib
 import json
+import subprocess
+import sys
 from collections import namedtuple
 from functools import lru_cache
 from time import time
@@ -10,6 +12,19 @@ import pygame
 from .constants import SIZE, ROOT_DIR
 
 MainLoop = Generator[None, Tuple[pygame.Surface, List[pygame.event.Event]], None]
+
+__all__ = [
+    "MainLoop",
+    "run",
+    "get_missing_requirements",
+    "get_requirements",
+    "install_missing_requirements",
+    "get_mainloop",
+    "get_challenges",
+    "get_entries",
+    "ChallengeData",
+    "get_challenge_data",
+]
 
 
 def run(
@@ -33,6 +48,49 @@ def run(
 
     end = time()
     print(f"App run for {end - start:02}s at {frames / (end - start)} FPS.")
+
+
+def get_requirements(challenge: str, entry: str) -> List[str]:
+    req_path = ROOT_DIR / challenge / entry / "requirements.txt"
+
+    if not req_path.exists():
+        return []
+
+    # Can't use the := operator as we want python 3.6 compat.
+    requirements = []
+    for line in req_path.read_text().splitlines():
+        line = line.strip()
+        if line and not line.startswith("#"):
+            # Common possible mistakes
+            assert not " " in line, f"Space in the requirements of {challenge}/{entry}."
+            assert not "." in line, f"Package with '.' in the requirements of {challenge}/{entry}."
+            requirements.append(line)
+    return requirements
+
+
+def get_missing_requirements(challenge: str, entry: str) -> List[str]:
+    missing = []
+    for req in get_requirements(challenge, entry):
+        try:
+            importlib.import_module(req)
+        except ModuleNotFoundError:
+            missing.append(req)
+    return missing
+
+
+def install_missing_requirements(challenge: str, entry: str) -> int:
+    missing = get_missing_requirements(challenge, entry)
+    command = [
+        sys.executable,
+        "-m",
+        "pip",
+        "install",
+        *missing,
+    ]
+    print("Running:", command)
+    ret_code = subprocess.check_call(command)
+    importlib.invalidate_caches()
+    return ret_code
 
 
 def get_mainloop(challenge: str, entry: str) -> MainLoop:

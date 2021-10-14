@@ -1,6 +1,7 @@
 """
 This file provides objects that can be used to make up
 a basic playground for the challenges.
+
 This code is provided so that you can focus on implementing
 a fog of war, without needed
 Feel free to modify everything in this file to your liking.
@@ -22,6 +23,11 @@ class Object:
         self.pos = pygame.Vector2(pos)
         self.size = pygame.Vector2(sprite.get_size())
         self.sprite = sprite
+        self.mask = pygame.mask.from_surface(self.sprite)
+        bounds = self.mask.get_bounding_rects()
+        self.bbox = bounds[0].unionall(bounds[1:])
+        self.hidden = False
+        self.opacity = 255
 
     def __str__(self):
         return f"<{self.__class__.__name__}(pos={self.pos}, size={self.size})>"
@@ -31,7 +37,9 @@ class Object:
         return pygame.Rect(self.pos, self.size)
 
     def draw(self, screen):
-        screen.blit(self.sprite, self.pos)
+        if not self.hidden:
+            self.sprite.set_alpha(self.opacity)
+            screen.blit(self.sprite, self.pos)
 
     def logic(self, **kwargs):
         pass
@@ -61,7 +69,11 @@ class Object8Directional(Object):
         idx = int((-angle + 90 + 45 / 2) % 360 / 360 * 8)
         sheet = load_image(self.SHEET, self.SCALE)
         unit = self.SIZE * self.SCALE
-        return sheet.subsurface(idx * unit, 0, unit, unit)
+        image = sheet.subsurface(idx * unit, 0, unit, unit)
+        self.mask = pygame.mask.from_surface(image)
+        bounds = self.mask.get_bounding_rects()
+        self.bbox = bounds[0].unionall(bounds[1:])
+        return image
 
     def logic(self, **kwargs):
         self.velocity *= self.DAMPING
