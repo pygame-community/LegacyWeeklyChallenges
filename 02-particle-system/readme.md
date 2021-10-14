@@ -10,11 +10,20 @@ so it is very handy to have a system already implemented for when a game jam com
  Description of the different levels and the amount of 
 `C`hallenger `P`oints they provide:
 
-- Casual `+3 CP`: Have 3 different particle effects of your choice in the game 
-- Ambitious `+2 CP`: Have 6 different particles effects and handle 1000 particles at 60 FPS
-- Adventurous `+1 CP`: Have the asteroids break in pieces that together make up the original sprite.
+- Casual `+3 CP`: Have 3 different particle effects of your choice in the game
+- Ambitious `+2 CP`: Have the asteroids break in pieces that together make up the original sprite,
+  in a somewhat "realistic" way.
+- Adventurous `+1 CP`:
+  Have a reusable system that can handle a thousand particles at 60 FPS
+  with three of the following features (you choose!):
+    - Transparency
+    - Images as well as drawn particles
+    - Change colors overtime with multistep gradients
+    - Particle physics (colliding against walls, asteroids, ...)
+    - Ability to spawn a burst of particles but also spawn some over time
+    - A cool feature of your choice (mention it in the description of your entry!)
 
-In any case, your particle system should be:
+In any case, your particle system should strive to be:
 - independent of the rest of your code (for instance, in it own file) 
    so that you can copy/paste it in your other projects
 - run at 60 FPS, at least, so that there is still processing power for the rest of a real game
@@ -26,11 +35,12 @@ The setup code in [`base/`](./base) consists of a simple Asteroids clone with a 
 The code is a bit more complex than last time, so here's an overview.
 
 - [`main.py`](./base/main.py) contains basic boilerplate, with every method delegated to a `State` object.
-- [`objects.py](./base/objects.py) contains many things:
+- [`objects.py`](./base/objects.py) contains many things:
   - The `State` class, that represent everything in the game. It is probably the place were you will 
       want to create your particle system / particle manager. This class contains all the `Object`s of the game,
       and is accessible from any object as `obj.state`. In order to add an object to the state, use `state.add(new_object)`,
       it will then be drawn and updated each frame automatically. Objects are removed from the state when `obj.alive == False`.
+      If you do not use a particle manager, you can add your particles directly to the state as with other objects.
   - The `Object` class, base class of all objects of the game (`Player`, `Asteroid`, `Bullet`). It takes care of 
       drawing correctly the rotated sprites, detecting collisions and moving objects according to their velocity.
       You probably don't need to modify it.
@@ -66,6 +76,9 @@ However, this challenge is a good chance to get more familiar with OOP.
 **Tip 3**: If you have never made particles before, don't start by making something generic.
 Make something specific, then think about how you could make it more reusable. 
 Usable comes first, reusable comes second.
+
+**Tip 4**: If you have already made a particle system before, make a new one! 
+Try to make it better, or explore other concepts, the possibilities are endless ;)
 
 ### Credits
 
