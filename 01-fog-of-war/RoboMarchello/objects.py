@@ -1,13 +1,14 @@
 """
 This file provides objects that can be used to make up
 a basic playground for the challenges.
+
 This code is provided so that you can focus on implementing
 a fog of war, without needed
 Feel free to modify everything in this file to your liking.
 """
 from random import choice, gauss
-
-import pygame
+import math
+import pygame, pygame.gfxdraw
 
 from wclib import SIZE
 from .utils import clamp, from_polar, load_image, random_in_rect
@@ -42,7 +43,7 @@ class Object8Directional(Object):
     SIZE = 16
     SHEET = "blue_ghost"
 
-    ACCELERATION = 0.5
+    ACCELERATION = 0.3
     DAMPING = 0.85
 
     # Asymptotic velocity will be solution of
@@ -135,3 +136,49 @@ class SolidObject(Object):
             if not any(obj.rect.colliderect(other.rect) for other in objects):
                 objects.append(obj)
         return objects
+
+
+class Fog:
+    def __init__(self, player):
+        self.maskSurf = pygame.Surface(SCREEN.size, pygame.SRCALPHA)
+        self.maskSurf.fill((0, 0, 0))
+
+        self.player = player
+
+        self.addRadius = 0
+        self.isAdd = False
+
+        self.rect = pygame.Rect(0, 0, 125 * 2, 125 * 2)
+
+    def draw(self, screen):
+        if self.addRadius <= 0:
+            self.isAdd = True
+        elif self.addRadius >= 10:
+            self.isAdd = False
+
+        if self.isAdd == True:
+            self.addRadius += 0.2
+        else:
+            self.addRadius -= 0.2
+
+        smoothRadius = 135  # 225
+
+        alpha = 210
+
+        for alp in range(200):
+            alpha -= 1
+            pygame.draw.circle(
+                self.maskSurf, (0, 0, 0, alpha), self.player.rect.center, smoothRadius
+            )
+            smoothRadius -= 1
+        self.rect.center = self.player.rect.center
+
+        screen.blit(self.maskSurf, (0, 0))
+
+    def get_dist(self, ghost):
+        dist = [
+            (self.player.rect.center[0] - ghost.rect.center[0]) ** 2,
+            (self.player.rect.center[1] - ghost.rect.center[1]) ** 2,
+        ]
+
+        return math.sqrt(dist[0] + dist[1])
