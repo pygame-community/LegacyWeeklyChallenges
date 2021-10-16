@@ -1,8 +1,6 @@
-from __future__ import annotations
-
+from typing import Tuple
 
 import pygame as pg
-
 
 from .flood_iter import Flood
 
@@ -64,7 +62,7 @@ class FogArea:
     def grid_to_pos(self, grid):
         return grid[0] * self.rect_w, grid[1] * self.rect_h
 
-    def get_mask(self, size: tuple[int, int]):
+    def get_mask(self, size: Tuple[int, int]):
         mask = pg.Surface(size, pg.SRCALPHA)
         x_grid = (size[0] - size[0] % self.rect_w) // self.rect_w
         y_grid = (size[1] - size[1] % self.rect_h) // self.rect_h

@@ -88,8 +88,9 @@ def install_missing_requirements(challenge: str, entry: str) -> int:
         *missing,
     ]
     print("Running:", command)
-    subprocess.check_call(command)
+    ret_code = subprocess.check_call(command)
     importlib.invalidate_caches()
+    return ret_code
 
 
 def get_mainloop(challenge: str, entry: str) -> MainLoop:

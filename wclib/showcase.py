@@ -236,6 +236,7 @@ class ChallengeSelectState(MenuState):
 class EntrySelectState(MenuState):
     def __init__(self, app: "App", challenge):
         buttons = [(challenge, entry) for entry in get_entries(challenge)]
+        # buttons.sort()
         shuffle(buttons)
         super().__init__(app, get_challenge_data(challenge).name, buttons)
         self.challenge = challenge
