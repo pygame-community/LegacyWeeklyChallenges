@@ -9,13 +9,15 @@ Feel free to modify everything in this file to your liking.
 """
 
 import time
+import math
 from collections import deque
 from colorsys import hsv_to_rgb
-from functools import lru_cache
+from functools import lru_cache, partial
 from operator import attrgetter
 from random import gauss, choices, uniform
 
 import pygame
+from pygame.constants import SRCALPHA
 
 # noinspection PyPackages
 from .utils import *
@@ -157,7 +159,7 @@ class Object:
 
         # To see the exact size of the hitboxes
         if pygame.key.get_pressed()[pygame.K_d]:
-            pygame.draw.circle(screen, "red", self.center, self.radius, width=1)
+           pygame.draw.circle(screen, "red", self.center, self.radius, width=1)
 
     def logic(self, **kwargs):
         # self.vel = clamp_vector(self.vel, self.MAX_VEL)
@@ -184,6 +186,16 @@ class Player(Object):
         self.speed = 0
         self.fire_cooldown = -1
 
+    '''
+    MY GARBAGE
+    '''
+    def thruster_position(self):
+        x = self.rect.centerx
+        y = self.rect.centery
+        x += self.radius * math.sin(math.radians(self.rotation))
+        y += self.radius * math.cos(math.radians(self.rotation))
+        return(x, y)
+
     def handle_event(self, event):
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_SPACE:
@@ -206,7 +218,6 @@ class Player(Object):
 
         # The min term makes it harder to turn at slow speed.
         self.rotation += rotation_acc * self.ROTATION_ACCELERATION * min(1.0, 0.4 + abs(self.speed))
-
         self.vel.from_polar((self.speed, self.INITIAL_ROTATION - self.rotation))
         
         super().logic()
@@ -371,3 +382,50 @@ class FpsCounter(Object):
         color = "#89C4F4"
         t = text(f"FPS: {int(self.current_fps)}", color)
         screen.blit(t, self.center)
+
+'''
+MY GARBAGE
+'''
+class Particle:
+    def __init__(self):
+        self.particles = []
+
+    def emit(self, screen):
+        if self.particles:
+            self.delete_particles()
+            for particle in self.particles:
+                particle[0][1] += particle[2] # y position change
+                particle[0][0] += particle[2] # x position change
+                particle[1] -= 0.2 # radius shrinkage
+
+                YELLOW_WHITE = (255,255, 204)
+                YELLOW = (255,255,150)
+                YELLOW2 = (255, 255, 0)
+                RED = (255, 51, 51)
+                DARK_RED = (102, 0, 0)
+                colour = None
+                if particle[1] >= 9:
+                    colour = YELLOW_WHITE
+                elif particle[1] >= 7:
+                    colour = YELLOW
+                elif particle[1] >= 5:
+                    colour = YELLOW2
+                elif particle[1] >= 3:
+                    colour = RED
+                else:
+                    colour = DARK_RED
+
+                pygame.draw.circle(screen, colour, particle[0], particle[1])
+
+    def add_particles(self, pos_x, pos_y):
+        pos_x = pos_x
+        pos_y = pos_y
+        radius = uniform(8, 10)
+        direction = uniform(-0.5, 0.5)
+        particle_circle = [[pos_x, pos_y], radius, direction]
+
+        self.particles.append(particle_circle)
+
+    def delete_particles(self):
+        particles_copy = [particle for particle in self.particles if particle[1] > 0]
+        self.particles = particles_copy
