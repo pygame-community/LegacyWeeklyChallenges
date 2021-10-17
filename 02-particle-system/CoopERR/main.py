@@ -65,7 +65,7 @@ def mainloop():
                 if event.type == PARTICLE_EVENT:
                     x, y = player.thruster_position()
                     particle.add_particles(x, y)
-        particle.emit(screen)
+        particle.draw(screen)
         state.draw(screen)
 
         # particle counter display

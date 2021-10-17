@@ -300,9 +300,15 @@ class Asteroid(Object):
                     obj.on_asteroid_collision(self)
 
     def explode(self, bullet):
+        particle = Particle()
+
         bullet.alive = False
         self.alive = False
         if self.level > 1:
+            for i in range(100):
+                particle.add_particles(self.rect.centerx, self.rect.centery)
+            self.state.add(particle)
+
             # We spawn two smaller asteroids in the direction perpendicular to the collision.
             perp_velocity = pygame.Vector2(bullet.vel.y, -bullet.vel.x)
             perp_velocity.scale_to_length(self.vel.length() * self.EXPLOSION_SPEED_BOOST)
@@ -389,8 +395,16 @@ MY GARBAGE
 class Particle:
     def __init__(self):
         self.particles = []
+        self.Z = 1999
+        self.alive = True
 
-    def emit(self, screen):
+    def logic(self):
+        pass
+
+    def handle_event(self, event):
+        pass
+
+    def draw(self, screen):
         if self.particles:
             self.delete_particles()
             for particle in self.particles:
