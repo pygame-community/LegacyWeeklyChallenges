@@ -396,36 +396,39 @@ class Particle:
             for particle in self.particles:
                 particle[0][1] += particle[2] # y position change
                 particle[0][0] += particle[2] # x position change
-                particle[1] -= 0.2 # radius shrinkage
+                particle[1] += 0.4 # radius increase
 
-                YELLOW_WHITE = (255,255, 204)
-                YELLOW = (255,255,150)
-                YELLOW2 = (255, 255, 0)
-                RED = (255, 51, 51)
-                DARK_RED = (102, 0, 0)
-                colour = None
+                BACKGROUND = 0x0F1012
+
+                g = 255 - int(particle[1]) * 17
+                if g < 0:
+                    g = 0
+                a = g
+
+                colour = (255,g,0,a)
+
+                surf = pygame.Surface((particle[1]*2, particle[1]*2)).convert_alpha()
+                surf.fill((BACKGROUND))
+                rect = surf.get_rect()
+                pygame.draw.circle(surf, colour, (rect.centerx, rect.centery), particle[1])
+
                 if particle[1] >= 9:
-                    colour = YELLOW_WHITE
-                elif particle[1] >= 7:
-                    colour = YELLOW
-                elif particle[1] >= 5:
-                    colour = YELLOW2
-                elif particle[1] >= 3:
-                    colour = RED
-                else:
-                    colour = DARK_RED
-
-                pygame.draw.circle(screen, colour, particle[0], particle[1])
+                    pygame.draw.circle(surf, BACKGROUND, (rect.centerx + particle[3], rect.centery + particle[3]), particle[1])
+                screen.blit(surf,particle[0])
+                
+                if particle[1] >= 9:
+                    pygame.draw.circle(surf, BACKGROUND, (rect.centerx + particle[3], rect.centery + particle[3]), particle[1])
 
     def add_particles(self, pos_x, pos_y):
         pos_x = pos_x
         pos_y = pos_y
-        radius = uniform(8, 10)
+        radius = 1
         direction = uniform(-0.5, 0.5)
-        particle_circle = [[pos_x, pos_y], radius, direction]
+        rand = uniform(-5.0, 5.0)
+        particle_circle = [[pos_x, pos_y], radius, direction, rand]
 
         self.particles.append(particle_circle)
 
     def delete_particles(self):
-        particles_copy = [particle for particle in self.particles if particle[1] > 0]
+        particles_copy = [particle for particle in self.particles if particle[1] < 15]
         self.particles = particles_copy

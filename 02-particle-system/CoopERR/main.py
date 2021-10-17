@@ -43,7 +43,7 @@ def mainloop():
 
     particle = Particle()
     PARTICLE_EVENT = pygame.USEREVENT + 1
-    pygame.time.set_timer(PARTICLE_EVENT, 50)
+    pygame.time.set_timer(PARTICLE_EVENT, 10)
     font = pygame.font.Font(None, 30)
 
     while True:
@@ -60,17 +60,17 @@ def mainloop():
         state.logic()
 
         screen.fill(BACKGROUND)
-        state.draw(screen)
-
         if player.speed < -2:
             for event in events:
                 if event.type == PARTICLE_EVENT:
                     x, y = player.thruster_position()
                     particle.add_particles(x, y)
         particle.emit(screen)
+        state.draw(screen)
 
-        partic = font.render("Particles: " + str(len(particle.particles)), True, pygame.Color('white'))
-        screen.blit(partic, (0, 50))
+        # particle counter display
+        partic_count = font.render("Particles: " + str(len(particle.particles)), True, pygame.Color('white'))
+        screen.blit(partic_count, (0, 50))
 
 
 
