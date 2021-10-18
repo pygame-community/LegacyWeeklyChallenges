@@ -13,7 +13,7 @@ import math
 from collections import deque
 from colorsys import hsv_to_rgb
 from functools import lru_cache, partial
-from operator import attrgetter
+from operator import attrgetter, xor
 from random import gauss, choices, uniform
 
 import pygame
@@ -300,14 +300,12 @@ class Asteroid(Object):
                     obj.on_asteroid_collision(self)
 
     def explode(self, bullet):
-        particle = Particle()
-
         bullet.alive = False
         self.alive = False
         if self.level > 1:
             for i in range(100):
-                particle.add_particles(self.rect.centerx, self.rect.centery)
-            self.state.add(particle)
+                particles = ExplosionParticle(self.rect.centerx, self.rect.centery, 1, count=100)
+            self.state.add(particles)
 
             # We spawn two smaller asteroids in the direction perpendicular to the collision.
             perp_velocity = pygame.Vector2(bullet.vel.y, -bullet.vel.x)
@@ -318,7 +316,8 @@ class Asteroid(Object):
                 )
 
         # You'll add particles here for sure ;)
-        ...
+        for i in particles.particles:
+            print(particle.direction)
 
     def random_color(self):
         r, g, b = hsv_to_rgb(uniform(0, 1), 0.8, 0.8)
@@ -392,57 +391,86 @@ class FpsCounter(Object):
 '''
 MY GARBAGE
 '''
-class Particle:
-    def __init__(self):
+class Particles:
+    def __init__(self, colour_change=False):
+        self.Z = 2000
         self.particles = []
-        self.Z = 1999
         self.alive = True
+        self.colour_change = colour_change
+
+    def add_particle(self, particle):
+        self.particles.append(particle)
+
+    def delete_particles(self):
+        particles_copy = [particle for particle in self.particles if particle.radius < 15]
+        self.particles = particles_copy
 
     def logic(self):
-        pass
+        if self.particles:
+            self.delete_particles()
+
+        for particle in self.particles:
+            particle.y += uniform(-1, 1) # y position change
+            particle.x += uniform(-1, 1) # x position change
+            particle.radius += particle.growth # radius increase
+
+    def colour_changes(self, particle):
+        g = 255 - int(particle.radius) * 17
+        if g < 0:
+            g = 0
+        a = g
+
+        return((255,g,0,a))
+
+    def draw(self, screen):
+        BACKGROUND = 0x0F1012
+
+        for particle in self.particles:
+            colour = (255,255,255) # default WHITE colour
+            if self.colour_change:
+                colour = self.colour_changes(particle)
+
+            surf = pygame.Surface((particle.radius*2, particle.radius*2)).convert_alpha()
+            surf.fill((BACKGROUND))
+            rect = surf.get_rect()
+            pygame.draw.circle(surf, colour, (rect.centerx, rect.centery), particle.radius)
+
+            if particle.radius >= 9:
+                pygame.draw.circle(surf, BACKGROUND, (rect.centerx + particle.randomness, rect.centery + particle.randomness), particle.radius)
+            screen.blit(surf,(particle.x, particle.y))
 
     def handle_event(self, event):
         pass
 
-    def draw(self, screen):
-        if self.particles:
-            self.delete_particles()
-            for particle in self.particles:
-                particle[0][1] += particle[2] # y position change
-                particle[0][0] += particle[2] # x position change
-                particle[1] += 0.4 # radius increase
+class ThrusterParticle:
+    def __init__(self, x, y, radius):
+        self.alive = True
+        self.x = x
+        self.y = y
+        self.radius = radius
+        self.growth = 0.4
+        self.direction = uniform(-0.5, 0.5)
+        self.randomness = uniform(-5.0, 5.0)
 
-                BACKGROUND = 0x0F1012
+class ExplosionParticle:
+    def __init__(self, x, y, radius, count):
+        self.particles = []
+        self.alive = True
+        self.x = x
+        self.y = y
+        self.radius = radius
+        self.count = count
+        self.growth = 0
+        self.lifespan = 1000
+        generate_many(count)
 
-                g = 255 - int(particle[1]) * 17
-                if g < 0:
-                    g = 0
-                a = g
+    def handle_event(self, event):
+        pass
 
-                colour = (255,g,0,a)
+    def generate_many(self, count):
+        for i in range(count):
+            particle = [[self.x, self.y], self.radius, 10]
+            self.particles.append(particle)
 
-                surf = pygame.Surface((particle[1]*2, particle[1]*2)).convert_alpha()
-                surf.fill((BACKGROUND))
-                rect = surf.get_rect()
-                pygame.draw.circle(surf, colour, (rect.centerx, rect.centery), particle[1])
-
-                if particle[1] >= 9:
-                    pygame.draw.circle(surf, BACKGROUND, (rect.centerx + particle[3], rect.centery + particle[3]), particle[1])
-                screen.blit(surf,particle[0])
-                
-                if particle[1] >= 9:
-                    pygame.draw.circle(surf, BACKGROUND, (rect.centerx + particle[3], rect.centery + particle[3]), particle[1])
-
-    def add_particles(self, pos_x, pos_y):
-        pos_x = pos_x
-        pos_y = pos_y
-        radius = 1
-        direction = uniform(-0.5, 0.5)
-        rand = uniform(-5.0, 5.0)
-        particle_circle = [[pos_x, pos_y], radius, direction, rand]
-
-        self.particles.append(particle_circle)
-
-    def delete_particles(self):
-        particles_copy = [particle for particle in self.particles if particle[1] < 15]
-        self.particles = particles_copy
+    def logic(self):
+        

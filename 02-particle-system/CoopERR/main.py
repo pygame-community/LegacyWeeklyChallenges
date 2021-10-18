@@ -41,9 +41,10 @@ def mainloop():
     # The state is just a collection of all the objects in the game
     state = State(player, FpsCounter(60), *Asteroid.generate_many())
 
-    particle = Particle()
+    particles = Particles(colour_change=True)
     PARTICLE_EVENT = pygame.USEREVENT + 1
     pygame.time.set_timer(PARTICLE_EVENT, 10)
+
     font = pygame.font.Font(None, 30)
 
     while True:
@@ -60,19 +61,20 @@ def mainloop():
         state.logic()
 
         screen.fill(BACKGROUND)
+
+        # thurster particles
         if player.speed < -2:
             for event in events:
                 if event.type == PARTICLE_EVENT:
                     x, y = player.thruster_position()
-                    particle.add_particles(x, y)
-        particle.draw(screen)
+                    particles.add_particle(ThrusterParticle(x, y, 1))
+                    state.add(particles)
+
         state.draw(screen)
 
         # particle counter display
-        partic_count = font.render("Particles: " + str(len(particle.particles)), True, pygame.Color('white'))
+        partic_count = font.render("Particles: " + str(len(particles.particles)), True, pygame.Color('white'))
         screen.blit(partic_count, (0, 50))
-
-
 
 
 
