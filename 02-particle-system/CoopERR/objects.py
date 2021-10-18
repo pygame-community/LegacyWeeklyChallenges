@@ -14,7 +14,7 @@ from collections import deque
 from colorsys import hsv_to_rgb
 from functools import lru_cache, partial
 from operator import attrgetter, xor
-from random import gauss, choices, uniform
+from random import gauss, choices, uniform, randint, random
 
 import pygame
 from pygame.constants import SRCALPHA
@@ -312,10 +312,15 @@ class Asteroid(Object):
                 )
 
         # You'll add particles here for sure ;)
-        particles = ExplosionParticles()
-        for i in range(50):
-            particles.add_particles(Particle(self.rect.centerx, self.rect.centery, radius=1, growth=0, rand=0, lifespan=100))
-        self.state.add(particles)
+            particles = ExplosionParticles()
+            for i in range(4):
+                particles.add_particles(Particle(self.rect.centerx, self.rect.centery, radius=random() * 5 + 2, colour=self.color))
+            self.state.add(particles)
+        else:
+            parts = ExplosionParticles()
+            for i in range(50):
+                parts.add_particles(Particle(self.rect.centerx, self.rect.centery, radius=1, colour=self.color))
+            self.state.add(parts)
 
     def random_color(self):
         r, g, b = hsv_to_rgb(uniform(0, 1), 0.8, 0.8)
@@ -399,7 +404,7 @@ class ThrusterParticles:
         self.particles.append(particle)
 
     def delete_particles(self):
-        particles_copy = [particle for particle in self.particles if particle.radius < 15]
+        particles_copy = [particle for particle in self.particles if particle.radius < 12]
         self.particles = particles_copy
 
     def logic(self):
@@ -412,7 +417,7 @@ class ThrusterParticles:
             particle.radius += particle.growth # radius increase
 
     def colour_changes(self, particle):
-        g = 255 - int(particle.radius) * 17
+        g = 255 - int(particle.radius) * 19
         if g < 0:
             g = 0
         a = g
@@ -459,8 +464,8 @@ class ExplosionParticles:
 
         for particle in self.particles:
             particle.lifespan -= 1
-            particle.x += particle.direction
-            particle.y += particle.direction
+            particle.x += particle.directionx
+            particle.y += particle.directiony
 
     def draw(self, screen):
         for particle in self.particles:
@@ -470,13 +475,13 @@ class ExplosionParticles:
         pass
 
 class Particle:
-    def __init__(self, x, y, radius, growth, rand, direction=0, lifespan=0, colour=(255,255,255)):
+    def __init__(self, x, y, radius, growth=0, colour=(255,255,255)):
         self.x = x
         self.y = y
         self.radius = radius
-        self.direction = direction
+        self.directionx = random() * 3 - 1
+        self.directiony = random() * 3 - 1
         self.growth = growth
         self.is_alive = True
-        self.rand = rand
-        self.lifespan = lifespan
+        self.lifespan = random() * 100
         self.colour = colour

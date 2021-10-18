@@ -43,7 +43,7 @@ def mainloop():
 
     particles = ThrusterParticles()
     PARTICLE_EVENT = pygame.USEREVENT + 1
-    pygame.time.set_timer(PARTICLE_EVENT, 10)
+    pygame.time.set_timer(PARTICLE_EVENT, 5)
 
     font = pygame.font.Font(None, 30)
 
@@ -67,13 +67,17 @@ def mainloop():
             for event in events:
                 if event.type == PARTICLE_EVENT:
                     x, y = player.thruster_position()
-                    particles.add_particle(Particle(x, y, 1, direction=uniform(-5, 5), growth=0.4, rand=uniform(-0.5, 0.5)))
+                    particles.add_particle(Particle(x, y, 1, growth=0.8))
                     state.add(particles)
 
         state.draw(screen)
 
         # particle counter display
-        partic_count = font.render("Particles: " + str(len(particles.particles)), True, pygame.Color('white'))
+        parts = 0
+        for i in state.objects:
+            if i.Z == 2001:
+                parts = len(i.particles)
+        partic_count = font.render("Particles: " + str(len(particles.particles) + parts), True, pygame.Color('white'))
         screen.blit(partic_count, (0, 50))
 
 
