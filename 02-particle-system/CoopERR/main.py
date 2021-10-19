@@ -69,18 +69,16 @@ def mainloop():
                     x, y = player.thruster_position()
                     particles.add_particle(Particle(x, y, 1, growth=0.8))
                     state.add(particles)
-
-        state.draw(screen)
-
         # particle counter display
         parts = 0
         for i in state.objects:
-            if i.Z == 2001:
-                parts = len(i.particles)
-        partic_count = font.render("Particles: " + str(len(particles.particles) + parts), True, pygame.Color('white'))
+            if isinstance(i, ExplosionParticles) or isinstance(i, ThrusterParticles):
+                parts += len(i.particles)
+        partic_count = font.render(f"Particles: {str(parts)}", True, pygame.Color('white'))
         screen.blit(partic_count, (0, 50))
 
+        state.draw(screen)
 
-
+        
 if __name__ == "__main__":
     wclib.run(mainloop())

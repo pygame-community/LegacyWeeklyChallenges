@@ -302,6 +302,8 @@ class Asteroid(Object):
     def explode(self, bullet):
         bullet.alive = False
         self.alive = False
+        particles = ExplosionParticles()
+
         if self.level > 1:
             # We spawn two smaller asteroids in the direction perpendicular to the collision.
             perp_velocity = pygame.Vector2(bullet.vel.y, -bullet.vel.x)
@@ -310,17 +312,14 @@ class Asteroid(Object):
                 self.state.add(
                     Asteroid(self.center, perp_velocity * mult, self.level - 1, self.color)
                 )
-
         # You'll add particles here for sure ;)
-            particles = ExplosionParticles()
             for i in range(4):
                 particles.add_particles(Particle(self.rect.centerx, self.rect.centery, radius=random() * 5 + 2, colour=self.color))
-            self.state.add(particles)
         else:
-            parts = ExplosionParticles()
-            for i in range(50):
-                parts.add_particles(Particle(self.rect.centerx, self.rect.centery, radius=1, colour=self.color))
-            self.state.add(parts)
+            for i in range(1000):
+                particles.add_particles(Particle(self.rect.centerx, self.rect.centery, radius=1, colour=self.color))
+
+        self.state.add(particles)
 
     def random_color(self):
         r, g, b = hsv_to_rgb(uniform(0, 1), 0.8, 0.8)
@@ -390,6 +389,7 @@ class FpsCounter(Object):
         color = "#89C4F4"
         t = text(f"FPS: {int(self.current_fps)}", color)
         screen.blit(t, self.center)
+        
 
 '''
 MY GARBAGE
@@ -412,8 +412,8 @@ class ThrusterParticles:
             self.delete_particles()
 
         for particle in self.particles:
-            particle.y += uniform(-1, 1) # y position change
-            particle.x += uniform(-1, 1) # x position change
+            particle.y += random() * 2 - 1 # y position change
+            particle.x += random() * 2 - 1 # x position change
             particle.radius += particle.growth # radius increase
 
     def colour_changes(self, particle):
@@ -459,9 +459,6 @@ class ExplosionParticles:
         if self.particles:
             self.delete_particles()
 
-        for i in range(len(self.particles)):
-            self.particles[i].direction = i
-
         for particle in self.particles:
             particle.lifespan -= 1
             particle.x += particle.directionx
@@ -483,5 +480,5 @@ class Particle:
         self.directiony = random() * 3 - 1
         self.growth = growth
         self.is_alive = True
-        self.lifespan = random() * 100
+        self.lifespan = random() * 100 + 1000
         self.colour = colour
