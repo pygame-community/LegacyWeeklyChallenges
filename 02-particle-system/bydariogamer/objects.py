@@ -417,7 +417,7 @@ class ParticleManager:
 
     __slots__ = ("particles",)
 
-    LIMITER = 7000
+    LIMITER = 5000
     MULTIPLIER = 50
     RANDOMNESS = 1
     TEN_THOUSAND_RANDOMNESS = 10000 * RANDOMNESS
