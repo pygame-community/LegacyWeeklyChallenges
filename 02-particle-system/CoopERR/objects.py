@@ -14,7 +14,7 @@ from collections import deque
 from colorsys import hsv_to_rgb
 from functools import lru_cache, partial
 from operator import attrgetter, xor
-from random import gauss, choices, uniform, random
+from random import gauss, choices, uniform, random, choice
 
 import pygame
 from pygame import image
@@ -23,6 +23,7 @@ from pygame.constants import SRCALPHA
 # noinspection PyPackages
 from .utils import *
 
+BACKGROUND = 0x0F1012
 
 class State:
     def __init__(self, *initial_objects: "Object"):
@@ -426,8 +427,6 @@ class ThrusterParticles:
         return((255,g,0,a))
 
     def draw(self, screen):
-        BACKGROUND = 0x0F1012
-
         for particle in self.particles:
             particle.colour = self.colour_changes(particle)
 
@@ -442,6 +441,7 @@ class ThrusterParticles:
 
     def handle_event(self, event):
         pass
+
 
 class ExplosionParticles:
     def __init__(self):
@@ -472,6 +472,7 @@ class ExplosionParticles:
     def handle_event(self, event):
         pass
 
+
 class Particle:
     def __init__(self, x, y, radius, growth=0, colour=(255,255,255), image=None):
         self.x = x
@@ -485,27 +486,28 @@ class Particle:
         self.colour = colour
         self.image = image
 
+
 class StarParticles:
     def __init__(self, count):
-        image1 = pygame.image.load("star1.png").convert_alpha()
-        image2 = pygame.image.load("star2.png").convert_alpha()
-        image3 = pygame.image.load("star3.png").convert_alpha()
-        image4 = pygame.image.load("star4.png").convert_alpha()
+        image1 = load_image("star1", alpha=True)
+        image2 = load_image("star2", alpha=True)
+        image3 = load_image("star3", alpha=True)
+        image4 = load_image("star4", alpha=True)
 
-        self.particles = StarParticles
-        self.Z = 2002
-        self.is_alive = True
+        self.particles = []
+        self.Z = -10
+        self.alive = True
         self.images = [image1, image2, image3, image4]
         self.count = count
+        self.add_particles()
 
     def add_particles(self):
         screen_size = pygame.display.get_surface().get_size()
         for i in range(self.count):
             x = int(random() * screen_size[0])
             y = int(random() * screen_size[1])
-            particle = Particle(x, y, radius=0, growth=0, image=random.choice(self.images))
+            particle = Particle(x, y, radius=0, growth=0, image=choice(self.images))
             self.particles.append(particle)
-
 
     def handle_event(self, event):
         pass
@@ -517,4 +519,6 @@ class StarParticles:
         for particle in self.particles:
             particle_rect = particle.image.get_rect().size
             surf = pygame.Surface((particle_rect))
-            particle.blit(surf, particle_rect)
+            surf.fill(BACKGROUND)
+            surf.blit(particle.image, (0,0))
+            screen.blit(surf, (particle.x, particle.y))

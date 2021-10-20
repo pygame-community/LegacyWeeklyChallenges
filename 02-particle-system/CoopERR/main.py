@@ -42,8 +42,8 @@ def mainloop():
     state = State(player, FpsCounter(60), *Asteroid.generate_many())
 
     particles = ThrusterParticles()
-    star_particles = StarParticles(50)
-    state.add(star_particles.particles)
+    star_particles = StarParticles(150)
+    state.add(star_particles)
     PARTICLE_EVENT = pygame.USEREVENT + 1
     pygame.time.set_timer(PARTICLE_EVENT, 5)
 
@@ -75,7 +75,7 @@ def mainloop():
         # particle counter display
         parts = 0
         for i in state.objects:
-            if isinstance(i, ExplosionParticles) or isinstance(i, ThrusterParticles):
+            if isinstance(i, ExplosionParticles) or isinstance(i, ThrusterParticles) or isinstance(i, StarParticles):
                 parts += len(i.particles)
         partic_count = font.render(f"Particles: {str(parts)}", True, pygame.Color('white'))
         screen.blit(partic_count, (0, 50))
