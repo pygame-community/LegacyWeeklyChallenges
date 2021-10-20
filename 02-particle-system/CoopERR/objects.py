@@ -14,9 +14,10 @@ from collections import deque
 from colorsys import hsv_to_rgb
 from functools import lru_cache, partial
 from operator import attrgetter, xor
-from random import gauss, choices, uniform, randint, random
+from random import gauss, choices, uniform, random
 
 import pygame
+from pygame import image
 from pygame.constants import SRCALPHA
 
 # noinspection PyPackages
@@ -472,7 +473,7 @@ class ExplosionParticles:
         pass
 
 class Particle:
-    def __init__(self, x, y, radius, growth=0, colour=(255,255,255)):
+    def __init__(self, x, y, radius, growth=0, colour=(255,255,255), image=None):
         self.x = x
         self.y = y
         self.radius = radius
@@ -482,3 +483,38 @@ class Particle:
         self.is_alive = True
         self.lifespan = random() * 100 + 1000
         self.colour = colour
+        self.image = image
+
+class StarParticles:
+    def __init__(self, count):
+        image1 = pygame.image.load("star1.png").convert_alpha()
+        image2 = pygame.image.load("star2.png").convert_alpha()
+        image3 = pygame.image.load("star3.png").convert_alpha()
+        image4 = pygame.image.load("star4.png").convert_alpha()
+
+        self.particles = StarParticles
+        self.Z = 2002
+        self.is_alive = True
+        self.images = [image1, image2, image3, image4]
+        self.count = count
+
+    def add_particles(self):
+        screen_size = pygame.display.get_surface().get_size()
+        for i in range(self.count):
+            x = int(random() * screen_size[0])
+            y = int(random() * screen_size[1])
+            particle = Particle(x, y, radius=0, growth=0, image=random.choice(self.images))
+            self.particles.append(particle)
+
+
+    def handle_event(self, event):
+        pass
+
+    def logic(self):
+        pass
+
+    def draw(self, screen):
+        for particle in self.particles:
+            particle_rect = particle.image.get_rect().size
+            surf = pygame.Surface((particle_rect))
+            particle.blit(surf, particle_rect)
