@@ -57,10 +57,10 @@ class AngularVel(Component):
 
     requires = ("angle",)
 
-    speed: float = 1
+    rotation_speed: float = 1
 
     def logic(self: "ParticleGroup"):
-        self.angle += self.speed
+        self.angle += self.rotation_speed
 
 
 class Gravity(Component):

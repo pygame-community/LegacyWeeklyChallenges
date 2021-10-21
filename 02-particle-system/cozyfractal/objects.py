@@ -7,7 +7,7 @@ your particle system, without needing to implement a game that
 goes with it too.
 Feel free to modify everything in this file to your liking.
 """
-
+import random
 import time
 from collections import deque
 from colorsys import hsv_to_rgb
@@ -173,6 +173,14 @@ class Object:
         self.rect = self.get_rect()
 
 
+class ReactorParticles(ParticleGroup, Circle, WrapTorus, MovePolar):
+    continuous = True
+    gradient = ("#FFFEC9", "#FF8B12", "#82020090", "#39000050")
+    speed = Gauss(2)
+    max_age = 30
+    wrap_rect = SCREEN
+
+
 class Player(Object):
     Z = 10
     HIT_BOX_SCALE = 0.7  # harder to touch the player
@@ -182,12 +190,6 @@ class Player(Object):
     INITIAL_ROTATION = 90
     FIRE_COOLDOWN = 15  # frames
     SCALE = 3
-
-    class ReactorParticles(ParticleGroup, Circle, MovePolar):
-        continuous = True
-        gradient = ("#FFFEC9", "#FF8B12", "#82020090", "#39000050")
-        speed = Gauss(2)
-        max_age = 30
 
     def __init__(self, pos, vel):
         super().__init__(pos, vel, load_image("player", self.SCALE))
@@ -220,8 +222,8 @@ class Player(Object):
     def logic(self):
         if not self.reactor_on:
             self.state.add(
-                self.ReactorParticles(
-                    pos=Lambda(lambda: self.reactor_pos - (self.ReactorParticles.radius / 2,) * 2),
+                ReactorParticles(
+                    pos=Lambda(lambda: self.reactor_pos - (ReactorParticles.radius / 2,) * 2),
                     angle=Gauss(lambda: 180 + self.world_rotation, spread=10),
                 )
             )
@@ -289,6 +291,30 @@ class Bullet(Object):
         ...
 
 
+def random_color():
+    r, g, b = hsv_to_rgb(uniform(0, 1), 0.8, 0.8)
+    return int(r * 255), int(g * 255), int(b * 255)
+
+
+NB_COLORS = 10
+COLORS = [random_color() for _ in range(NB_COLORS)]
+
+
+class AsteroidExplosion(ParticleGroup, WrapTorus, MovePolar, AngularVel, Circle):
+    Z = 1
+    wrap_rect = SCREEN
+    angle = Uniform(0, 360)
+    rotation_speed = 2
+
+    speed = Gauss(4)
+    max_age = 50
+    nb = 400
+
+    colors_fade_to_transparent = True
+    nb_seed = NB_COLORS
+    gradient = COLORS
+
+
 class Asteroid(Object):
     AVG_SPEED = 1
     EXPLOSION_SPEED_BOOST = 1.8
@@ -297,7 +323,7 @@ class Asteroid(Object):
         assert 1 <= size <= 4
         self.level = size
         # We copy to change the color
-        self.color = color or self.random_color()
+        self.color = color or random.choice(COLORS)
 
         super().__init__(pos, vel, self.colored_image(size, self.color))
 
@@ -337,11 +363,9 @@ class Asteroid(Object):
                 )
 
         # You'll add particles here for sure ;)
-        ...
-
-    def random_color(self):
-        r, g, b = hsv_to_rgb(uniform(0, 1), 0.8, 0.8)
-        return int(r * 255), int(g * 255), int(b * 255)
+        self.state.add(
+            AsteroidExplosion(pos=self.center, seeds=Constant(COLORS.index(self.color), int))
+        )
 
     @classmethod
     def generate_many(cls, nb=10):

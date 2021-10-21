@@ -47,17 +47,31 @@ class Circle(SurfComponent):
     gradient = "white", "black"
     radius: Union[int, Callable[[int], int]] = 3
 
+    colors_fade_to_transparent = False
+    """This option requires that extra_params to be set to (len(gradient), )."""
+
     @classmethod
     def add(cls):
-        cls._gradient = gradient(*cls.gradient, steps=cls.max_age)
+        if not cls.colors_fade_to_transparent:
+            cls._gradient = gradient(*cls.gradient, steps=cls.max_age)
+        else:
+            cls._gradient = cls.gradient
         super().add()
 
     @classmethod
-    def get_surf(cls, age):
+    def get_surf(cls, age, *color):
         r = cls.radius if not callable(cls.radius) else int(cls.radius(age))
         s = pygame.Surface((r * 2 + 1, r * 2 + 1), pygame.SRCALPHA)
         s.fill(0)
-        pygame.gfxdraw.filled_circle(s, r, r, r, cls._gradient[age])
+
+        if color:
+            color = pygame.Color(cls.gradient[color[0]])
+            color.set_length(4)
+            color.a = 255 - int(255 * (age / cls.max_age) ** 2)
+        else:
+            color = cls._gradient[age]
+
+        pygame.gfxdraw.filled_circle(s, r, r, r, color)
         return s
 
 

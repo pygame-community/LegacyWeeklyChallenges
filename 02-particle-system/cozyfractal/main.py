@@ -106,7 +106,7 @@ def mainloop():
         continuous = True
         nb = 3000
         gradient = "red", "orange", "#ffa50040"
-        pos = UniformInRect(SCREEN.inflate(20, 20), True)
+        pos = UniformInRect(SCREEN.inflate(10, 10).move(-9, -9), True)
 
         aim = SCREEN.center
         speed = Gauss(1, 0.5)
@@ -173,6 +173,9 @@ def mainloop():
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_s:
                     state.add(Fireworks())
+                elif event.key == pygame.K_SPACE:
+                    for a in Asteroid.generate_many(10):
+                        state.add(a)
 
             state.handle_event(event)
             mouse_generator.handle_event(event)

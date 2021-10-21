@@ -85,8 +85,9 @@ class ParticleGroup:
                 found.setdefault(name, getattr(cls, name))
             except AttributeError:
                 pass
-        if set(found) != to_get:
-            missing = to_get - set(found)
+
+        missing = to_get - set(found)
+        if missing:
             raise NameError(
                 f"A component requires {missing} but {missing} was not found in the blueprint."
             ) from None
@@ -97,7 +98,6 @@ class ParticleGroup:
             if event.key == pygame.K_r:
                 # Reset
                 self.__init__(**self.init)
-                return True
 
         for base in self.__class__.__bases__:
             if issubclass(base, Component):
