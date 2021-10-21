@@ -8,49 +8,52 @@ from .core import Component, ParticleGroup
 
 class SurfComponent(Component):
     extra_params = ()
+    requires = ("pos",)
 
-    def add(self, group: "ParticleGroup"):
-        super().add(group)
-
-        if group.nb_seed > 1:
-            self.shape = (group.max_age, group.nb_seed, *self.extra_params)
+    @classmethod
+    def add(cls):
+        if cls.nb_seed > 1:
+            cls.params_shape = (cls.max_age, cls.nb_seed, *cls.extra_params)
         else:
-            self.shape = (group.max_age, *self.extra_params)
+            cls.params_shape = (cls.max_age, *cls.extra_params)
 
-        print("shape", self.shape)
-        indices = np.ndindex(*self.shape)
-        self.table = np.array([self.get_surf(*args) for args in indices]).reshape(self.shape)
+        print("!!!", cls.params_shape)
+        indices = np.ndindex(*cls.params_shape)
+        cls.table = np.array([cls.get_surf(*args) for args in indices]).reshape(cls.params_shape)
 
-    def draw(self, group: "ParticleGroup", screen: pygame.Surface):
-        params = self.compute_params(group)
+    def draw(self, screen: pygame.Surface):
+        params = self.compute_params()
         surfs = self.table[params]
-        l = zip(surfs, group.pos)
+        l = zip(surfs, self.pos)
         screen.blits(l, False)
 
-    def compute_params(self, group):
-        age = group.age
-        seed = group.seeds
+    def compute_params(self):
+        age = self.age
+        seed = self.seeds
 
-        if group.nb_seed > 1:
+        if self.nb_seed > 1:
             return age, seed
         return (age,)
 
-    def get_surf(self, *args):
+    @classmethod
+    def get_surf(cls, *args):
         raise NotImplemented
 
 
 class Circle(SurfComponent):
-    def __init__(self, *colors, size=3):
-        self.colors = colors
-        self.size = size
+    gradient = "white", "black"
+    radius = 3
 
-    def add(self, group: "ParticleGroup"):
-        self.gradient = gradient(*self.colors, group.nb)
-        super().add(group)
+    @classmethod
+    def add(cls):
+        cls._gradient = gradient(*cls.colors, cls.nb)
+        super().add()
 
-    def get_surf(self, age):
-        s = pygame.Surface((self.size * 2 + 1, self.size * 2 + 1))
-        pygame.gfxdraw.filled_circle(s, self.size, self.size, self.size, self.gradient[age])
+    @classmethod
+    def get_surf(cls, age):
+        r = cls.radius
+        s = pygame.Surface((r * 2 + 1, r * 2 + 1))
+        pygame.gfxdraw.filled_circle(s, r, r, r, cls._gradient[age])
         s.set_colorkey(0)
         return s
 
@@ -58,29 +61,31 @@ class Circle(SurfComponent):
 class VelocityCircle(SurfComponent):
     extra_params = (360,)
 
-    def add(self, group: "ParticleGroup"):
-        self.gradient = gradient(
+    @classmethod
+    def add(cls):
+        cls._gradient = gradient(
             "#E8554E",
             "#F19C65",
             "#FFD265",
             "#2AA876",
             "#0A7B83",
-            steps=self.extra_params[0],
+            steps=cls.extra_params[0],
             loop=True,
         )
-        super().add(group)
+        super().add()
 
-    def compute_params(self, group):
-        # val = np.linalg.norm(group.pos - np.array(SIZE) / 2, axis=1)
-        val = group.angle
+    def compute_params(self):
+        val = np.linalg.norm(self.pos, axis=1)
+        # val = self.angle
         vel = (val % 360).astype(int)
-        return (*super().compute_params(group), vel)
+        return (*super().compute_params(), vel)
 
-    def get_surf(self, age, vel):
-        alpha = 255 - int(255 * (age / self.shape[0]) ** 2)
+    @classmethod
+    def get_surf(cls, age, vel):
+        alpha = 255 - int(255 * (age / cls.params_shape[0]) ** 2)
         r = 3
         d = r * 2 + 1
         s = pygame.Surface((d, d), pygame.SRCALPHA)
         s.fill(0)
-        pygame.gfxdraw.filled_circle(s, r, r, r, (*self.gradient[vel], alpha))
+        pygame.gfxdraw.filled_circle(s, r, r, r, (*cls._gradient[vel], alpha))
         return s

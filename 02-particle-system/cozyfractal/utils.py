@@ -26,9 +26,9 @@ SCREEN = pygame.Rect(0, 0, *SIZE)
 
 
 @lru_cache()
-def load_image(name: str, scale=1, alpha=True):
+def load_image(name: str, scale=1, alpha=True, base=ASSETS):
     """Load a image from the disk and caches the results."""
-    image = pygame.image.load(ASSETS / f"{name}.png")
+    image = pygame.image.load(base / f"{name}.png")
     if scale != 1:
         new_size = image.get_width() * scale, image.get_height() * scale
         image = pygame.transform.scale(image, new_size)

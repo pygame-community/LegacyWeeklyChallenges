@@ -32,6 +32,7 @@ class State:
     def add(self, obj: "Object"):
         # We don't add objects immediately,
         # as it could invalidate iterations.
+        print("adding:", obj)
         self.objects_to_add.add(obj)
         obj.state = self
         return obj

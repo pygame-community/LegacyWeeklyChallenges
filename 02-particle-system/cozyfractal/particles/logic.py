@@ -12,57 +12,51 @@ class MovePolar(Component):
     """A component that moves particles according to a velocity in polar coordinates."""
 
     depends = "speed", "angle", "pos"
-    updates = ("pos",)
 
-    def logic(self, group):
-        radians = group.angle * (np.pi / 180)
-        group.pos += (group.speed * np.array([np.cos(radians), np.sin(radians)])).T
+    def logic(self: "ParticleGroup"):
+        radians = self.angle * (np.pi / 180)
+        self.pos += (self.speed * np.array([np.cos(radians), np.sin(radians)])).T
 
 
 class MoveCartesian(Component):
     """Move particles according to a velocity in cartesian coordinates."""
 
-    depends = "velocity", "pos"
-    updates = ("pos",)
+    requires = "velocity", "pos"
 
-    def logic(self, group: "ParticleGroup"):
-        group.pos += group.velocity
+    def logic(self: "ParticleGroup"):
+        self.pos += self.velocity
 
 
 class WrapTorus(Component):
     """A component that wrap the position of particles inside a rectangle"""
 
-    updates = ("pos",)
+    requires = ("pos",)
 
-    def __init__(self, rect):
-        self.rect = pygame.Rect(rect)
+    wrap_rect = (0, 0, 100, 100)  # left, top, width, height
 
-    def logic(self, group: "ParticleGroup"):
-        group.pos -= self.rect.topleft
-        group.pos %= self.rect.size
-        group.pos += self.rect.topleft
+    def logic(self: "ParticleGroup"):
+        self.pos -= self.wrap_rect[:2]
+        self.pos %= self.wrap_rect[2:]
+        self.pos += self.wrap_rect[:2]
 
 
 @dataclass
 class AngularVel(Component):
     """Increase the angle of a particle by a constant."""
 
-    updates = ("angle",)
+    requires = ("angle",)
 
-    speed: float
+    speed: float = 1
 
-    def logic(self, group: "ParticleGroup"):
-        group.angle += self.speed
+    def logic(self: "ParticleGroup"):
+        self.angle += self.speed
 
 
 @dataclass
 class Gravity(Component):
-    updates = ("velocity",)
+    requires = ("velocity",)
 
-    def __init__(self, gravity):
-        if isinstance(gravity, (float, int)):
-            gravity = (0, gravity)
-        self.gravity = np.array(gravity)
+    gravity = (0, 1)
 
-    def logic(self, group: "ParticleGroup"):
-        group.velocity += self.gravity
+    def logic(self: "ParticleGroup"):
+        self.velocity += self.gravity

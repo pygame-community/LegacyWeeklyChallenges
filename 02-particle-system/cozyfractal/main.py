@@ -44,22 +44,36 @@ def mainloop():
 
     # player = Player((SIZE[0] / 2, SIZE[1] / 2), (0, 0))
     # The state is just a collection of all the objects in the game
-    p = ParticleGroup(
-        10000,
-        100,
-        MovePolar(),
-        AngularVel(0.8),
-        VelocityCircle(),
-        # WrapScreenTorus(),
-        continuous=True,
-        pos=np.array(SIZE) / 2,
-        speed=Gauss(5, 0.1),
-        angle=Uniform(0, 360),
-        color=Constant(np.array([0, 0, 0])),
-    )
-
-    state = State(FpsCounter(60), p)
+    state = State(FpsCounter(60))
     # state = State(player, FpsCounter(60), *Asteroid.generate_many())
+
+    # p = ParticleGroup(
+    #     1000,
+    #     100,
+    #     MovePolar(),
+    #     AngularVel(0.8),
+    #     VelocityCircle(),
+    #     WrapScreenTorus(),
+    # continuous=True,
+    # pos=np.array(SIZE) / 2,
+    # speed=Gauss(5, 0.1),
+    # angle=Uniform(0, 360),
+    # color=Constant(np.array([0, 0, 0])),
+    # )
+
+    class FireWorks(ParticleGroup, MoveCartesian, WrapTorus, VelocityCircle):
+        continuous = True
+        nb = 1000
+        max_age = 1000
+        gravity = 0.01
+        wrap_rect = (0, 0, *SIZE)
+
+        velocity = Gauss((0, -1), (0.2, 0.2))
+        pos = Gauss((0, 0), (5, 5))
+
+    f = FireWorks()
+
+    state.add(FireWorks(pos=(100.0, 230)))
 
     frame = 1
     while True:
