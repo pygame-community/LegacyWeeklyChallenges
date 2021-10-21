@@ -9,7 +9,7 @@ Feel free to modify everything in this file to your liking.
 """
 import random
 import time
-from collections import deque
+from collections import deque, defaultdict
 from colorsys import hsv_to_rgb
 from functools import lru_cache
 from operator import attrgetter
@@ -30,6 +30,8 @@ class State:
         for obj in initial_objects:
             self.add(obj)
 
+        self.by_type = {}
+
     def add(self, obj: "Object | ParticleGroup"):
         # We don't add objects immediately,
         # as it could invalidate iterations.
@@ -38,6 +40,10 @@ class State:
         return obj
 
     def logic(self):
+        self.by_type = defaultdict(list)
+        for obj in self.objects:
+            self.by_type[type(obj)].append(obj)
+
         to_remove = set()
         for obj in self.objects:
             obj.logic()
@@ -337,18 +343,18 @@ class Asteroid(Object):
     def logic(self):
         super().logic()
 
-        for obj in self.state.objects:
-            if not obj.alive:
+        for bullet in self.state.by_type[Bullet]:
+            if not bullet.alive:
                 continue
+            if self.collide(bullet):
+                self.explode(bullet)
+                return
 
-            if isinstance(obj, Bullet):
-                # Detect if the bullet and asteroid collide.
-                if self.collide(obj):
-                    self.explode(obj)
-                    break
-            elif isinstance(obj, Player):
-                if self.collide(obj):
-                    obj.on_asteroid_collision(self)
+        for player in self.state.by_type[Player]:
+            if not player.alive:
+                continue
+            if self.collide(player):
+                player.on_asteroid_collision(self)
 
     def explode(self, bullet):
         bullet.alive = False
