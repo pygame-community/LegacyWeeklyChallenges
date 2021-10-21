@@ -20,6 +20,9 @@ def make_generator(obj: "IntoGenerator") -> "Generator":
 
 
 class Generator:
+    def __call__(self, nb: int):
+        return self.gen(nb)
+
     def gen(self, nb: int):
         return np.zeros(nb)
 
@@ -58,9 +61,11 @@ class Constant(Generator):
         self.default = np.array(default)
 
     def gen(self, nb: int):
-        dims = len(self.default) - 1
-        padd = (1,) * dims
-        return np.tile(self.default, (nb, *padd))
+        if len(self.default) == 1:
+            reps = (nb,)
+        else:
+            reps = (nb, 1)
+        return np.tile(self.default, reps)
 
 
 IntoGenerator = Union[Generator, float, tuple, list, np.array]
