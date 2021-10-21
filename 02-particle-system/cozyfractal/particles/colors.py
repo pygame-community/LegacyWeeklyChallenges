@@ -40,7 +40,7 @@ def RGB_to_hsv(r, g, b, *a):
     return (*rgb_to_hsv(r / 255, g / 255, b / 255), *a)
 
 
-def gradient(*colors, steps=256, loop=False):
+def gradient(*colors, steps, loop=False):
     """
     Yield the values of a colorisation as RGB tuple.
     :param colors: RGB tuples or hex strings

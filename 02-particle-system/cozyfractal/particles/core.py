@@ -15,6 +15,9 @@ class Component:
     requires = ()
     provides = ()
 
+    def handle_event(self, event):
+        pass
+
     def logic(self: "ParticleGroup"):
         pass
 
@@ -81,7 +84,7 @@ class ParticleGroup:
         for name in to_get:
             try:
                 found[name] = getattr(cls, name)
-            except KeyError:
+            except AttributeError:
                 raise NameError(
                     f"A component requires '{name}' but '{name}' was not found in the blueprint."
                 ) from None
@@ -93,6 +96,10 @@ class ParticleGroup:
                 # Reset
                 self.__init__(**self.init)
                 return True
+
+        for base in self.__class__.__bases__:
+            if issubclass(base, Component):
+                base.handle_event(self, event)
 
     def logic(self):
         self.age += 1

@@ -1,3 +1,4 @@
+import random
 import sys
 from pathlib import Path
 
@@ -60,20 +61,35 @@ def mainloop():
     # angle=Uniform(0, 360),
     # color=Constant(np.array([0, 0, 0])),
     # )
+    mouse_generator = MousePosGenerator()
 
-    class FireWorks(ParticleGroup, MoveCartesian, WrapTorus, VelocityCircle):
+    class Fountain(ParticleGroup, MoveCartesian, BounceRect, Gravity, VelocityCircle):
         continuous = True
-        nb = 1000
-        max_age = 1000
-        gravity = 0.01
+        nb = 5000
+        max_age = 300
+        gravity = (0, 0.1)
         wrap_rect = (0, 0, *SIZE)
+        bounce_limits = (100, 100, SIZE[0] - 100, SIZE[1] - 100)
 
-        velocity = Gauss((0, -1), (0.2, 0.2))
-        pos = Gauss((0, 0), (5, 5))
+        velocity = Gauss((0, -8), (0.3, 0.2))
+        pos = mouse_generator
 
-    f = FireWorks()
+    class Fireworks(ParticleGroup, MovePolar, Circle, Friction):
+        nb = 1000
+        max_age = 100
+        gravity = (0, 0.1)
+        gradient = "#FFF75D", "#FE650DA0", "#A1010000"
+        # gradient = "red", "yellow", (255, 165, 0, 0)
+        angle = Uniform(0, 360)
+        speed = Gauss(8)
+        pos = mouse_generator
 
-    state.add(FireWorks(pos=(100.0, 230)))
+        friction = 0.98
+        bounce_limits = (0, 0, SIZE)
+
+        interpolations = {"speed": (5, 0)}
+
+    state.add(Fountain())
 
     frame = 1
     while True:
@@ -83,8 +99,15 @@ def mainloop():
         for event in events:
             if event.type == pygame.QUIT:
                 return
-            else:
-                state.handle_event(event)
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_s:
+                    state.add(Fireworks())
+
+            state.handle_event(event)
+            mouse_generator.handle_event(event)
+
+        if random.random() < 0.01:
+            state.add(Fireworks())
 
         # Note: the logic for collisions is in the Asteroids class.
         # This may seem arbitrary, but the only collisions that we consider

@@ -9,8 +9,11 @@ __all__ = [
     "Uniform",
     "Gauss",
     "Constant",
+    "MousePosGenerator",
     "IntoGenerator",
 ]
+
+import pygame
 
 
 def make_generator(obj: "IntoGenerator") -> "Generator":
@@ -57,8 +60,8 @@ class Gauss(Generator):
 
 
 class Constant(Generator):
-    def __init__(self, default):
-        self.default = np.array(default)
+    def __init__(self, default, dtype=float):
+        self.default = np.array(default, dtype)
 
     def gen(self, nb: int):
         if len(self.default) == 1:
@@ -66,6 +69,18 @@ class Constant(Generator):
         else:
             reps = (nb, 1)
         return np.tile(self.default, reps)
+
+
+class MousePosGenerator(Generator):
+    def __init__(self, initial=(0, 0)):
+        self.mouse_pos = np.array(initial, float)
+
+    def handle_event(self, event):
+        if event.type == pygame.MOUSEMOTION:
+            self.mouse_pos = np.array(event.pos, float)
+
+    def gen(self, nb: int):
+        return np.tile(self.mouse_pos, (nb, 1))
 
 
 IntoGenerator = Union[Generator, float, tuple, list, np.array]

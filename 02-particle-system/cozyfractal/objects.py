@@ -19,6 +19,7 @@ import pygame
 
 # noinspection PyPackages
 from .utils import *
+from .particles import ParticleGroup
 
 
 class State:
@@ -32,7 +33,6 @@ class State:
     def add(self, obj: "Object"):
         # We don't add objects immediately,
         # as it could invalidate iterations.
-        print("adding:", obj)
         self.objects_to_add.add(obj)
         obj.state = self
         return obj
@@ -371,4 +371,8 @@ class FpsCounter(Object):
 
         color = "#89C4F4"
         t = text(f"FPS: {int(self.current_fps)}", color)
-        screen.blit(t, self.center)
+        r = screen.blit(t, self.center)  # Not really the center but it wasn't made for UI
+
+        nb_particles = sum(p.nb for p in self.state.objects if isinstance(p, ParticleGroup))
+        t = text(f"Particles: {nb_particles}", color)
+        screen.blit(t, r.bottomleft)
