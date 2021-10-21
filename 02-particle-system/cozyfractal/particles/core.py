@@ -57,8 +57,14 @@ class ParticleGroup:
         self.init = self._get_random_initializers(**init_override)
 
         for key, value in self.init.items():
-            gen = self.init[key] = make_generator(value)
-            setattr(self, key, gen(self.nb))
+            self.init[key] = value
+            if isinstance(value, Generator):
+                setattr(self, key, value.gen(self.nb))
+            else:
+                setattr(self, key, value)
+
+    def __repr__(self):
+        return f"<{self.__class__.__name__}({self.init})>"
 
     @classmethod
     def _get_all_from_bases(cls, what: str):

@@ -39,6 +39,9 @@ class Generator:
     def gen(self, nb: int):
         return np.zeros(nb)
 
+    def __repr__(self):
+        return f"<{self.__class__.__name__}>"
+
 
 @dataclass
 class Uniform(Generator):
@@ -68,6 +71,9 @@ class UniformInRect(Generator):
 
         return pos
 
+    def __repr__(self):
+        return f"{self.__class__.__name__}({self.rect}, on_edge={self.on_edge})"
+
 
 class UniformInImage(Generator):
     def __init__(self, image: pygame.Surface, shift=(0, 0)):
@@ -78,6 +84,9 @@ class UniformInImage(Generator):
     def gen(self, nb: int):
         indices = np.random.randint(0, self.possible.shape[0], nb)
         return self.possible[indices] + self.shift
+
+    def __repr__(self):
+        return f"<{self.__class__.__name__}(shift={self.shift}, {self.possible.shape[0]} possibilities)>"
 
 
 class Gauss(Generator):
@@ -106,6 +115,16 @@ class Gauss(Generator):
             shape = (nb,)
         return np.random.normal(self.center, self.spread, shape)
 
+    def __repr__(self):
+        center = "<lambda>" if callable(self._center) else str(self._center)
+        spread = "<lambda>" if callable(self._spread) else str(self._spread)
+
+        r = f"{self.__class__.__name__}(center={center}, spread={spread})"
+
+        if "<" in center + spread:
+            r = f"<{r}>"
+        return r
+
 
 class Constant(Generator):
     def __init__(self, default, dtype=float):
@@ -118,6 +137,9 @@ class Constant(Generator):
             reps = (nb, 1)
         return np.tile(self.default, reps)
 
+    def __repr__(self):
+        return f"{self.__class__.__name__}({self.default})"
+
 
 class Lambda(Constant):
     def __init__(self, f: Callable):
@@ -127,6 +149,9 @@ class Lambda(Constant):
     def gen(self, nb: int):
         super().__init__(self.f())
         return super().gen(nb)
+
+    def __repr__(self):
+        return f"<{self.__class__.__name__}({self.f})>"
 
 
 class MousePosGenerator(Generator):
@@ -139,6 +164,9 @@ class MousePosGenerator(Generator):
 
     def gen(self, nb: int):
         return np.tile(self.mouse_pos, (nb, 1))
+
+    def __repr__(self):
+        return f"{self.__class__.__name__}({self.mouse_pos})"
 
 
 IntoGenerator = Union[Generator, float, tuple, list, np.array]

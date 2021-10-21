@@ -321,6 +321,26 @@ class AsteroidExplosion(ParticleGroup, WrapTorus, MovePolar, AngularVel, Circle)
     gradient = COLORS
 
 
+class AsteroidExplosion2(ParticleGroup, SurfComponent, WrapTorus, MovePolar):
+    nb = 100
+    max_age = 50
+    wrap_rect = SCREEN
+    angle = Uniform(0, 360)
+    speed = Gauss(3)
+
+    nb_seed = 6
+    params_shape = (nb_seed, NB_COLORS)
+
+    def compute_params(self):
+        return (self.seeds,)
+
+    def get_surf(cls, seed, color):
+        pass
+
+
+AsteroidExplosion2(color=2)
+
+
 class Asteroid(Object):
     AVG_SPEED = 1
     EXPLOSION_SPEED_BOOST = 1.8
@@ -370,7 +390,9 @@ class Asteroid(Object):
 
         # You'll add particles here for sure ;)
         self.state.add(
-            AsteroidExplosion(pos=self.center, seeds=Constant(COLORS.index(self.color), int))
+            AsteroidExplosion(
+                pos=Constant(self.center), seeds=Constant(COLORS.index(self.color), int)
+            )
         )
 
     @classmethod

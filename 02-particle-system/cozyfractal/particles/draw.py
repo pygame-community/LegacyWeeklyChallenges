@@ -16,10 +16,12 @@ class SurfComponent(Component):
     @classmethod
     def add(cls):
         super().add()
-        if cls.nb_seed > 1:
-            cls.params_shape = (cls.max_age, cls.nb_seed, *cls.extra_params)
-        else:
-            cls.params_shape = (cls.max_age, *cls.extra_params)
+
+        if not hasattr(cls, "parms_shape"):
+            if cls.nb_seed > 1:
+                cls.params_shape = (cls.max_age, cls.nb_seed, *cls.extra_params)
+            else:
+                cls.params_shape = (cls.max_age, *cls.extra_params)
 
         indices = np.ndindex(*cls.params_shape)
         cls.table = np.array([cls.get_surf(*args) for args in indices]).reshape(cls.params_shape)
