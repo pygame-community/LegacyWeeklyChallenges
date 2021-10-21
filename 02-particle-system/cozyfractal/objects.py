@@ -303,12 +303,11 @@ def random_color():
     return int(r * 255), int(g * 255), int(b * 255)
 
 
-NB_COLORS = 10
+NB_COLORS = 30
 COLORS = [random_color() for _ in range(NB_COLORS)]
 
 
 class AsteroidExplosion(ParticleGroup, WrapTorus, MovePolar, AngularVel, Circle):
-    Z = 1
     wrap_rect = SCREEN
     angle = Uniform(0, 360)
     rotation_speed = 2
@@ -322,21 +321,33 @@ class AsteroidExplosion(ParticleGroup, WrapTorus, MovePolar, AngularVel, Circle)
     gradient = COLORS
 
 
-class AsteroidExplosion2(ParticleGroup, SurfComponent, WrapTorus, MovePolar):
-    nb = 100
-    max_age = 50
+class AsteroidExplosion2(ParticleGroup, SurfComponent, WrapTorus, MovePolar, Acceleration):
+    Z = 1
+    nb = 50
+    max_age = 100
     wrap_rect = SCREEN
-    angle = Uniform(0, 360)
+    angle = np.linspace(0, 360, nb)
     speed = Gauss(3)
+    acceleration = -0.02
 
-    nb_seed = 6
-    params_shape = (nb_seed, NB_COLORS)
+    nb_seed = 1
+
+    @classmethod
+    def get_params_range(cls):
+        return cls.max_age, cls.nb_seed, NB_COLORS
 
     def compute_params(self):
-        return (self.seeds, self.color)
+        return (self.age, self.seeds, self.color)
 
-    def get_surf(cls, seed, color):
-        pass
+    @classmethod
+    def get_surf(cls, age, seed, color):
+        r = 8
+        sides = 5
+        points = [from_polar(r, 2 * a * 360 / sides) + (r, r) for a in range(sides)]
+        alpha = 255 - int(255 * (age / cls.max_age) ** 2)
+        s = pygame.Surface((2 * r + 1, 2 * r + 1), pygame.SRCALPHA)
+        pygame.gfxdraw.filled_polygon(s, points, COLORS[color] + (alpha,))
+        return s
 
 
 class Asteroid(Object):
@@ -388,9 +399,7 @@ class Asteroid(Object):
 
         # You'll add particles here for sure ;)
         self.state.add(
-            AsteroidExplosion(
-                pos=Constant(self.center), seeds=Constant(COLORS.index(self.color), int)
-            )
+            AsteroidExplosion2(pos=Constant(self.center), color=COLORS.index(self.color))
         )
 
     @classmethod

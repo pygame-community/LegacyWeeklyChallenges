@@ -12,6 +12,8 @@ from .core import Component, ParticleGroup
 
 
 class class_cached:
+    """Decorator to compute once per class a function, then stores it in the class dict."""
+
     def __init__(self, get):
         self.get = get
         self.name = "NONAME"
@@ -44,6 +46,23 @@ class class_cached:
 
 
 class SurfComponent(ABC, Component):
+    """
+    Base component to draw particles.
+
+    Pre-computes all the surfaces that can be blit on screen.
+    The surfaces are stored in [table] the first time they are
+    needed.
+
+    In order to create a new SurfComponent class, it is required to:
+     - override get_params_range, which defines
+        the size of the surfaces cache.
+     - override compute_params, which transforms
+        the particles attributes into cache indices.
+     - override get_surf, which computes the surface
+        corresponding to a given cache index.
+    The last two methods are class methods.
+    """
+
     requires = ("pos",)
 
     @class_cached
@@ -67,12 +86,15 @@ class SurfComponent(ABC, Component):
     def get_params_range(cls):
         pass
 
+    @classmethod
     @abstractmethod
     def get_surf(self, *args):
         pass
 
 
 class Circle(SurfComponent):
+    """Draw a colored circle according to the age of the particle."""
+
     gradient = "white", "black"
     radius: Union[int, Callable[[int], int]] = 3
 

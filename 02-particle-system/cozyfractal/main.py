@@ -164,8 +164,8 @@ def mainloop():
     state.add(Stars())
     state.add(EdgeBubbles())
     state.add(CozyFire())
-    state.add(Snow())
-    state.add(Fountain())
+    # state.add(Snow())
+    # state.add(Fountain())
 
     frame = 1
     while True:
