@@ -24,17 +24,8 @@ class Component:
     def draw(self: "ParticleGroup", screen):
         pass
 
-    @classmethod
-    def add(cls):
-        pass
-
-    def __init_subclass__(cls, **kwargs):
-        if issubclass(cls, ParticleGroup):
-            cls.add()
-
 
 class ParticleGroup:
-
     Z = 0
     nb = 1000
     max_age = 100

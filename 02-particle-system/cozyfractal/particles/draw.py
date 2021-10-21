@@ -1,4 +1,6 @@
 import time
+from abc import abstractmethod, abstractclassmethod, ABC
+from functools import cached_property
 from typing import Union, Callable
 
 import pygame
@@ -9,22 +11,46 @@ from .colors import gradient
 from .core import Component, ParticleGroup
 
 
-class SurfComponent(Component):
-    extra_params = ()
+class class_cached:
+    def __init__(self, get):
+        self.get = get
+        self.name = "NONAME"
+        self.owner = None
+
+    def __repr__(self):
+        return f"<class_cached(name={self.name})>"
+
+    def __set_name__(self, owner, name):
+        # We assume that each descriptor will be used only once,
+        # as a decorator, so it is fine to store stuff
+        # in the instance
+        assert self.owner is None
+
+        self.name = name
+        self.owner = owner
+
+    def __get__(self, instance, owner):
+        if instance is None and owner is self.owner:
+            return self
+
+        if instance is None:  # called via a subclass of self.owner
+            klass = owner
+        else:  # called via an instance of a subclass of self.owner
+            klass = instance.__class__
+
+        value = self.get(klass)
+        setattr(klass, self.name, value)
+        return value
+
+
+class SurfComponent(ABC, Component):
     requires = ("pos",)
 
-    @classmethod
-    def add(cls):
-        super().add()
-
-        if not hasattr(cls, "parms_shape"):
-            if cls.nb_seed > 1:
-                cls.params_shape = (cls.max_age, cls.nb_seed, *cls.extra_params)
-            else:
-                cls.params_shape = (cls.max_age, *cls.extra_params)
-
-        indices = np.ndindex(*cls.params_shape)
-        cls.table = np.array([cls.get_surf(*args) for args in indices]).reshape(cls.params_shape)
+    @class_cached
+    def table(self):
+        shape = self.get_params_range()
+        indices = np.ndindex(*shape)
+        return np.array([self.get_surf(*args) for args in indices]).reshape(shape)
 
     def draw(self, screen: pygame.Surface):
         params = self.compute_params()
@@ -32,76 +58,72 @@ class SurfComponent(Component):
         l = zip(surfs, self.pos)
         screen.blits(l, False)
 
+    @abstractmethod
     def compute_params(self):
-        age = self.age
-        seed = self.seeds
-
-        if self.nb_seed > 1:
-            return age, seed
-        return (age,)
+        pass
 
     @classmethod
-    def get_surf(cls, *args):
-        raise NotImplemented
+    @abstractmethod
+    def get_params_range(cls):
+        pass
+
+    @abstractmethod
+    def get_surf(self, *args):
+        pass
 
 
 class Circle(SurfComponent):
     gradient = "white", "black"
     radius: Union[int, Callable[[int], int]] = 3
 
-    colors_fade_to_transparent = False
-    """This option requires that extra_params to be set to (len(gradient), )."""
+    @classmethod
+    def get_params_range(cls):
+        return (cls.max_age,)
+
+    def compute_params(self):
+        return self.age
+
+    @class_cached
+    def _gradient(cls):
+        return gradient(*cls.gradient, steps=cls.max_age)
 
     @classmethod
-    def add(cls):
-        if not cls.colors_fade_to_transparent:
-            cls._gradient = gradient(*cls.gradient, steps=cls.max_age)
-        else:
-            cls._gradient = cls.gradient
-        super().add()
-
-    @classmethod
-    def get_surf(cls, age, *color):
+    def get_surf(cls, age):
         r = cls.radius if not callable(cls.radius) else int(cls.radius(age))
         s = pygame.Surface((r * 2 + 1, r * 2 + 1), pygame.SRCALPHA)
         s.fill(0)
-
-        if color:
-            color = pygame.Color(cls.gradient[color[0]])
-            color.set_length(4)
-            color.a = 255 - int(255 * (age / cls.max_age) ** 2)
-        else:
-            color = cls._gradient[age]
+        color = cls._gradient[age]
 
         pygame.gfxdraw.filled_circle(s, r, r, r, color)
         return s
 
 
 class VelocityCircle(SurfComponent):
-    extra_params = (360,)
-
     @classmethod
-    def add(cls):
-        cls._gradient = gradient(
+    def get_params_range(cls):
+        return cls.max_age, 360
+
+    @class_cached
+    def _gradient(cls):
+        return gradient(
             "#E8554E",
             "#F19C65",
             "#FFD265",
             "#2AA876",
             "#0A7B83",
-            steps=cls.extra_params[0],
+            steps=cls.get_params_range()[1],
             loop=True,
         )
-        super().add()
 
     def compute_params(self):
         val = np.linalg.norm(self.pos, axis=1) + 50 * time.time() % 360
         # val = np.arctan2(self.velocity[:, 0], self.velocity[:, 1])
         vel = (val % 360).astype(int)
-        return (*super().compute_params(), vel)
+        return (self.age, vel)
 
     @classmethod
     def get_surf(cls, age, vel):
-        alpha = 255 - int(255 * (age / cls.params_shape[0]) ** 2)
+        alpha = 255 - int(255 * (age / cls.max_age) ** 2)
         r = 3
         d = r * 2 + 1
         s = pygame.Surface((d, d), pygame.SRCALPHA)

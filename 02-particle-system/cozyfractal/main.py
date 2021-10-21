@@ -114,17 +114,20 @@ def mainloop():
         radius = lambda age: chrange(age, (0, 50), (2, 10), 0.5, True)
         friction = 0.99
 
-        extra_params = (50,)
-
+        colors = 50
         start_gradient = particles.gradient(
             "#5593F2",
             "#6FB584",
             "#D2A647",
             "#F98040",
             "#F1495B",
-            steps=extra_params[0],
+            steps=colors,
             force_alpha=True,
         )
+
+        @classmethod
+        def get_params_range(cls):
+            return cls.max_age, cls.colors
 
         @classmethod
         def get_surf(cls, age, color_id):
@@ -143,7 +146,9 @@ def mainloop():
             )
 
             color = (
-                0 if min_dist is None else max(0, int(self.extra_params[0] - sqrt(min_dist) / 6))
+                0
+                if min_dist is None
+                else max(0, int(self.get_params_range()[1] - sqrt(min_dist) / 6))
             )
             return (self.age, np.tile(color, self.nb))
 
@@ -158,9 +163,9 @@ def mainloop():
 
     state.add(Stars())
     state.add(EdgeBubbles())
-    # state.add(CozyFire())
-    # state.add(Snow())
-    # state.add(Fountain())
+    state.add(CozyFire())
+    state.add(Snow())
+    state.add(Fountain())
 
     frame = 1
     while True:

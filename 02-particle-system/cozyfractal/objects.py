@@ -15,6 +15,7 @@ from functools import lru_cache
 from operator import attrgetter
 from random import gauss, choices, uniform
 
+import numpy as np
 import pygame
 
 # noinspection PyPackages
@@ -332,13 +333,10 @@ class AsteroidExplosion2(ParticleGroup, SurfComponent, WrapTorus, MovePolar):
     params_shape = (nb_seed, NB_COLORS)
 
     def compute_params(self):
-        return (self.seeds,)
+        return (self.seeds, self.color)
 
     def get_surf(cls, seed, color):
         pass
-
-
-AsteroidExplosion2(color=2)
 
 
 class Asteroid(Object):
