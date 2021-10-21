@@ -13,8 +13,10 @@ __all__ = [
     "AngularVel",
     "Gravity",
     "Friction",
+    "Acceleration",
     "Interpolate",
     "BounceRect",
+    "Aim",
 ]
 
 
@@ -78,6 +80,14 @@ class Friction(Component):
         self.speed *= self.friction
 
 
+class Acceleration(Component):
+    requires = ("speed",)
+    acceleration = 1
+
+    def logic(self: "ParticleGroup"):
+        self.speed += self.acceleration
+
+
 class Interpolate(Component):
     interpolations = {}
 
@@ -101,26 +111,32 @@ class BounceRect(Component):
     bounce_elacticity = 0.8
 
     def logic(self):
-        left = self.bounce_limits[0]
-        if left is not None:
-            over_left = self.pos[:, 0] < left
-            self.pos[over_left, 0] = left
-            self.velocity[over_left, 0] *= -self.bounce_elacticity
+        normals = [(1, 0), (0, 1), (-1, 0), (0, -1)]
+        for limit, normal in zip(self.bounce_limits, normals):
+            self.handle_bounce(limit, normal)
 
-        top = self.bounce_limits[1]
-        if top is not None:
-            over_top = self.pos[:, 1] < top
-            self.pos[over_top, 1] = top
-            self.velocity[over_top, 1] *= -self.bounce_elacticity
+    def handle_bounce(self, limit, normal):
+        if limit is None:
+            return
 
-        right = self.bounce_limits[2]
-        if right is not None:
-            over_right = self.pos[:, 0] > right
-            self.pos[over_right, 0] = right
-            self.velocity[over_right, 0] *= -self.bounce_elacticity
+        for axis, direction in enumerate(normal):
+            if direction == 0:
+                continue
+            elif direction < 0:
+                over_limit = self.pos[:, axis] > limit
+            else:
+                over_limit = self.pos[:, axis] < limit
+            self.pos[over_limit, axis] = limit
+            self.velocity[over_limit, axis] *= -self.bounce_elacticity
 
-        bottom = self.bounce_limits[3]
-        if bottom is not None:
-            over_bottom = self.pos[:, 1] > bottom
-            self.pos[over_bottom, 1] = bottom
-            self.velocity[over_bottom, 1] *= -self.bounce_elacticity
+
+class Aim(Component):
+    requires = "pos", "speed"
+    aim = (50, 50)
+
+    def logic(self: "ParticleGroup"):
+        direction = self.aim - self.pos
+        direction /= np.linalg.norm(direction, axis=1)[..., None]
+        direction *= self.speed[..., None]
+
+        self.pos += direction

@@ -19,7 +19,7 @@ import pygame
 
 # noinspection PyPackages
 from .utils import *
-from .particles import ParticleGroup
+from .particles import *
 
 
 class State:
@@ -30,7 +30,7 @@ class State:
         for obj in initial_objects:
             self.add(obj)
 
-    def add(self, obj: "Object"):
+    def add(self, obj: "Object | ParticleGroup"):
         # We don't add objects immediately,
         # as it could invalidate iterations.
         self.objects_to_add.add(obj)
@@ -93,14 +93,17 @@ class Object:
         # The 1.2 is to be nicer to the player
         return self.sprite.get_width() / 2 * self.HIT_BOX_SCALE
 
-    def collide(self, other: "Object") -> bool:
-        """Whether two objects collide."""
-        # The distance must be modified because everything wraps
+    def distance_squared_to(self, other: "Object") -> float:
         dx = (self.center.x - other.center.x) % SIZE[0]
         dx = min(dx, SIZE[0] - dx)
         dy = (self.center.y - other.center.y) % SIZE[1]
         dy = min(dy, SIZE[1] - dy)
-        return (dx ** 2 + dy ** 2) <= (self.radius + other.radius) ** 2
+        return dx ** 2 + dy ** 2
+
+    def collide(self, other: "Object") -> bool:
+        """Whether two objects collide."""
+        # The distance must be modified because everything wraps
+        return self.distance_squared_to(other) <= (self.radius + other.radius) ** 2
 
     @property
     def rotated_sprite(self):
@@ -178,19 +181,51 @@ class Player(Object):
     ROTATION_ACCELERATION = 3
     INITIAL_ROTATION = 90
     FIRE_COOLDOWN = 15  # frames
+    SCALE = 3
+
+    class ReactorParticles(ParticleGroup, Circle, MovePolar):
+        continuous = True
+        gradient = ("#FFFEC9", "#FF8B12", "#82020090", "#39000050")
+        speed = Gauss(2)
+        max_age = 30
 
     def __init__(self, pos, vel):
-        super().__init__(pos, vel, load_image("player", 3))
+        super().__init__(pos, vel, load_image("player", self.SCALE))
 
         self.speed = 0
         self.fire_cooldown = -1
+
+        self.reactor_on = False
 
     def handle_event(self, event):
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_SPACE:
                 self.fire()
 
+    def sprite_to_screen(self, pos):
+        pos = pygame.Vector2(pos) + (0.5, 0.5)
+        pos -= pygame.Vector2(self.sprite.get_size()) / 2 / self.SCALE
+        pos.rotate_ip(-self.rotation)
+        return self.center + pos * self.SCALE
+
+    @property
+    def reactor_pos(self):
+        r = self.sprite_to_screen((10, 18))
+        return r
+
+    @property
+    def world_rotation(self):
+        return -self.rotation - self.INITIAL_ROTATION
+
     def logic(self):
+        if not self.reactor_on:
+            self.state.add(
+                self.ReactorParticles(
+                    pos=Lambda(lambda: self.reactor_pos - (self.ReactorParticles.radius / 2,) * 2),
+                    angle=Gauss(lambda: 180 + self.world_rotation, spread=10),
+                )
+            )
+            self.reactor_on = True
         self.fire_cooldown -= 1
 
         # For continuous shooting:
@@ -217,7 +252,7 @@ class Player(Object):
             return
 
         self.fire_cooldown = self.FIRE_COOLDOWN
-        bullet = Bullet(self.center, 270 - self.rotation)
+        bullet = Bullet(self.center, self.world_rotation)
         self.state.add(bullet)
 
         # You can add particles here too.

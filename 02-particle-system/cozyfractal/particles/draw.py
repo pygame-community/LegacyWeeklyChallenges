@@ -1,4 +1,5 @@
 import time
+from typing import Union, Callable
 
 import pygame
 import pygame.gfxdraw
@@ -44,7 +45,7 @@ class SurfComponent(Component):
 
 class Circle(SurfComponent):
     gradient = "white", "black"
-    radius = 3
+    radius: Union[int, Callable[[int], int]] = 3
 
     @classmethod
     def add(cls):
@@ -53,7 +54,7 @@ class Circle(SurfComponent):
 
     @classmethod
     def get_surf(cls, age):
-        r = cls.radius
+        r = cls.radius if not callable(cls.radius) else int(cls.radius(age))
         s = pygame.Surface((r * 2 + 1, r * 2 + 1), pygame.SRCALPHA)
         s.fill(0)
         pygame.gfxdraw.filled_circle(s, r, r, r, cls._gradient[age])

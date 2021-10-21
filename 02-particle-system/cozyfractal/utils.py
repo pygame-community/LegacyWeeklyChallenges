@@ -1,6 +1,7 @@
 from functools import lru_cache
 from pathlib import Path
 from random import uniform
+from typing import Tuple
 
 import pygame
 
@@ -18,6 +19,7 @@ __all__ = [
     "from_polar",
     "clamp_vector",
     "text",
+    "chrange",
 ]
 
 SUBMISSION_DIR = Path(__file__).parent
@@ -95,3 +97,18 @@ def font(size=20, name=None):
 def text(txt, color, size=20, font_name=None):
     """Render a text on a surface. Results are cached."""
     return font(size, font_name).render(str(txt), True, color)
+
+
+def chrange(
+    x: float,
+    initial_range: Tuple[float, float],
+    target_range: Tuple[float, float],
+    power=1,
+    flipped=False,
+):
+    """Change the range of a number by mapping the initial_range to target_range using a linear transformation."""
+    normalised = (x - initial_range[0]) / (initial_range[1] - initial_range[0])
+    normalised **= power
+    if flipped:
+        normalised = 1 - normalised
+    return normalised * (target_range[1] - target_range[0]) + target_range[0]

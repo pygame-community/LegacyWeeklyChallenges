@@ -1,9 +1,11 @@
 import random
 import sys
+from math import sqrt
 from pathlib import Path
 
 import numpy as np
 import pygame.gfxdraw
+from line_profiler_pycharm import profile
 
 try:
     import wclib
@@ -36,34 +38,22 @@ __achievements__ = [  # Uncomment the ones you've done
 from .objects import *
 from .utils import *
 from .particles import *
+from . import particles
 
-BACKGROUND = 0x0F1012
+BACKGROUND = (15, 16, 17)
 
 
 def mainloop():
     pygame.init()
 
-    # player = Player((SIZE[0] / 2, SIZE[1] / 2), (0, 0))
+    player = Player((SIZE[0] / 2, SIZE[1] / 2), (0, 0))
     # The state is just a collection of all the objects in the game
     state = State(FpsCounter(60))
-    # state = State(player, FpsCounter(60), *Asteroid.generate_many())
+    state = State(player, FpsCounter(60), *Asteroid.generate_many())
 
-    # p = ParticleGroup(
-    #     1000,
-    #     100,
-    #     MovePolar(),
-    #     AngularVel(0.8),
-    #     VelocityCircle(),
-    #     WrapScreenTorus(),
-    # continuous=True,
-    # pos=np.array(SIZE) / 2,
-    # speed=Gauss(5, 0.1),
-    # angle=Uniform(0, 360),
-    # color=Constant(np.array([0, 0, 0])),
-    # )
     mouse_generator = MousePosGenerator()
 
-    class Fountain(ParticleGroup, MoveCartesian, BounceRect, Gravity, VelocityCircle):
+    class Fountain(ParticleGroup, MoveCartesian, Gravity, VelocityCircle):
         continuous = True
         nb = 5000
         max_age = 300
@@ -89,7 +79,88 @@ def mainloop():
 
         interpolations = {"speed": (5, 0)}
 
-    state.add(Fountain())
+    class Stars(ParticleGroup, Circle):
+        Z = -1
+        radius = 2
+        nb = 100
+        max_age = 2000
+        continuous = True
+        pos = UniformInRect(SCREEN)
+        gradient = "black", "#F5D7aE", "black"
+
+    cozy_text = text("CozyFractal", "white", 180, "title")
+    cozy_rect = cozy_text.get_rect(midtop=(SIZE[0] // 2, 100))
+
+    class CozyFire(ParticleGroup, Circle, MovePolar, Acceleration):
+        continuous = True
+        nb = 8000
+        max_age = 200
+        gradient = "#ffa50000", "#ffa500", "red", "#8E44AD", "#ffa50000"
+        pos = UniformInImage(cozy_text, cozy_rect.topleft)
+        speed = Gauss(-0, 0.1)
+        angle = Gauss(90, 5)
+        acceleration = -0.004
+        radius = lambda age: chrange(age, (0, 200), (2, 4), flipped=True)
+
+    class EdgeBubbles(ParticleGroup, SurfComponent, Aim, Friction):
+        continuous = True
+        nb = 3000
+        gradient = "red", "orange", "#ffa50040"
+        pos = UniformInRect(SCREEN.inflate(20, 20), True)
+
+        aim = SCREEN.center
+        speed = Gauss(1, 0.5)
+        max_age = 50
+        radius = lambda age: chrange(age, (0, 50), (2, 10), 0.5, True)
+        friction = 0.99
+
+        extra_params = (50,)
+
+        start_gradient = particles.gradient(
+            "#5593F2",
+            "#6FB584",
+            "#D2A647",
+            "#F98040",
+            "#F1495B",
+            steps=extra_params[0],
+            force_alpha=True,
+        )
+
+        @classmethod
+        def get_surf(cls, age, color_id):
+            r = int(cls.radius(age))
+            color = cls.start_gradient[color_id]
+            color[3] = int(chrange(age, (0, cls.max_age), (0, 255), 2, True))
+            s = pygame.Surface((r * 2 + 1, r * 2 + 1), pygame.SRCALPHA)
+            s.fill(0)
+            pygame.gfxdraw.filled_circle(s, r, r, r, color)
+            return s
+
+        def compute_params(self):
+            min_dist = min(
+                (player.distance_squared_to(a) for a in state.objects if isinstance(a, Asteroid)),
+                default=None,
+            )
+
+            color = (
+                0 if min_dist is None else max(0, int(self.extra_params[0] - sqrt(min_dist) / 6))
+            )
+            return (self.age, np.tile(color, self.nb))
+
+    class Snow(ParticleGroup, Circle, Gravity, MoveCartesian):
+        continuous = True
+        pos = mouse_generator
+        nb = 4000
+        max_age = 100
+        gradient = "white", "#ddccee", (10, 40, 50, 40)
+        velocity = Gauss((0, -1), (0.3, 0.3))
+        gravity = (0, 0.1)
+
+    state.add(Stars())
+    state.add(EdgeBubbles())
+    # state.add(CozyFire())
+    # state.add(Snow())
+    # state.add(Fountain())
 
     frame = 1
     while True:
@@ -106,8 +177,8 @@ def mainloop():
             state.handle_event(event)
             mouse_generator.handle_event(event)
 
-        if random.random() < 0.01:
-            state.add(Fireworks())
+        # if random.random() < 0.01:
+        #     state.add(Fireworks())
 
         # Note: the logic for collisions is in the Asteroids class.
         # This may seem arbitrary, but the only collisions that we consider

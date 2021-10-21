@@ -5,7 +5,7 @@ from colorsys import rgb_to_hsv, hsv_to_rgb
 import numpy as np
 import pygame
 
-__all__ = ["gradient"]
+__all__ = ["gradient", "mix"]
 
 
 def mix(a, b, f):
@@ -40,7 +40,7 @@ def RGB_to_hsv(r, g, b, *a):
     return (*rgb_to_hsv(r / 255, g / 255, b / 255), *a)
 
 
-def gradient(*colors, steps, loop=False):
+def gradient(*colors, steps, loop=False, force_alpha=False):
     """
     Yield the values of a colorisation as RGB tuple.
     :param colors: RGB tuples or hex strings
@@ -72,6 +72,6 @@ def gradient(*colors, steps, loop=False):
             grad[i] = mix(hsv_to_RGB(*a), hsv_to_RGB(*b), seg_pos)
 
     # no alpha
-    if np.all(grad[:, 3] == 255):
+    if not force_alpha and np.all(grad[:, 3] == 255):
         return grad[:, :3]
     return grad

@@ -54,8 +54,7 @@ class ParticleGroup:
             # TODO: If oneshot, age should be a single number shared by all
             self.age = np.zeros(self.nb, dtype=int)
 
-        self.init = self._get_random_initializers()
-        self.init.update(init_override)
+        self.init = self._get_random_initializers(**init_override)
 
         for key, value in self.init.items():
             gen = self.init[key] = make_generator(value)
@@ -78,16 +77,19 @@ class ParticleGroup:
         return set(cls._get_all_from_bases("provides"))
 
     @classmethod
-    def _get_random_initializers(cls):
+    def _get_random_initializers(cls, **overrides):
         to_get = cls._get_requires() - cls._get_provides()
-        found = {}
+        found = overrides
         for name in to_get:
             try:
-                found[name] = getattr(cls, name)
+                found.setdefault(name, getattr(cls, name))
             except AttributeError:
-                raise NameError(
-                    f"A component requires '{name}' but '{name}' was not found in the blueprint."
-                ) from None
+                pass
+        if set(found) != to_get:
+            missing = to_get - set(found)
+            raise NameError(
+                f"A component requires {missing} but {missing} was not found in the blueprint."
+            ) from None
         return found
 
     def handle_event(self, event):
