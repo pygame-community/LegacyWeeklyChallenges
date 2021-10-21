@@ -32,6 +32,7 @@ class State:
             self.add(obj)
 
         self.by_type = {}
+        self.timer = 0
 
     def add(self, obj: "Object | ParticleGroup"):
         # We don't add objects immediately,
@@ -41,6 +42,7 @@ class State:
         return obj
 
     def logic(self):
+        self.timer += 1
         self.by_type = defaultdict(list)
         for obj in self.objects:
             self.by_type[type(obj)].append(obj)

@@ -55,7 +55,7 @@ class WrapTorus(Component):
 class AngularVel(Component):
     """Increase the angle of a particle by a constant."""
 
-    requires = ("angle",)
+    requires = ("angle", "rotation_speed")
 
     rotation_speed: float = 1
 

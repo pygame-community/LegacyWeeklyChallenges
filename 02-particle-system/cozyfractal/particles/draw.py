@@ -77,13 +77,13 @@ class SurfComponent(ABC, Component):
         l = zip(surfs, self.pos)
         screen.blits(l, False)
 
-    @abstractmethod
-    def compute_params(self):
-        pass
-
     @classmethod
     @abstractmethod
-    def get_params_range(cls):
+    def get_params_range(cls) -> tuple:
+        pass
+
+    @abstractmethod
+    def compute_params(self):
         pass
 
     @classmethod

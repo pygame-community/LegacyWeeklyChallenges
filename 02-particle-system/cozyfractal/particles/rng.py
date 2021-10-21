@@ -50,10 +50,14 @@ class Uniform(Generator):
     integer: bool = False
 
     def gen(self, nb: int):
-        if self.integer:
-            return np.random.randint(self.start, self.end, nb)
+        if not isinstance(self.start, (int, float)):
+            shape = nb, 2
         else:
-            return np.random.uniform(self.start, self.end, nb)
+            shape = nb
+        if self.integer:
+            return np.random.randint(self.start, self.end, shape)
+        else:
+            return np.random.uniform(self.start, self.end, shape)
 
 
 class UniformInRect(Generator):

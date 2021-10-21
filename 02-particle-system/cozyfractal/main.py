@@ -88,8 +88,8 @@ def mainloop():
         pos = UniformInRect(SCREEN)
         gradient = "black", "#F5D7aE", "black"
 
-    cozy_text = text("CozyFractal", "white", 180, "title")
-    cozy_rect = cozy_text.get_rect(midtop=(SIZE[0] // 2, 100))
+    cozy_text = text("CozyFractal", "white", 170, "title")
+    cozy_rect = cozy_text.get_rect(center=(SIZE[0] // 2, SIZE[1] // 2))
 
     class CozyFire(ParticleGroup, Circle, MovePolar, Acceleration):
         continuous = True
@@ -161,9 +161,52 @@ def mainloop():
         velocity = Gauss((0, -1), (0.3, 0.3))
         gravity = (0, 0.1)
 
+    class PolygonFire(ParticleGroup, SurfComponent, MovePolar, AngularVel):
+        continuous = True
+        nb = 1500
+        max_age = 64
+        # pos = Constant((SIZE[0] - 100, SIZE[1] - 100))
+        pos = Uniform(cozy_rect.bottomleft, cozy_rect.bottomright)
+        nb_seed = 16
+        nb_colors = 100
+        angle = Gauss(90, 10)
+        speed = Gauss(2)
+        rotation_speed = Uniform(-1, 1)
+
+        @classmethod
+        def get_params_range(cls):
+            return (cls.max_age, cls.nb_seed, cls.nb_colors)
+
+        def compute_params(self):
+            color = ((self.state.timer - self.age) / 5 % self.nb_colors).astype(int)
+            return (self.age, self.seeds, color)
+
+        @classmethod
+        def get_surf(self, age, seed, color):
+            sides = 3 + seed % 4
+            r = chrange(age, (0, self.max_age), (4, 10), flipped=True)
+            alpha = chrange(age, (0, self.max_age), (0, 100), 2, True)
+            c = pygame.Color(0)
+            c.hsva = (color / self.nb_colors * 360, 100, 100, alpha)
+
+            rotation = age * (1 + seed / 5)
+            points = [from_polar(r, rotation + a * 360 / sides) + (r, r) for a in range(sides)]
+
+            s = pygame.Surface((2 * r + 1, 2 * r + 1), pygame.SRCALPHA)
+            pygame.gfxdraw.filled_polygon(s, points, c)
+            return s
+
     state.add(Stars())
     state.add(EdgeBubbles())
     state.add(CozyFire())
+    state.add(PolygonFire())
+    s = pygame.Vector2(0, -50)
+    state.add(
+        PolygonFire(
+            pos=Uniform(cozy_rect.topleft + s, cozy_rect.topright + s),
+            angle=Gauss(-90, 10),
+        )
+    )
     # state.add(Snow())
     # state.add(Fountain())
 
