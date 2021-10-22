@@ -318,7 +318,7 @@ class Asteroid(Object):
             for i in range(4):
                 particles.add_particles(Particle(self.rect.centerx, self.rect.centery, radius=random() * 5 + 2, colour=self.color))
         else:
-            for i in range(1000):
+            for i in range(50):
                 particles.add_particles(Particle(self.rect.centerx, self.rect.centery, radius=1, colour=self.color))
 
         self.state.add(particles)
@@ -332,7 +332,7 @@ class Asteroid(Object):
         """Return a set of nb Asteroids randomly generated."""
         objects = set()
         for _ in range(nb):
-            angle = uniform(0, 360)
+            angle = random() * 360
             distance_from_center = gauss(SIZE[1] / 2, SIZE[1] / 12)
             pos = SCREEN.center + from_polar(distance_from_center, angle)
             vel = from_polar(gauss(cls.AVG_SPEED, cls.AVG_SPEED / 6), gauss(180 + angle, 30))
@@ -446,11 +446,11 @@ class ThrusterParticles:
 class ExplosionParticles:
     def __init__(self):
         self.Z = 2001
-        self.particles = []
+        self.particles = set()
         self.alive = True
 
     def add_particles(self, particle):
-        self.particles.append(particle)
+        self.particles.add(particle)
 
     def delete_particles(self):
         particles_copy = [particle for particle in self.particles if particle.lifespan > 0]
@@ -482,19 +482,21 @@ class Particle:
         self.directiony = random() * 3 - 1
         self.growth = growth
         self.is_alive = True
-        self.lifespan = random() * 100 + 1000
+        self.lifespan = random() * 100 + 100
         self.colour = colour
         self.image = image
+        self.alpha = random() * 254
+        self.increment = True
 
 
 class StarParticles:
     def __init__(self, count):
-        image1 = load_image("star1", alpha=True)
-        image2 = load_image("star2", alpha=True)
-        image3 = load_image("star3", alpha=True)
-        image4 = load_image("star4", alpha=True)
+        image1 = load_image("star1", alpha=True, base=SUBMISSION_DIR)
+        image2 = load_image("star2", alpha=True, base=SUBMISSION_DIR)
+        image3 = load_image("star3", alpha=True, base=SUBMISSION_DIR)
+        image4 = load_image("star4", alpha=True, base=SUBMISSION_DIR)
 
-        self.particles = []
+        self.particles = set()
         self.Z = -10
         self.alive = True
         self.images = [image1, image2, image3, image4]
@@ -507,18 +509,31 @@ class StarParticles:
             x = int(random() * screen_size[0])
             y = int(random() * screen_size[1])
             particle = Particle(x, y, radius=0, growth=0, image=choice(self.images))
-            self.particles.append(particle)
+            self.particles.add(particle)
 
     def handle_event(self, event):
         pass
 
     def logic(self):
         pass
-
+            
     def draw(self, screen):
         for particle in self.particles:
-            particle_rect = particle.image.get_rect().size
-            surf = pygame.Surface((particle_rect))
+            particle_size = particle.image.get_rect().size
+            surf = pygame.Surface((particle_size), SRCALPHA)
             surf.fill(BACKGROUND)
             surf.blit(particle.image, (0,0))
+            self.get_alpha(particle)
+            surf.set_alpha(particle.alpha)
             screen.blit(surf, (particle.x, particle.y))
+
+    def get_alpha(self, particle):
+        if particle.alpha > 254:
+            particle.increment = False
+        elif particle.alpha < 1:
+            particle.increment = True
+
+        if particle.increment == True:
+            particle.alpha += 1
+        elif particle.increment == False:
+            particle.alpha -= 1

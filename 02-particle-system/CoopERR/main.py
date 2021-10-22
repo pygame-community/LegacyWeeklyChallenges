@@ -42,7 +42,7 @@ def mainloop():
     state = State(player, FpsCounter(60), *Asteroid.generate_many())
 
     particles = ThrusterParticles()
-    star_particles = StarParticles(150)
+    star_particles = StarParticles(950)
     state.add(star_particles)
     PARTICLE_EVENT = pygame.USEREVENT + 1
     pygame.time.set_timer(PARTICLE_EVENT, 5)
@@ -82,6 +82,6 @@ def mainloop():
 
         state.draw(screen)
 
-        
+
 if __name__ == "__main__":
     wclib.run(mainloop())
