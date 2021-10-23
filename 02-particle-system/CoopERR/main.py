@@ -21,9 +21,9 @@ __package__ = "02-particle-system." + Path(__file__).parent.name
 # Metadata about your submission
 __author__ = "CoopERR"  # Put yours!
 __achievements__ = [  # Uncomment the ones you've done
-    # "Casual",
+    "Casual",
     # "Ambitious",
-    # "Adventurous",
+    "Adventurous",
 ]
 
 # To import the modules in yourname/, you need to use relative imports,
@@ -42,7 +42,7 @@ def mainloop():
     state = State(player, FpsCounter(60), *Asteroid.generate_many())
 
     particles = ThrusterParticles()
-    star_particles = StarParticles(950)
+    star_particles = StarParticles(500)
     state.add(star_particles)
     PARTICLE_EVENT = pygame.USEREVENT + 1
     pygame.time.set_timer(PARTICLE_EVENT, 5)
