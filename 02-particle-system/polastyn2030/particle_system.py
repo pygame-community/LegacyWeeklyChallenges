@@ -217,11 +217,13 @@ class ParticleSpawnerInfo:
             self,
             spawn_pos: pg.Vector2 | RandomPos,
             spawn_delay: int | RandomInt,
-            object_info: ParticleObjectInfo
+            object_info: ParticleObjectInfo,
+            burst_function: Callable[[int], int] | None
     ):
         self.spawn_pos = spawn_pos
         self.spawn_delay = spawn_delay
         self.object_info = object_info
+        self.burst_function = burst_function
 
     def generate(self):
         info = self.object_info
@@ -239,9 +241,15 @@ class BaseParticleSpawner(pg.sprite.Group):
         self.info = info
         self.active = True
         self.next_spawn = 0
+        self.spawn_count = 0
 
     def spawn(self):
-        self.add(self.info.generate())
+        if self.info.burst_function:
+            for _ in range(self.info.burst_function(self.spawn_count)):
+                self.add(self.info.generate())
+        else:
+            self.add(self.info.generate())
+        self.spawn_count += 1
 
     def update(self, *args, **kwargs) -> None:
         if self.active:
