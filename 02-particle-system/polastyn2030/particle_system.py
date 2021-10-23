@@ -35,19 +35,22 @@ class BaseDynamicSurface(pg.Surface):
         )
 
 
-class BaseParticleObject:
-    def __init__(
-                self, surface: pg.Surface | BaseDynamicSurface,
-                size: pg.Vector2, position: pg.Vector2,
-                rotation: float, bounding_box: pg.Rect
-            ):
+class BaseParticleObject(pg.sprite.Sprite):
+    def __init__(self, surface: pg.Surface | BaseDynamicSurface, size: pg.Vector2, position: pg.Vector2,
+                 rotation: float, bounding_box: pg.Rect, life_time: int):
+        super().__init__()
         self.source_surface = surface
         self.size = size
         self.position = position
         self.rotation = rotation
         self.source_rect = bounding_box
+        self.life_time = life_time
 
         self._smooth_scale = True
+
+    @property
+    def alive(self):
+        return self.life_time > 0
 
     @property
     def surface(self):
@@ -66,6 +69,10 @@ class BaseParticleObject:
         return copy
 
     @property
+    def image(self):
+        return self.surface
+
+    @property
     def rect(self):
         copy = self.source_rect.copy()
         copy.topleft = pg.Vector2(copy.topleft) + self.position
@@ -74,6 +81,15 @@ class BaseParticleObject:
     @property
     def tuple_size(self):
         return int(self.size.x), int(self.size.y)
+
+    def update(self, *args, **kwargs) -> None:
+        if not self.alive:
+            self.kill()
+
+        self.tick()
+
+    def tick(self):
+        pass
 
 
 class DynamicParticle(BaseParticleObject):
@@ -87,16 +103,11 @@ class DynamicParticle(BaseParticleObject):
             scale_change: pg.Vector2
     ):
 
-        super().__init__(surface, size, position, rotation, bounding_box)
-        self.life_time = life_time
+        super().__init__(surface, size, position, rotation, bounding_box, life_time)
 
         self.speed = speed
         self.rotation_speed = rotation_speed
         self.scale_change = scale_change
-
-    @property
-    def alive(self):
-        return self.life_time > 0
 
     def tick(self):
         if not self.alive:
