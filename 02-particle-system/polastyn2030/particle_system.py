@@ -5,7 +5,8 @@
 from __future__ import annotations
 
 
-from typing import Callable, TypeVar as _TypeVar
+from typing import Callable, TypeVar as _TypeVar, Type
+import random as rd
 
 import pygame as pg
 
@@ -135,3 +136,117 @@ class DynamicParticle(BaseParticleObject):
                 setattr(self, name, data + by)
             except TypeError:
                 pass
+
+
+class RandomPos:
+    def __init__(self, center: pg.Vector2, pos_range: float | pg.Rect):
+        self.center = center
+        self.pos_range = pos_range
+
+    def __get__(self, instance, owner):
+        if instance is None:
+            return self
+
+    def get(self):
+        if isinstance(self.pos_range, float):
+            offset = pg.Vector2(1, 0)
+            offset.rotate(rd.randint(0, 360))
+            offset *= rd.randint(0, int(self.pos_range))
+            return self.center + offset
+
+        x = rd.randint(0, self.pos_range.w)
+        y = rd.randint(0, self.pos_range.h)
+
+        pos = pg.Vector2(x, y)
+        pos += pg.Vector2(self.pos_range.topleft)
+
+        return pos
+
+
+class RandomFloat:
+    def __init__(self, smallest: float, biggest: float):
+        self.smallest = smallest
+        self.biggest = biggest
+
+    def __get__(self, instance, owner):
+        if instance is None:
+            return self
+        return self.get()
+
+    def get(self):
+        random = rd.random()
+        diff = self.biggest - self.smallest
+        random *= diff
+        random += self.smallest
+        return random
+
+
+class RandomInt(RandomFloat):
+    def get(self):
+        ret = super(RandomInt, self).get()
+        return int(ret)
+
+
+class ParticleObjectInfo:
+    def __init__(self,
+                 surface: pg.Surface | BaseDynamicSurface,
+                 size: pg.Vector2 | RandomPos,
+                 size_change: pg.Vector2 | RandomPos,
+                 rotation: float | RandomFloat,
+                 rotation_speed: float | RandomFloat,
+                 life_time: int | RandomInt,
+                 bounding_box: pg.Rect,
+                 speed: float | RandomFloat,
+                 moving_angle: float | RandomFloat,
+                 particle_class: Type[DynamicParticle] | None = None
+                 ):
+        self.surface = surface
+        self.size = size
+        self.size_change = size_change
+        self.rotation = rotation
+        self.rotation_speed = rotation_speed
+        self.life_time = life_time
+        self.bounding_box = bounding_box
+        self.speed = speed
+        self.angle = moving_angle
+        self.particle_class = particle_class if particle_class is not None else DynamicParticle
+
+
+class ParticleSpawnerInfo:
+    def __init__(
+            self,
+            spawn_pos: pg.Vector2 | RandomPos,
+            spawn_delay: int | RandomInt,
+            object_info: ParticleObjectInfo
+    ):
+        self.spawn_pos = spawn_pos
+        self.spawn_delay = spawn_delay
+        self.object_info = object_info
+
+    def generate(self):
+        info = self.object_info
+        speed = pg.Vector2(1, 0) * info.angle * info.speed
+        obj = self.object_info.particle_class(
+            info.surface, info.size, self.spawn_pos, info.rotation, info.bounding_box,
+            info.life_time, speed, info.rotation_speed, info.size_change
+        )
+        return obj
+
+
+class BaseParticleSpawner(pg.sprite.Group):
+    def __init__(self, info: ParticleSpawnerInfo):
+        super().__init__()
+        self.info = info
+        self.active = True
+        self.next_spawn = 0
+
+    def spawn(self):
+        self.add(self.info.generate())
+
+    def update(self, *args, **kwargs) -> None:
+        if self.active:
+            if self.next_spawn <= 0:
+                self.spawn()
+                self.next_spawn += self.info.spawn_delay
+            self.next_spawn -= 1
+        super(BaseParticleSpawner, self).update(*args, **kwargs)
