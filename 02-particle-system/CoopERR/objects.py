@@ -188,10 +188,8 @@ class Player(Object):
         self.speed = 0
         self.fire_cooldown = -1
 
-    '''
-    MY GARBAGE
-    '''
     def thruster_position(self):
+        '''returns the current position and rotation of thrusters'''
         x = self.rect.centerx
         y = self.rect.centery
         x += self.radius * math.sin(math.radians(self.rotation))
@@ -318,13 +316,13 @@ class Asteroid(Object):
             for i in range(4):
                 particles.add_particles(Particle(self.rect.centerx, self.rect.centery, radius=random() * 5 + 2, colour=self.color))
         else:
-            for i in range(50):
+            for i in range(150):
                 particles.add_particles(Particle(self.rect.centerx, self.rect.centery, radius=1, colour=self.color))
 
         self.state.add(particles)
 
     def random_color(self):
-        r, g, b = hsv_to_rgb(uniform(0, 1), 0.8, 0.8)
+        r, g, b = hsv_to_rgb(random(), 0.8, 0.8)
         return int(r * 255), int(g * 255), int(b * 255)
 
     @classmethod
@@ -473,17 +471,23 @@ class ExplosionParticles:
         pass
 
 
-class Particle:
-    def __init__(self, x, y, radius, growth=0, colour=(255,255,255), image=None):
+class Particle():
+    def __init__(self, x, y, radius, growth=0, colour=(255,255,255)):
         self.x = x
         self.y = y
         self.radius = radius
-        self.directionx = random() * 3 - 1
-        self.directiony = random() * 3 - 1
+        self.directionx = gauss(0, 1) 
+        self.directiony = gauss(0, 1)
         self.growth = growth
         self.is_alive = True
         self.lifespan = random() * 100 + 100
         self.colour = colour
+
+
+class StarParticle:
+    def __init__(self, x, y, image):
+        self.x = x
+        self.y = y
         self.image = image
         self.alpha = random() * 254
         self.increment = True
@@ -508,14 +512,23 @@ class StarParticles:
         for i in range(self.count):
             x = int(random() * screen_size[0])
             y = int(random() * screen_size[1])
-            particle = Particle(x, y, radius=0, growth=0, image=choice(self.images))
+            particle = StarParticle(x, y, image=choice(self.images))
             self.particles.add(particle)
 
     def handle_event(self, event):
         pass
 
     def logic(self):
-        pass
+        for particle in self.particles:
+            if particle.alpha > 254:
+                particle.increment = False
+            elif particle.alpha < 1:
+                particle.increment = True
+
+            if particle.increment == True:
+                particle.alpha += 5
+            elif particle.increment == False:
+                particle.alpha -= 5
             
     def draw(self, screen):
         for particle in self.particles:
@@ -523,17 +536,5 @@ class StarParticles:
             surf = pygame.Surface((particle_size), SRCALPHA)
             surf.fill(BACKGROUND)
             surf.blit(particle.image, (0,0))
-            self.get_alpha(particle)
             surf.set_alpha(particle.alpha)
             screen.blit(surf, (particle.x, particle.y))
-
-    def get_alpha(self, particle):
-        if particle.alpha > 254:
-            particle.increment = False
-        elif particle.alpha < 1:
-            particle.increment = True
-
-        if particle.increment == True:
-            particle.alpha += 1
-        elif particle.increment == False:
-            particle.alpha -= 1
