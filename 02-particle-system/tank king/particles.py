@@ -99,7 +99,6 @@ class ExhaustParticles(BaseParticle):
 
 class DamageParticle(BaseParticle):
     def __init__(self, pos, vel, extra_params: dict = None):
-        print('yo')
         super().__init__(pos, vel)
         self.player_sprite: pygame.Surface = extra_params['sprite']
         size = random.randint(1, 10)
