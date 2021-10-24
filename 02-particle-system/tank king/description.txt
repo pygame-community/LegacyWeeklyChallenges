@@ -1,0 +1,5 @@
+Features:
+[Casual + Ambitious + Adventurous]
+Casual: 4 different particles systems
+Ambitious: Asteroids can be divided into smaller asteroids along with other remaining particles which can be further subdivided and so on
+Adventurous: Particle systems include [transparency, particle physics (basic collisions), wearing off of some parts of the spaceship when colliding with asteroids (can be understood by little dots over the spaceship image)]
