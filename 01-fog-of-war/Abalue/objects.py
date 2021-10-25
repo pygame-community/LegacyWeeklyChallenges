@@ -214,7 +214,7 @@ class Menu:
                     self.selected = 0
 
     def logic(self, *args, **kwargs):
-        print(self.rect.topleft)
+        # print(self.rect.topleft)
         # open and close menu
         if self.open and self.rect.right < self.rect.w:
             self.rect.x += self.OPEN_VEL

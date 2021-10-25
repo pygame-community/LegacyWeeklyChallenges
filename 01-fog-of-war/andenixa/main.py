@@ -4,6 +4,7 @@ import random
 import sys
 from pathlib import Path
 
+
 try:
     import wclib
 except ImportError:
@@ -36,6 +37,7 @@ import pygame
 # To import the modules in yourname/, you need to use relative imports,
 # otherwise your project will not be compatible with the showcase.
 from .objects import Ghost, Player, SolidObject
+from .utils import SUBMISSION_DIR
 
 BACKGROUND = 0x66856C
 
@@ -114,7 +116,7 @@ class LightSpot:
         self._delay = 1000 // fps
         self._lights = []
 
-        print("Generating lights bulbs ..")
+        # print("Generating lights bulbs ..")
         for _ in range(light_frames):
             s = self._light_sphere.copy()
             self._draw_spot(s)
@@ -223,7 +225,7 @@ def measure_angle_vec(vec2, vec1):
     return (vec2 - vec1).as_polar()[1]
 
 
-def load_tiles(fn, size, colorkey=None, scale=None, verbose=True):
+def load_tiles(fn, size, colorkey=None, scale=None, verbose=False):
     """load all sprites of size in image file fn
     return: subsurfaces of all sprites
     """
@@ -267,7 +269,7 @@ def mainloop():
     tile_scale = None
     if FOG_TILE_WIDTH != 32:
         tile_scale = FOG_TILE_WIDTH / 32
-    fog_tiles = load_tiles("fog_of_war.png", (32, 32), scale=tile_scale)
+    fog_tiles = load_tiles(SUBMISSION_DIR / "fog_of_war.png", (32, 32), scale=tile_scale)
     t_size = fog_tiles[0].get_size()
     fog_t_graph = Grid(*FOG_GRID_SIZE, t_size, tset_flag_to_graph[TILE_POS_NONE])
     fog_t_flags = Grid(*FOG_GRID_SIZE, t_size, TILE_POS_NONE)
