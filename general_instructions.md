@@ -83,7 +83,7 @@ Users will be prompted to install them when running your entry (without just hav
 ### Submitting your entry
 
 Before the deadline, make sure that your entry is runnable both via the showcase,
-when you run the top level [`main.py`](../main.py) and when you run it individually
+when you run the top level [`main.py`](main.py) and when you run it individually
 from you own `yourname/main.py`.
 
 There are two ways to submit an entry:

@@ -1,6 +1,6 @@
 import sys
 from pathlib import Path
-
+from typing import Tuple
 
 try:
     import wclib
@@ -42,8 +42,8 @@ class FogOverlay:
     def __init__(
         self,
         player: Player,
-        view_radii: tuple[int, int],
-        alpha_radii: tuple[int, int],
+        view_radii: Tuple[int, int],
+        alpha_radii: Tuple[int, int],
         base_alpha: int,
         steps: int,
     ):
