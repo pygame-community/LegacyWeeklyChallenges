@@ -47,9 +47,7 @@ def mainloop():
     PARTICLE_EVENT = pygame.USEREVENT + 1
     pygame.time.set_timer(PARTICLE_EVENT, 5)
 
-    from wclib.showcase import font as mk_font
-
-    font = mk_font(30)
+    font = pygame.font.Font(None, 30)
 
     while True:
         screen, events = yield
