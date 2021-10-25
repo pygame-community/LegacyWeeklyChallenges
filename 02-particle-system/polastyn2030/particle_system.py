@@ -312,6 +312,18 @@ def _convert_to_valid(data, mode):
         raise TypeError("mode argument not in valid options")
 
 
+def _fix_particle_template(template: pst.ParticleTemplate):
+    translating = {
+        "size": "v", "life_time": "i", "size_change": "p", "rotation": "f", "rotation_speed": "f",
+        "bounding_box": "r", "speed": "f", "moving_angle": "f"
+    }
+    new = {}
+    for el in template:
+        # noinspection PyTypeChecker,PyTypedDict
+        new[el] = _convert_to_valid(template[el], translating[el])
+    return new
+
+
 def load_particle_info(
         surface: pg.Surface, template: pst.ParticleTemplate,
         particle_class: Type[DynamicParticle] | None = None
@@ -320,7 +332,25 @@ def load_particle_info(
     full_template = pst.particle_template_filler.copy()
     full_template.update(dict(template))
     full_template = cast(pst.ParticleTemplate, full_template)
+    return ParticleObjectInfo(surface=surface, particle_class=particle_class, **_fix_particle_template(full_template))
 
 
-def load_spawner_info(template: pst.SpawnerTemplate, burst_function: Callable[[int], int] | None = None):
-    pass
+def load_spawner_info(
+        template: pst.SpawnerTemplate,
+        object_info: ParticleObjectInfo,
+        burst_function: Callable[[int], int] | None = None
+):
+    spawn_pos = _convert_to_valid(template['spawn_pos'], "p")
+    spawn_delay = _convert_to_valid(template['spawn_delay'], 'i')
+    return ParticleSpawnerInfo(spawn_pos, spawn_delay, object_info, burst_function)
+
+
+def load_particle_spawner(
+        particle_template: pst.ParticleTemplate,
+        surface: pg.Surface,
+        spawner_template: pst.SpawnerTemplate,
+        particle_class: Type[DynamicParticle] | None = None,
+        burst_function: Callable[[int], int] | None = None
+):
+    particle_info = load_particle_info(surface, particle_template, particle_class)
+    return load_spawner_info(spawner_template, particle_info, burst_function)
