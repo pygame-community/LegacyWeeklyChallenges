@@ -23,7 +23,7 @@ __author__ = "polastyn#7640"  # Put yours!
 __achievements__ = [  # Uncomment the ones you've done
     # "Casual",
     # "Ambitious",
-    # "Adventurous",
+    "Adventurous",
 ]
 
 # To import the modules in yourname/, you need to use relative imports,

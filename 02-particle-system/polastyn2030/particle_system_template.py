@@ -32,7 +32,7 @@ particle_template_filler: _NotImportantParticleTemplate = _NotImportantParticleT
     rotation=0,
     rotation_speed=0,
     speed=0,
-    moving_angle=(0, 0)
+    moving_angle=0
 )
 
 

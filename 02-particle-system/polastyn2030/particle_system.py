@@ -144,8 +144,7 @@ class RandomPos:
         self.pos_range = pos_range
 
     def __get__(self, instance, owner):
-        if instance is None:
-            return self
+        return self.get()
 
     def get(self):
         if isinstance(self.pos_range, float):
@@ -169,8 +168,9 @@ class RandomFloat:
         self.biggest = biggest
 
     def __get__(self, instance, owner):
-        if instance is None:
-            return self
+        return self.get()
+
+    def __float__(self):
         return self.get()
 
     def get(self):
@@ -227,7 +227,7 @@ class ParticleSpawnerInfo:
 
     def generate(self):
         info = self.object_info
-        speed = pg.Vector2(1, 0) * info.angle * info.speed
+        speed = pg.Vector2(1, 0).rotate(float(self.object_info.angle)) * self.object_info.speed
         obj = self.object_info.particle_class(
             info.surface, info.size, self.spawn_pos, info.rotation, info.bounding_box,
             info.life_time, speed, info.rotation_speed, info.size_change
@@ -299,6 +299,8 @@ def _convert_to_valid(data, mode):
         data = cast(Union[float, Tuple[float, float]], data)
         if isinstance(data, float):
             return data
+        elif isinstance(data, int):
+            return float(data)
         return RandomFloat(*data)
     elif mode in {"i", "int"}:
         data = cast(Union[int, Tuple[int, int]], data)
@@ -332,7 +334,12 @@ def load_particle_info(
     full_template = pst.particle_template_filler.copy()
     full_template.update(dict(template))
     full_template = cast(pst.ParticleTemplate, full_template)
-    return ParticleObjectInfo(surface=surface, particle_class=particle_class, **_fix_particle_template(full_template))
+    fixed = _fix_particle_template(full_template)
+
+    if "bounding_box" not in fixed:
+        fixed["bounding_box"] = surface.get_rect()
+
+    return ParticleObjectInfo(surface=surface, particle_class=particle_class, **fixed)
 
 
 def load_spawner_info(
@@ -350,7 +357,9 @@ def load_particle_spawner(
         surface: pg.Surface,
         spawner_template: pst.SpawnerTemplate,
         particle_class: Type[DynamicParticle] | None = None,
-        burst_function: Callable[[int], int] | None = None
+        burst_function: Callable[[int], int] | None = None,
+        spawner_class: Type[BaseParticleSpawner] | None = None
 ):
+    spawner_class = spawner_class if spawner_class is not None else BaseParticleSpawner
     particle_info = load_particle_info(surface, particle_template, particle_class)
-    return load_spawner_info(spawner_template, particle_info, burst_function)
+    return spawner_class(load_spawner_info(spawner_template, particle_info, burst_function))
