@@ -32,12 +32,16 @@ class ParticleGroup:
     continuous = False
     nb_seed = 1
 
+    seeds: np.array
+    age: np.array
+
     def __init__(self, **init_override: IntoGenerator):
         self.alive = True
         if self.nb_seed == 1:
             self.seeds = np.zeros(self.nb, dtype=int)
         else:
-            self.seeds = Uniform(0, self.nb_seed - 1, True).gen(self.nb)
+            self.seeds = np.array([])  # placeholder
+            init_override.setdefault("seeds", Uniform(0, self.nb_seed, True))
 
         if self.continuous:
             self.age = Uniform(0, self.max_age - 1, True).gen(self.nb)
@@ -109,10 +113,10 @@ class ParticleGroup:
         if self.continuous:
             for key, gen in self.init.items():
                 getattr(self, key)[dead] = gen(nb_dead)
-        elif nb_dead == self.nb:
+            self.age[dead] = 0
+        elif nb_dead >= self.nb:
             self.alive = False
-
-        self.age[dead] = 0
+            return
 
         for base in self.__class__.__bases__:
             if issubclass(base, Component):

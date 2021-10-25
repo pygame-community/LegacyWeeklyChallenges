@@ -64,6 +64,8 @@ class AngularVel(Component):
 
 
 class Gravity(Component):
+    """Add a constant force to the velocity."""
+
     requires = ("velocity",)
 
     gravity = (0, 1)
@@ -73,6 +75,10 @@ class Gravity(Component):
 
 
 class Friction(Component):
+    """Multiply the speed by a constant amount"""
+
+    # TODO: That's not how friction works !
+
     requires = ("speed",)
     friction = 0.99
 
