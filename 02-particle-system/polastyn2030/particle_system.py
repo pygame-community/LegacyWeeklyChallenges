@@ -1,14 +1,14 @@
-# theoretically I could use system in 'objects.py', but the script must be independent
-# and reusable in other projects, so I have to write it again...
-# I'll remove this comment if I am going to re-use this code.
-
+"""
+File for particle system
+"""
 from __future__ import annotations
 
-
-from typing import Callable, TypeVar as _TypeVar, Type
+from typing import Callable, TypeVar as _TypeVar, Type, cast, overload, Union, Tuple, Literal
 import random as rd
 
 import pygame as pg
+
+import particle_system_template as pst
 
 
 class BaseDynamicSurface(pg.Surface):
@@ -245,8 +245,15 @@ class BaseParticleSpawner(pg.sprite.Group):
 
     def spawn(self):
         if self.info.burst_function:
-            for _ in range(self.info.burst_function(self.spawn_count)):
-                self.add(self.info.generate())
+            # noinspection PyBroadException
+            try:
+                value = self.info.burst_function(self.spawn_count)
+
+                for _ in range(value):
+                    self.add(self.info.generate())
+            except Exception:
+                self.info.burst_function = None
+                self.spawn()
         else:
             self.add(self.info.generate())
         self.spawn_count += 1
@@ -258,3 +265,62 @@ class BaseParticleSpawner(pg.sprite.Group):
                 self.next_spawn += self.info.spawn_delay
             self.next_spawn -= 1
         super(BaseParticleSpawner, self).update(*args, **kwargs)
+
+
+@overload
+def _convert_to_valid(
+        data: Union[Tuple[float, float], Tuple[float, float, float], Tuple[float, float, float, float]],
+        mode: Literal["p", "pos", "v", "vector2", "Vector2"]
+) -> pg.Vector2 | RandomPos: ...
+
+
+@overload
+def _convert_to_valid(data: Union[float, Tuple[float, float]], mode: Literal["f", "float"]) -> float | RandomFloat: ...
+
+
+@overload
+def _convert_to_valid(data: Union[int, Tuple[int, int]], mode: Literal["i", "int"]) -> int | RandomInt: ...
+
+
+@overload
+def _convert_to_valid(data: Tuple[float, float, float, float], mode: Literal["r", "rect", "Rect"]) -> pg.Rect: ...
+
+
+def _convert_to_valid(data, mode):
+    if mode in {"p", "pos", "v", "vector2", "Vector2"}:
+        data = cast(Union[Tuple[float, float], Tuple[float, float, float], Tuple[float, float, float, float]], data)
+        if len(data) == 2:
+            return pg.Vector2(data)
+        elif len(data) == 3:
+            return RandomPos(pg.Vector2(data[:2]), data[2])
+        else:
+            return RandomPos(pg.Vector2(data[:2]), pg.Rect(data))
+    elif mode in {"f", "float"}:
+        data = cast(Union[float, Tuple[float, float]], data)
+        if isinstance(data, float):
+            return data
+        return RandomFloat(*data)
+    elif mode in {"i", "int"}:
+        data = cast(Union[int, Tuple[int, int]], data)
+        if isinstance(data, int):
+            return data
+        return RandomInt(*data)
+    elif mode in {"r", "rect", "Rect"}:
+        data = cast(Tuple[float, float, float, float], data)
+        return pg.Rect(data)
+    else:
+        raise TypeError("mode argument not in valid options")
+
+
+def load_particle_info(
+        surface: pg.Surface, template: pst.ParticleTemplate,
+        particle_class: Type[DynamicParticle] | None = None
+):
+    particle_class = particle_class if particle_class is not None else DynamicParticle
+    full_template = pst.particle_template_filler.copy()
+    full_template.update(dict(template))
+    full_template = cast(pst.ParticleTemplate, full_template)
+
+
+def load_spawner_info(template: pst.SpawnerTemplate, burst_function: Callable[[int], int] | None = None):
+    pass

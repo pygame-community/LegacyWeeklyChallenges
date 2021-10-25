@@ -5,17 +5,17 @@ from __future__ import annotations
 from typing import TypedDict, Tuple, Union
 
 
-# Union[Tuple[float, float], Tuple[float, float, float, float]]
+# Union[Tuple[float, float], Tuple[float, float, float], Tuple[float, float, float, float]]
 # Union[float, Tuple[float, float]]
 # Union[int, Tuple[int, int]]
 # Tuple[float, float, float, float]
 class _NeededParticleTemplate(TypedDict):
-    size: Union[Tuple[float, float], Tuple[float, float, float, float]]
+    size: Union[Tuple[float, float], Tuple[float, float, float], Tuple[float, float, float, float]]
     life_time: Union[int, Tuple[int, int]]
 
 
 class _NotImportantParticleTemplate(TypedDict, total=False):
-    size_change: Union[Tuple[float, float], Tuple[float, float, float, float]]
+    size_change: Union[Tuple[float, float], Tuple[float, float, float], Tuple[float, float, float, float]]
     rotation: Union[float, Tuple[float, float]]
     rotation_speed: Union[float, Tuple[float, float]]
     bounding_box: Tuple[float, float, float, float]
@@ -37,5 +37,5 @@ particle_template_filler: _NotImportantParticleTemplate = _NotImportantParticleT
 
 
 class SpawnerTemplate(TypedDict):
-    spawn_pos: Union[Tuple[float, float], Tuple[float, float, float, float]]
+    spawn_pos: Union[Tuple[float, float], Tuple[float, float, float], Tuple[float, float, float, float]]
     spawn_delay: Union[int, Tuple[int, int]]
