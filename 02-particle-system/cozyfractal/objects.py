@@ -8,19 +8,14 @@ goes with it too.
 Feel free to modify everything in this file to your liking.
 """
 import random
-import time
 from collections import deque, defaultdict
 from colorsys import hsv_to_rgb
 from functools import lru_cache
 from operator import attrgetter
 from random import gauss, choices, uniform
 
-import numpy as np
-import pygame
-
-# noinspection PyPackages
-from .utils import *
 from .particles import *
+from .utils import *
 
 
 class State:

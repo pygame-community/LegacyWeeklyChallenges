@@ -1,4 +1,4 @@
-from functools import cache, lru_cache
+from functools import lru_cache
 from pathlib import Path
 from random import uniform
 

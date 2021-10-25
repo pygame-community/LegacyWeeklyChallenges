@@ -20,8 +20,7 @@ __package__ = "02-particle-system." + Path(__file__).parent.name
 
 # Metadata about your submission
 __author__ = 'await ctx.send("Miku")#7006'  # Put yours!
-__achievements__ = [  # Uncomment the ones you've done
-]
+__achievements__ = []  # Uncomment the ones you've done
 
 
 # To import the modules in yourname/, you need to use relative imports,

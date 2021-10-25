@@ -32,9 +32,9 @@ __achievements__ = [  # Uncomment the ones you've done
 # noinspection PyPackages
 from .objects import *
 from .particles_manager import *
+from .utils import *
 
 BACKGROUND = 0x0F1012
-
 
 
 def mainloop():
@@ -45,7 +45,7 @@ def mainloop():
     state = State(player, FpsCounter(60), *Asteroid.generate_many())
 
     particle_manager = ParticleManager(player_instance=player)
-    font = pg.font.Font("regular.ttf", 20)
+    font = pg.font.Font(SUBMISSION_DIR / "regular.ttf", 20)
 
     while True:
         screen, events = yield
@@ -63,16 +63,17 @@ def mainloop():
         # Note: the logic for collisions is in the Asteroids class.
         # This may seem arbitrary, but the only collisions that we consider
         # are with asteroids.
-        state.logic()  
+        state.logic()
 
         screen.fill(BACKGROUND)
 
         particle_manager.update(screen)
 
         state.draw(screen)
-        screen.blit(font.render(f"Particles : {len(particle_manager.particles)}", True, (255, 0, 0)), (0, 50))
-
-
+        screen.blit(
+            font.render(f"Particles : {len(particle_manager.particles)}", True, (255, 0, 0)),
+            (0, 50),
+        )
 
 
 if __name__ == "__main__":

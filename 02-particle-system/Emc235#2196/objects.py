@@ -220,7 +220,7 @@ class Player(Object):
                     pygame.math.Vector2(4, 0).rotate(self.rotation).rotate(random.randint(-60, 60)),
                     30,
                     2,
-                    pygame.Color(pygame.Color(random.choice([(255, 0, 0), (255, 165, 0)])))
+                    pygame.Color(pygame.Color(random.choice([(255, 0, 0), (255, 165, 0)]))),
                 )
 
         self.vel.from_polar((self.speed, self.INITIAL_ROTATION - self.rotation))
@@ -270,7 +270,7 @@ class Bullet(Object):
             pygame.math.Vector2(),
             30,
             2,
-            pygame.Color(random.choice([(255, 0, 0), (255, 165, 0)]))
+            pygame.Color(random.choice([(255, 0, 0), (255, 165, 0)])),
         )
 
 
@@ -326,7 +326,9 @@ class Asteroid(Object):
         i = 0
         for surface in surfaces:
             surface.set_colorkey((0, 0, 0))
-            particles.add(self.center, self.vel.rotate(i * 16 / 30) * 3, 30, 2, pygame.Color(0, 0, 0), surface)
+            particles.add(
+                self.center, self.vel.rotate(i * 16 / 30) * 3, 30, 2, pygame.Color(0, 0, 0), surface
+            )
             i -= 90
 
         # You'll add particles here for sure ;)
@@ -336,7 +338,7 @@ class Asteroid(Object):
             pygame.math.Vector2(4, 0),
             30,
             1,
-            pygame.Color(random.choice([(255, 0, 0), (255, 165, 0)]))
+            pygame.Color(random.choice([(255, 0, 0), (255, 165, 0)])),
         )
 
     def random_color(self):
@@ -411,4 +413,6 @@ class FpsCounter(Object):
         screen.blit(fps_count, self.center + [0, particle_count.get_height()])
 
 
-particles: Particles = Particles(1000)  # junky ik but what can i do? probably a lot of thing but meh
+particles: Particles = Particles(
+    1000
+)  # junky ik but what can i do? probably a lot of thing but meh

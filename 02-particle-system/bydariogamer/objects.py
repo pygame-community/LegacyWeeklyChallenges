@@ -56,7 +56,6 @@ class State:
         for obj in sorted(self.objects, key=attrgetter("Z")):
             obj.draw(screen)
 
-
     def handle_event(self, event):
         for obj in self.objects.union([self.particle_manager]):
             if obj.handle_event(event):
@@ -159,9 +158,7 @@ class Object:
         if len(shifts) == 2:
             screen.blit(
                 self.rotated_sprite,
-                self.rotated_sprite.get_rect(
-                    center=self.center + shifts[0] + shifts[1]
-                ),
+                self.rotated_sprite.get_rect(center=self.center + shifts[0] + shifts[1]),
             )
 
         # To see the exact size of the hitboxes
@@ -217,9 +214,7 @@ class Player(Object):
         self.speed *= self.FRICTION  # friction
 
         # The min term makes it harder to turn at slow speed.
-        self.rotation += (
-            rotation_acc * self.ROTATION_ACCELERATION * min(1.0, 0.4 + abs(self.speed))
-        )
+        self.rotation += rotation_acc * self.ROTATION_ACCELERATION * min(1.0, 0.4 + abs(self.speed))
 
         self.vel.from_polar((self.speed, self.INITIAL_ROTATION - self.rotation))
 
@@ -307,21 +302,14 @@ class Asteroid(Object):
         if self.level > 1:
             # We spawn two smaller asteroids in the direction perpendicular to the collision.
             perp_velocity = pygame.Vector2(bullet.vel.y, -bullet.vel.x)
-            perp_velocity.scale_to_length(
-                self.vel.length() * self.EXPLOSION_SPEED_BOOST
-            )
+            perp_velocity.scale_to_length(self.vel.length() * self.EXPLOSION_SPEED_BOOST)
             for mult in (-1, 1):
                 self.state.add(
-                    Asteroid(
-                        self.center, perp_velocity * mult, self.level - 1, self.color
-                    )
+                    Asteroid(self.center, perp_velocity * mult, self.level - 1, self.color)
                 )
 
         self.state.particle_manager.burst(
-            self.center,
-            self.vel,
-            pygame.Color(self.color),
-            self.level
+            self.center, self.vel, pygame.Color(self.color), self.level
         )
 
         self.state.particle_manager.explode(self)
@@ -339,9 +327,7 @@ class Asteroid(Object):
             angle = uniform(0, 360)
             distance_from_center = gauss(SIZE[1] / 2, SIZE[1] / 12)
             pos = SCREEN.center + from_polar(distance_from_center, angle)
-            vel = from_polar(
-                gauss(cls.AVG_SPEED, cls.AVG_SPEED / 6), gauss(180 + angle, 30)
-            )
+            vel = from_polar(gauss(cls.AVG_SPEED, cls.AVG_SPEED / 6), gauss(180 + angle, 30))
             size = choices([1, 2, 3, 4], [4, 3, 2, 1])[0]
             objects.add(cls(pos, vel, size))
 
@@ -435,9 +421,7 @@ class ParticleManager:
     @classmethod
     def randomize_pos(cls, pos):
         return (
-            pygame.Vector2(
-                2 ** (cls.gauss() * cls.RANDOMNESS), 2 ** (cls.gauss() * cls.RANDOMNESS)
-            )
+            pygame.Vector2(2 ** (cls.gauss() * cls.RANDOMNESS), 2 ** (cls.gauss() * cls.RANDOMNESS))
             + pos
         )
 
@@ -484,7 +468,7 @@ class ParticleManager:
                 (randint(0, SIZE[0]), randint(0, SIZE[1])),
                 pygame.Vector2(5),
                 color=self.random_color(),
-                level=1
+                level=1,
             )
 
     def draw(self, screen):
@@ -549,16 +533,12 @@ class ParticleManager:
 
     def firetrail(self, pos, vel, color=pygame.Color(255, 165, 0)):
         for _ in range(ParticleManager.MULTIPLIER):
-            self.particles.add(
-                Particle(pos, -vel, 20, pygame.Color(255, 0, 0), 3)
-            )
+            self.particles.add(Particle(pos, -vel, 20, pygame.Color(255, 0, 0), 3))
             self.particles.add(Particle(pos, self.randomize_vel(-vel), 20, color, 3))
 
     def shot(self, pos, vel, color=pygame.Color(255, 165, 0)):
         for _ in range(ParticleManager.MULTIPLIER):
-            self.particles.add(
-                ShootParticle(pos, self.randomize_vel(vel), 10, color, 5)
-            )
+            self.particles.add(ShootParticle(pos, self.randomize_vel(vel), 10, color, 5))
 
 
 class Particle:
@@ -618,13 +598,13 @@ class BouncingParticle(FilledParticle):
         super().__init__(pos, vel, life, color, size)
 
     def logic(self):
-        if not(0 < self.pos.x < SIZE[0]):
+        if not (0 < self.pos.x < SIZE[0]):
             self.vel.x *= -1
             if 0 > self.pos.x:
                 self.pos.x = 0
             if SIZE[0] < self.pos.x:
                 self.pos.x = SIZE[0]
-        if not(0 < self.pos.y < SIZE[1]):
+        if not (0 < self.pos.y < SIZE[1]):
             self.vel.y *= -1
             if 0 > self.pos.y:
                 self.pos.y = 0
@@ -672,7 +652,7 @@ class SurfaceParticle:
             self.vel.x *= -1
         if 0 < self.pos.y < SIZE[1]:
             self.vel.y *= -1
-        self.surface.set_alpha(255*self.age//self.life)
+        self.surface.set_alpha(255 * self.age // self.life)
 
     def draw(self, screen):
         screen.blit(self.rotated_sprite, self.pos)

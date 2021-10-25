@@ -21,9 +21,9 @@ __package__ = "02-particle-system." + Path(__file__).parent.name
 # Metadata about your submission
 __author__ = "RoboMarchello#0570"  # Put yours!
 __achievements__ = [  # Uncomment the ones you've done
-     "Casual",
-     "Ambitious",
-     "Adventurous",
+    "Casual",
+    "Ambitious",
+    "Adventurous",
 ]
 
 # To import the modules in yourname/, you need to use relative imports,
@@ -39,13 +39,17 @@ def mainloop():
 
     player = Player((SIZE[0] / 2, SIZE[1] / 2), (0, 0))
     # The state is just a collection of all the objects in the game
-    state = State(player, FpsCounter(60),ParticleCounter(Expm.particles,player.particles), *Asteroid.generate_many())
+    state = State(
+        player,
+        FpsCounter(60),
+        ParticleCounter(Expm.particles, player.particles),
+        *Asteroid.generate_many()
+    )
 
     while True:
         screen, events = yield
         for event in events:
-            
-            
+
             if event.type == pygame.QUIT:
                 return
             else:
@@ -58,13 +62,12 @@ def mainloop():
 
         screen.fill(BACKGROUND)
         for particle in player.particles:
-            particle.draw(screen)#Draws fire particle
+            particle.draw(screen)  # Draws fire particle
             if particle.life_time < 0:
                 player.particles.pop(player.particles.index(particle))
-        
+
         state.draw(screen)
         Expm.draw(screen)
-        
 
 
 if __name__ == "__main__":

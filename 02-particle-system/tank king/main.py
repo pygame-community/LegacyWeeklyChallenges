@@ -64,7 +64,7 @@ def mainloop():
             particle_system.update(screen)
         state.draw(screen)
         if paused:
-            t = text('Paused, Press Enter to Resume', (0, 150, 255), 50)
+            t = text("Paused, Press Enter to Resume", (0, 150, 255), 50)
             screen.blit(t, t.get_rect(center=screen.get_rect().center))
 
 

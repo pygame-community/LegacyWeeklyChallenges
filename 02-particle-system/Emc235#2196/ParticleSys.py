@@ -37,7 +37,7 @@ class Particles:
         self.limit: int = limit
         self.particles: Set[Particle] = set()
 
-    def logic(self, dt: float=1) -> "Particles":
+    def logic(self, dt: float = 1) -> "Particles":
         to_remove = set()
         for particle in self.particles:
             if particle.logic(dt):
@@ -51,38 +51,42 @@ class Particles:
         return self
 
     def add(
-            self,
-            pos: pygame.math.Vector2,
-            vel: pygame.math.Vector2,
-            duration: int,
-            rad: float,
-            color: pygame.Color,
-            image: pygame.surface.Surface=None
+        self,
+        pos: pygame.math.Vector2,
+        vel: pygame.math.Vector2,
+        duration: int,
+        rad: float,
+        color: pygame.Color,
+        image: pygame.surface.Surface = None,
     ) -> "Particles":
-        if len(self.particles) >= self.limit: return self
+        if len(self.particles) >= self.limit:
+            return self
         self.particles.add(Particle(pos, vel, duration, rad, color, image))
         return self
 
     def burst(
-            self,
-            pos: pygame.math.Vector2,
-            vel: pygame.math.Vector2,
-            duration: int,
-            rad: float,
-            color: pygame.Color,
-            n: int=50,
-            image: Union[pygame.surface.Surface, None]=None
+        self,
+        pos: pygame.math.Vector2,
+        vel: pygame.math.Vector2,
+        duration: int,
+        rad: float,
+        color: pygame.Color,
+        n: int = 50,
+        image: Union[pygame.surface.Surface, None] = None,
     ) -> "Particles":
-        if len(self.particles) >= self.limit: return self
+        if len(self.particles) >= self.limit:
+            return self
         for _ in range(n):
-            self.particles.add(Particle(
+            self.particles.add(
+                Particle(
                     pos + [random.randint(-5, 5), random.randint(-5, 5)],
                     vel.rotate(math.degrees(random.random() * math.tau)),
                     duration + random.randint(-2, 2),
                     rad + random.randint(-3, 3) + 0.001,
                     color,
-                    image
-                ))
+                    image,
+                )
+            )
         return self
 
     @property
@@ -94,13 +98,13 @@ class Particle:
     __slots__ = ("pos", "vel", "duration", "age", "color", "woreoff", "rad", "image")
 
     def __init__(
-            self,
-            pos: pygame.math.Vector2,
-            vel: pygame.math.Vector2,
-            duration: int,
-            rad: float,
-            color: Union[Tuple[int, int, int], pygame.Color, List[int]],
-            image: Union[pygame.surface.Surface, None]=None
+        self,
+        pos: pygame.math.Vector2,
+        vel: pygame.math.Vector2,
+        duration: int,
+        rad: float,
+        color: Union[Tuple[int, int, int], pygame.Color, List[int]],
+        image: Union[pygame.surface.Surface, None] = None,
     ):
         self.pos: pygame.math.Vector2 = pygame.math.Vector2(pos)
         self.vel: pygame.math.Vector2 = pygame.math.Vector2(vel)
@@ -111,7 +115,7 @@ class Particle:
         self.woreoff = self.color // pygame.Color(duration, duration, duration)
         self.image: Union[pygame.surface.Surface, None] = image
 
-    def logic(self, dt: float=1) -> bool:
+    def logic(self, dt: float = 1) -> bool:
         self.age += 1
         self.pos += self.vel * dt
         self.vel *= 0.9 * dt
@@ -120,10 +124,6 @@ class Particle:
 
     def draw(self, surface: pygame.surface.Surface) -> None:
         if not self.image:
-            pygame.draw.circle(
-                surface,
-                self.color,
-                self.pos,
-                self.rad
-            )
-        else: surface.blit(self.image, self.pos)
+            pygame.draw.circle(surface, self.color, self.pos, self.rad)
+        else:
+            surface.blit(self.image, self.pos)

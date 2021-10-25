@@ -222,7 +222,11 @@ class Player(Object):
                 speed = random.randint(1, 5)
                 # speed = 5
                 # self.state.add(ExhaustParticles(self.center, (speed * math.cos(angle), -speed * math.sin(angle))))
-                particle_system.add_particle(self.center, (speed * math.cos(angle), -speed * math.sin(angle)), particle_type='exhaust')
+                particle_system.add_particle(
+                    self.center,
+                    (speed * math.cos(angle), -speed * math.sin(angle)),
+                    particle_type="exhaust",
+                )
 
         super().logic()
 
@@ -246,7 +250,12 @@ class Player(Object):
         ...
         angle = math.radians(random.randint(0, 360))
         speed = random.randint(1, 5)
-        particle_system.add_particle(self.center, (speed * math.cos(angle), speed * math.sin(angle)), 'damage', extra_params={'sprite': self.sprite})
+        particle_system.add_particle(
+            self.center,
+            (speed * math.cos(angle), speed * math.sin(angle)),
+            "damage",
+            extra_params={"sprite": self.sprite},
+        )
 
 
 class Bullet(Object):
@@ -269,11 +278,18 @@ class Bullet(Object):
 
         for i in particle_system.particles:
             if isinstance(i, ObjectBreakingParticle):
-                if distance(self.center, i.center) < min(i.sprite.get_width(), i.sprite.get_height()):
+                if distance(self.center, i.center) < min(
+                    i.sprite.get_width(), i.sprite.get_height()
+                ):
                     for _ in range(random.randint(2, 10)):
                         angle = math.radians(self.rotation - 90 + random.randint(-30, 30))
                         speed = random.randint(1, 5)
-                        particle_system.add_particle(self.center, (speed * math.cos(angle), -speed * math.sin(angle)), particle_type='break', extra_params={'sprite': i.sprite.copy()})
+                        particle_system.add_particle(
+                            self.center,
+                            (speed * math.cos(angle), -speed * math.sin(angle)),
+                            particle_type="break",
+                            extra_params={"sprite": i.sprite.copy()},
+                        )
                     i.alive = False
                     break
         # Maybe some trail particles here ? You can put particles EVERYWHERE. Really.
@@ -281,7 +297,9 @@ class Bullet(Object):
         angle = math.radians(self.rotation - 90 + random.randint(-30, 30))
         speed = random.randint(1, 5)
         # self.state.add(TrailParticles(self.center, (speed * math.cos(angle), -speed * math.sin(angle))))
-        particle_system.add_particle(self.center, (speed * math.cos(angle), -speed * math.sin(angle)), particle_type='trail')
+        particle_system.add_particle(
+            self.center, (speed * math.cos(angle), -speed * math.sin(angle)), particle_type="trail"
+        )
 
 
 class Asteroid(Object):
@@ -336,7 +354,12 @@ class Asteroid(Object):
         for i in range(random.randint(5, 10)):
             angle = random.randint(0, 360)
             speed = random.randint(1, 5)
-            particle_system.add_particle(self.center, (speed * math.cos(angle), speed * math.sin(angle)), particle_type='break', extra_params={'sprite': self.sprite.copy(), 'color': self.color})
+            particle_system.add_particle(
+                self.center,
+                (speed * math.cos(angle), speed * math.sin(angle)),
+                particle_type="break",
+                extra_params={"sprite": self.sprite.copy(), "color": self.color},
+            )
 
     def random_color(self):
         r, g, b = hsv_to_rgb(uniform(0, 1), 0.8, 0.8)
@@ -406,5 +429,7 @@ class FpsCounter(Object):
         color = "#89C4F4"
         t = text(f"FPS: {int(self.current_fps)}", color)
         screen.blit(t, self.center)
-        screen.blit(text('Particles: ' + str(len(particle_system.particles)), color),
-                    pygame.Vector2(self.center.x, self.center.y + t.get_height()))
+        screen.blit(
+            text("Particles: " + str(len(particle_system.particles)), color),
+            pygame.Vector2(self.center.x, self.center.y + t.get_height()),
+        )

@@ -62,9 +62,7 @@ def clamp(value, mini, maxi):
 def random_in_rect(rect):
     """Return a random point uniformly in a rectangle."""
     rect = pygame.Rect(rect)
-    return pygame.Vector2(
-        uniform(rect.left, rect.right), uniform(rect.top, rect.bottom)
-    )
+    return pygame.Vector2(uniform(rect.left, rect.right), uniform(rect.top, rect.bottom))
 
 
 def from_polar(rho, theta):
@@ -124,7 +122,10 @@ def break_surface(surf, divs):
     # return [
     #     pygame.surfarray.make_surface(array)
     surfaces = []
-    for nested_list in (numpy.hsplit(vertical, divs) for vertical in numpy.vsplit(pygame.surfarray.array2d(surf), divs)):
+    for nested_list in (
+        numpy.hsplit(vertical, divs)
+        for vertical in numpy.vsplit(pygame.surfarray.array2d(surf), divs)
+    ):
         for array in nested_list:
             surfaces.append(pygame.surfarray.make_surface(array))
 

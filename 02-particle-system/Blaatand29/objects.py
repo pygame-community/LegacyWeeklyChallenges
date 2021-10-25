@@ -216,10 +216,15 @@ class Player(Object):
         if 0.5 < self.vel.y or self.vel.y < -0.5 or 0.5 < self.vel.x or self.vel.x < -0.5:
             for i in range(20):
                 PARTICLES.append(
-                    [[self.center.x, self.center.y],
-                     [random.uniform(int(-self.vel.x - 2), int(-self.vel.x + 2)),
-                     random.uniform(int(-self.vel.y - 2), int(-self.vel.y + 2))],
-                     random.randint(4, 6), random.choice(("white", "yellow", "orange", "red"))]
+                    [
+                        [self.center.x, self.center.y],
+                        [
+                            random.uniform(int(-self.vel.x - 2), int(-self.vel.x + 2)),
+                            random.uniform(int(-self.vel.y - 2), int(-self.vel.y + 2)),
+                        ],
+                        random.randint(4, 6),
+                        random.choice(("white", "yellow", "orange", "red")),
+                    ]
                 )
 
         super().logic()
@@ -317,9 +322,14 @@ class Asteroid(Object):
         # I sure will :D
         for i in range(100):
             PARTICLES.append(
-                [[self.center.x, self.center.y],
-                 [math.sin(random.randint(-90, 90)) * 3, math.cos(random.randint(-90, 90)) * 3],
-                 random.randrange(int(self.sprite.get_width() / 8), int(self.sprite.get_width() / 8) + 2), self.color]
+                [
+                    [self.center.x, self.center.y],
+                    [math.sin(random.randint(-90, 90)) * 3, math.cos(random.randint(-90, 90)) * 3],
+                    random.randrange(
+                        int(self.sprite.get_width() / 8), int(self.sprite.get_width() / 8) + 2
+                    ),
+                    self.color,
+                ]
             )
 
     def random_color(self):

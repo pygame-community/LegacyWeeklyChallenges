@@ -14,7 +14,6 @@ from colorsys import hsv_to_rgb
 from functools import lru_cache
 from operator import attrgetter
 from random import gauss, choices, uniform
-from copy import copy
 
 import pygame
 

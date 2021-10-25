@@ -1,14 +1,13 @@
 import time
-from abc import abstractmethod, abstractclassmethod, ABC
-from functools import cached_property
+from abc import abstractmethod, ABC
 from typing import Union, Callable
 
+import numpy as np
 import pygame
 import pygame.gfxdraw
-import numpy as np
 
 from .colors import gradient
-from .core import Component, ParticleGroup
+from .core import Component
 
 
 class class_cached:

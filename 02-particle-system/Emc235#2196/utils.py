@@ -103,11 +103,6 @@ def text(txt, color, size=20, font_name=None):
 def split_surface(surf: pygame.surface.Surface):
     w, h, surfs = [*surf.get_size(), []]
     for x, y in [(0, 0), (1, 0), (1, 1), (0, 1)]:
-        surfs.append(
-            surf.subsurface([
-                w * x/2, h * y/2, w/2, h/2
-            ])
-        )
-        
+        surfs.append(surf.subsurface([w * x / 2, h * y / 2, w / 2, h / 2]))
+
     return surfs
-    

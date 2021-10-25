@@ -8,22 +8,22 @@ goes with it too.
 Feel free to modify everything in this file to your liking.
 """
 
-import time
 import math
+import time
 from collections import deque
 from colorsys import hsv_to_rgb
-from functools import lru_cache, partial
-from operator import attrgetter, xor
+from functools import lru_cache
+from operator import attrgetter
 from random import gauss, choices, uniform, random, choice
 
 import pygame
-from pygame import image
 from pygame.constants import SRCALPHA
 
 # noinspection PyPackages
 from .utils import *
 
 BACKGROUND = 0x0F1012
+
 
 class State:
     def __init__(self, *initial_objects: "Object"):
@@ -161,7 +161,7 @@ class Object:
 
         # To see the exact size of the hitboxes
         if pygame.key.get_pressed()[pygame.K_d]:
-           pygame.draw.circle(screen, "red", self.center, self.radius, width=1)
+            pygame.draw.circle(screen, "red", self.center, self.radius, width=1)
 
     def logic(self, **kwargs):
         # self.vel = clamp_vector(self.vel, self.MAX_VEL)
@@ -189,12 +189,12 @@ class Player(Object):
         self.fire_cooldown = -1
 
     def thruster_position(self):
-        '''returns the current position and rotation of thrusters'''
+        """returns the current position and rotation of thrusters"""
         x = self.rect.centerx
         y = self.rect.centery
         x += self.radius * math.sin(math.radians(self.rotation))
         y += self.radius * math.cos(math.radians(self.rotation))
-        return(x, y)
+        return (x, y)
 
     def handle_event(self, event):
         if event.type == pygame.KEYDOWN:
@@ -219,7 +219,7 @@ class Player(Object):
         # The min term makes it harder to turn at slow speed.
         self.rotation += rotation_acc * self.ROTATION_ACCELERATION * min(1.0, 0.4 + abs(self.speed))
         self.vel.from_polar((self.speed, self.INITIAL_ROTATION - self.rotation))
-        
+
         super().logic()
 
     def fire(self):
@@ -312,12 +312,21 @@ class Asteroid(Object):
                 self.state.add(
                     Asteroid(self.center, perp_velocity * mult, self.level - 1, self.color)
                 )
-        # You'll add particles here for sure ;)
+            # You'll add particles here for sure ;)
             for i in range(4):
-                particles.add_particles(Particle(self.rect.centerx, self.rect.centery, radius=random() * 5 + 2, colour=self.color))
+                particles.add_particles(
+                    Particle(
+                        self.rect.centerx,
+                        self.rect.centery,
+                        radius=random() * 5 + 2,
+                        colour=self.color,
+                    )
+                )
         else:
             for i in range(150):
-                particles.add_particles(Particle(self.rect.centerx, self.rect.centery, radius=1, colour=self.color))
+                particles.add_particles(
+                    Particle(self.rect.centerx, self.rect.centery, radius=1, colour=self.color)
+                )
 
         self.state.add(particles)
 
@@ -389,11 +398,13 @@ class FpsCounter(Object):
         color = "#89C4F4"
         t = text(f"FPS: {int(self.current_fps)}", color)
         screen.blit(t, self.center)
-        
 
-'''
+
+"""
 MY GARBAGE
-'''
+"""
+
+
 class ThrusterParticles:
     def __init__(self):
         self.Z = 2000
@@ -412,9 +423,9 @@ class ThrusterParticles:
             self.delete_particles()
 
         for particle in self.particles:
-            particle.y += random() * 2 - 1 # y position change
-            particle.x += random() * 2 - 1 # x position change
-            particle.radius += particle.growth # radius increase
+            particle.y += random() * 2 - 1  # y position change
+            particle.x += random() * 2 - 1  # x position change
+            particle.radius += particle.growth  # radius increase
 
     def colour_changes(self, particle):
         g = 255 - int(particle.radius) * 19
@@ -422,20 +433,25 @@ class ThrusterParticles:
             g = 0
         a = g
 
-        return((255,g,0,a))
+        return (255, g, 0, a)
 
     def draw(self, screen):
         for particle in self.particles:
             particle.colour = self.colour_changes(particle)
 
-            surf = pygame.Surface((particle.radius*2, particle.radius*2)).convert_alpha()
+            surf = pygame.Surface((particle.radius * 2, particle.radius * 2)).convert_alpha()
             surf.fill((BACKGROUND))
             rect = surf.get_rect()
             pygame.draw.circle(surf, particle.colour, (rect.centerx, rect.centery), particle.radius)
 
             if particle.radius >= 9:
-                pygame.draw.circle(surf, BACKGROUND, (rect.centerx + uniform(-5.0, 5.0), rect.centery + uniform(-5.0, 5.0)), particle.radius)
-            screen.blit(surf,(particle.x, particle.y))
+                pygame.draw.circle(
+                    surf,
+                    BACKGROUND,
+                    (rect.centerx + uniform(-5.0, 5.0), rect.centery + uniform(-5.0, 5.0)),
+                    particle.radius,
+                )
+            screen.blit(surf, (particle.x, particle.y))
 
     def handle_event(self, event):
         pass
@@ -471,12 +487,12 @@ class ExplosionParticles:
         pass
 
 
-class Particle():
-    def __init__(self, x, y, radius, growth=0, colour=(255,255,255)):
+class Particle:
+    def __init__(self, x, y, radius, growth=0, colour=(255, 255, 255)):
         self.x = x
         self.y = y
         self.radius = radius
-        self.directionx = gauss(0, 1) 
+        self.directionx = gauss(0, 1)
         self.directiony = gauss(0, 1)
         self.growth = growth
         self.is_alive = True
@@ -512,7 +528,8 @@ class StarParticles:
         for i in range(self.count):
             x = int(random() * screen_size[0])
             y = int(random() * screen_size[1])
-            particle = StarParticle(x, y, image=choice(self.images))
+            img = choice(self.images)
+            particle = StarParticle(x, y, image=img)
             self.particles.add(particle)
 
     def handle_event(self, event):
@@ -529,12 +546,12 @@ class StarParticles:
                 particle.alpha += 5
             elif particle.increment == False:
                 particle.alpha -= 5
-            
+
     def draw(self, screen):
         for particle in self.particles:
             particle_size = particle.image.get_rect().size
             surf = pygame.Surface((particle_size), SRCALPHA)
             surf.fill(BACKGROUND)
-            surf.blit(particle.image, (0,0))
+            surf.blit(particle.image, (0, 0))
             surf.set_alpha(particle.alpha)
             screen.blit(surf, (particle.x, particle.y))

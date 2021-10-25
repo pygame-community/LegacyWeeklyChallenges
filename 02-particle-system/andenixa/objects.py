@@ -209,7 +209,7 @@ class Player(Object):
 
         self.vel.from_polar((self.speed, self.INITIAL_ROTATION - self.rotation))
 
-        super().logic()        
+        super().logic()
 
     def fire(self):
         if self.fire_cooldown >= 0:

@@ -1,11 +1,8 @@
-import random
 import sys
 from math import sqrt
 from pathlib import Path
 
-import numpy as np
 import pygame.gfxdraw
-from line_profiler_pycharm import profile
 
 try:
     import wclib
@@ -210,6 +207,8 @@ def mainloop():
     # state.add(Snow())
     # state.add(Fountain())
 
+    has_fountain = False
+
     frame = 1
     while True:
         frame += 1
@@ -224,6 +223,8 @@ def mainloop():
                 elif event.key == pygame.K_SPACE:
                     for a in Asteroid.generate_many(10):
                         state.add(a)
+                elif event.key == pygame.K_f:
+                    state.add(Fountain())
 
             state.handle_event(event)
             mouse_generator.handle_event(event)

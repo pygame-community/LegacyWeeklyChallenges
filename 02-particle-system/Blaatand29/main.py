@@ -56,7 +56,12 @@ def mainloop():
         state.logic()
 
         PARTICLES.append(
-            [[random_in_rect(SCREEN).x, random_in_rect(SCREEN).y], [0, 0], random.randrange(4, 6), "white"]
+            [
+                [random_in_rect(SCREEN).x, random_in_rect(SCREEN).y],
+                [0, 0],
+                random.randrange(4, 6),
+                "white",
+            ]
         )
 
         screen.fill(BACKGROUND)

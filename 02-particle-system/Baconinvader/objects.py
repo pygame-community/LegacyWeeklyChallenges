@@ -251,25 +251,23 @@ class Bullet(Object):
             self.alive = False
 
         from .particles import Particles
+
         # Maybe some trail particles here ? You can put particles EVERYWHERE. Really.
-        part = Particles(self.center, #pos
-                     self.vel, #vel
-
-                     -m.radians(self.rotation-90), #angle
-                     0.5, #spread
-                     0.5, #speed
-                     0.1, #speed var
-                     
-                     5, #max
-                     2, #size
-                     1, #size var
-                     60*0.3, #lifetime
-
-                     (255,255,0), #colour
-                     (96,64,0), #colour var
-
-                     -0.05#size change
-                     )
+        part = Particles(
+            self.center,  # pos
+            self.vel,  # vel
+            -m.radians(self.rotation - 90),  # angle
+            0.5,  # spread
+            0.5,  # speed
+            0.1,  # speed var
+            5,  # max
+            2,  # size
+            1,  # size var
+            60 * 0.3,  # lifetime
+            (255, 255, 0),  # colour
+            (96, 64, 0),  # colour var
+            -0.05,  # size change
+        )
         self.state.add(part)
 
 
@@ -322,44 +320,38 @@ class Asteroid(Object):
 
         from .particles import Particles
 
-        part = Particles(self.center, #pos
-                     self.vel, #vel
-
-                     0, #angle
-                     2*3.41, #spread
-                     1, #speed
-                     0.2, #speed var
-                     
-                     50, #max
-                     10, #size
-                     3, #size var
-                     60*5, #lifetime
-
-                     (self.color[0]//2,self.color[1]//2,self.color[2]//2), #colour
-                     (32,32,32), #colour var
-
-                     -0.02#size change
-                     )
+        part = Particles(
+            self.center,  # pos
+            self.vel,  # vel
+            0,  # angle
+            2 * 3.41,  # spread
+            1,  # speed
+            0.2,  # speed var
+            50,  # max
+            10,  # size
+            3,  # size var
+            60 * 5,  # lifetime
+            (self.color[0] // 2, self.color[1] // 2, self.color[2] // 2),  # colour
+            (32, 32, 32),  # colour var
+            -0.02,  # size change
+        )
         self.state.add(part)
 
-        part = Particles(self.center, #pos
-                     self.vel, #vel
-
-                     0, #angle
-                     2*3.41, #spread
-                     0.5, #speed
-                     0.5, #speed var
-                     
-                     50, #max
-                     8, #size
-                     4, #size var
-                     60*5, #lifetime
-
-                     (self.color[0]//2,self.color[1]//2,self.color[2]//2), #colour
-                     (32,32,32), #colour var
-
-                     -0.02#size change
-                     )
+        part = Particles(
+            self.center,  # pos
+            self.vel,  # vel
+            0,  # angle
+            2 * 3.41,  # spread
+            0.5,  # speed
+            0.5,  # speed var
+            50,  # max
+            8,  # size
+            4,  # size var
+            60 * 5,  # lifetime
+            (self.color[0] // 2, self.color[1] // 2, self.color[2] // 2),  # colour
+            (32, 32, 32),  # colour var
+            -0.02,  # size change
+        )
         self.state.add(part)
 
     def random_color(self):

@@ -8,7 +8,7 @@ goes with it too.
 Feel free to modify everything in this file to your liking.
 """
 
-import time,random
+import time, random
 from collections import deque
 from colorsys import hsv_to_rgb
 from functools import lru_cache
@@ -145,7 +145,7 @@ class Object:
                     self.rotated_sprite,
                     self.rotated_sprite.get_rect(center=self.center + offset),
                 )
-        
+
         # Take care of the corners of the screen.
         # Here I assume that no object can touch two sides of the screen
         # at the same time. If so, the code wouldn't be correct, but still
@@ -170,32 +170,51 @@ class Object:
 
         self.rect = self.get_rect()
 
-def drawPoints(points,pos,addAngle):
+
+def drawPoints(points, pos, addAngle):
     Points = []
 
     for point in points:
-        pointAngle = point[0]-addAngle
+        pointAngle = point[0] - addAngle
         cosi = math.cos(pointAngle)
         sinu = math.sin(pointAngle)
 
-        Points.append([int(-cosi*point[1]+pos[0]),int(sinu*point[1]+pos[1])])
-        
+        Points.append([int(-cosi * point[1] + pos[0]), int(sinu * point[1] + pos[1])])
+
     return Points
 
-class explodeParticle():
-    def __init__(self,pos):
+
+class explodeParticle:
+    def __init__(self, pos):
         self.pos = pos
 
         self.life_time = 60
 
-        self.points = [[0.4048917862850834, 137], [0.024686342055599386, 81], [-0.4007934485752347, 128], [-0.5382217016114783, 78], [-0.8496871288406961, 165], [-1.2832204960144495, 74], [-1.546410917622178, 123], [-1.9295669970654687, 68], [-2.2061120795182037, 146], [-2.402033916073462, 77], [-2.7136441572683108, 125], [-3.4507915659168678, 75], [-3.737377201212852, 142], [-4.267969770483591, 69], [1.151145464659793, 142], [1.0960994437147216, 80]]
-        self.color = [75,75,75]
+        self.points = [
+            [0.4048917862850834, 137],
+            [0.024686342055599386, 81],
+            [-0.4007934485752347, 128],
+            [-0.5382217016114783, 78],
+            [-0.8496871288406961, 165],
+            [-1.2832204960144495, 74],
+            [-1.546410917622178, 123],
+            [-1.9295669970654687, 68],
+            [-2.2061120795182037, 146],
+            [-2.402033916073462, 77],
+            [-2.7136441572683108, 125],
+            [-3.4507915659168678, 75],
+            [-3.737377201212852, 142],
+            [-4.267969770483591, 69],
+            [1.151145464659793, 142],
+            [1.0960994437147216, 80],
+        ]
+        self.color = [75, 75, 75]
 
-        self.rotateDir = rd.randint(-1,1)*5
+        self.rotateDir = rd.randint(-1, 1) * 5
 
         self.angle = 0
 
-    def draw(self,screen):
+    def draw(self, screen):
         for point in self.points:
             if point[1] < 2 and point[1] > -2:
                 point[1] = 0
@@ -203,53 +222,95 @@ class explodeParticle():
                 point[1] -= 3
 
         self.life_time -= 1
-            
-        pygame.draw.polygon(screen,self.color,drawPoints(self.points,self.pos,math.radians(self.angle)))
 
-class ExplodeMan():
+        pygame.draw.polygon(
+            screen, self.color, drawPoints(self.points, self.pos, math.radians(self.angle))
+        )
+
+
+class ExplodeMan:
     def __init__(self):
         self.particles = []
 
-    def draw(self,screen):
+    def draw(self, screen):
         for part in self.particles:
             part.draw(screen)
 
             if part.life_time < 0:
                 self.particles.pop(self.particles.index(part))
+
+
 Expm = ExplodeMan()
 
-class FireParticle():
-    def __init__(self,pos,angle):
+
+class FireParticle:
+    def __init__(self, pos, angle):
         self.angle = 0
         self.moveAngle = angle
-        self.moveSpeed = math.sin(math.radians(self.moveAngle))*2
+        self.moveSpeed = math.sin(math.radians(self.moveAngle)) * 2
 
         self.pos = pos
 
         self.life_time = 70
 
-        self.points = rd.choice([[[-0.6162969373, 13], [-1.570796326794, 26], [-3.2891607249, 29], [-4.22894197881, 45], [-4.6919836496, 4], [0.94200004037, 23], [0.041642579, 27]],
-                                 [[-0.44441920990109884, 28], [-1.4019644247837757, 24], [-2.782821983319221, 20], [-3.6682199250235437, 4], [-3.9926856185397064, 12], [1.433730152484709, 12], [0.6828183109791537, 21], [0.1891990220999682, 15]],
-                                 [[-0.48296887585656134, 27], [-0.9173699856141346, 15], [-1.6313283465770037, 8], [-2.8523216479806512, 22], [-3.564446579722734, 22], [-3.9269908169872414, 41], [1.5707963267948966, 12], [0.8431849941683862, 20]],
-                                 [[-0.26211984126547283, 19], [-1.4876550949064553, 13], [-2.1086318534883253, 21], [-3.036103345064703, 20], [1.0074800653029286, 22]]])
-        self.color = [255,255,0]
-        self.EndColor = [255,0,0]
+        self.points = rd.choice(
+            [
+                [
+                    [-0.6162969373, 13],
+                    [-1.570796326794, 26],
+                    [-3.2891607249, 29],
+                    [-4.22894197881, 45],
+                    [-4.6919836496, 4],
+                    [0.94200004037, 23],
+                    [0.041642579, 27],
+                ],
+                [
+                    [-0.44441920990109884, 28],
+                    [-1.4019644247837757, 24],
+                    [-2.782821983319221, 20],
+                    [-3.6682199250235437, 4],
+                    [-3.9926856185397064, 12],
+                    [1.433730152484709, 12],
+                    [0.6828183109791537, 21],
+                    [0.1891990220999682, 15],
+                ],
+                [
+                    [-0.48296887585656134, 27],
+                    [-0.9173699856141346, 15],
+                    [-1.6313283465770037, 8],
+                    [-2.8523216479806512, 22],
+                    [-3.564446579722734, 22],
+                    [-3.9269908169872414, 41],
+                    [1.5707963267948966, 12],
+                    [0.8431849941683862, 20],
+                ],
+                [
+                    [-0.26211984126547283, 19],
+                    [-1.4876550949064553, 13],
+                    [-2.1086318534883253, 21],
+                    [-3.036103345064703, 20],
+                    [1.0074800653029286, 22],
+                ],
+            ]
+        )
+        self.color = [255, 255, 0]
+        self.EndColor = [255, 0, 0]
         self.addRGB = []
-    
+
         for color in range(3):
-            self.addRGB.append((self.color[color]-self.EndColor[color])//255*1.5)
+            self.addRGB.append((self.color[color] - self.EndColor[color]) // 255 * 1.5)
 
-        self.rotateDir = rd.randint(-1,1)*5
-        self.moveDir = [math.cos(self.moveAngle)*2,math.sin(self.moveAngle)*2]
+        self.rotateDir = rd.randint(-1, 1) * 5
+        self.moveDir = [math.cos(self.moveAngle) * 2, math.sin(self.moveAngle) * 2]
 
-    def draw(self,screen):
+    def draw(self, screen):
         self.pos[0] += self.moveDir[0]
         self.pos[1] += self.moveDir[1]
-        self.angle += self.rotateDir#rotation
+        self.angle += self.rotateDir  # rotation
 
         self.life_time -= 1
 
-        #changing color
+        # changing color
         for color in range(3):
             if self.color[color] < self.EndColor[color]:
                 if self.color[color] < self.EndColor[color]:
@@ -262,20 +323,24 @@ class FireParticle():
         for point in self.points:
             if point[1] != 0:
                 point[1] -= 0.5
-            
-        pygame.draw.polygon(screen,self.color,drawPoints(self.points,self.pos,math.radians(self.angle)))
 
-class ShootParticle():
-    def __init__(self,pos,angle):
+        pygame.draw.polygon(
+            screen, self.color, drawPoints(self.points, self.pos, math.radians(self.angle))
+        )
+
+
+class ShootParticle:
+    def __init__(self, pos, angle):
         self.pos = pos
         self.angle = angle
 
-        self.moveDir = [math.cos(angle),math.sin(angle)]
+        self.moveDir = [math.cos(angle), math.sin(angle)]
         self.life_time = 60
 
         self.radius = 5
-    def draw(self,screen):
-        pygame.draw.circle(screen,(255,0,0),self.pos,self.radius)
+
+    def draw(self, screen):
+        pygame.draw.circle(screen, (255, 0, 0), self.pos, self.radius)
 
         self.pos[0] += self.moveDir[0]
         self.pos[1] += self.moveDir[1]
@@ -283,6 +348,7 @@ class ShootParticle():
         self.radius -= 0.1
 
         self.life_time -= 1
+
 
 class Player(Object):
     Z = 10
@@ -300,18 +366,17 @@ class Player(Object):
         self.fire_cooldown = -1
 
         self.thousand_test = False
-        
-        self.RadRot = -math.radians(self.rotation-90)
+
+        self.RadRot = -math.radians(self.rotation - 90)
         self.particles = []
-        
 
     def handle_event(self, event):
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_SPACE:
                 self.fire()
 
-                #132 ADD PARTICLE HERE
-                
+                # 132 ADD PARTICLE HERE
+
             if event.key == pygame.K_t:
                 if self.thousand_test == False:
                     self.thousand_test = True
@@ -330,15 +395,18 @@ class Player(Object):
         rotation_acc = pressed[pygame.K_LEFT] - pressed[pygame.K_RIGHT]
         raw_acceleration = 0.5 * pressed[pygame.K_DOWN] - pressed[pygame.K_UP]
         if raw_acceleration < 0:
-            self.bottomPos = [self.rect.center[0]+math.cos(self.RadRot)*(self.rect.width//2),self.rect.center[1]+math.sin(self.RadRot)*(self.rect.height//2)]
+            self.bottomPos = [
+                self.rect.center[0] + math.cos(self.RadRot) * (self.rect.width // 2),
+                self.rect.center[1] + math.sin(self.RadRot) * (self.rect.height // 2),
+            ]
             if len(self.particles) < 1000:
-                self.RadRot = -math.radians(self.rotation-90)
+                self.RadRot = -math.radians(self.rotation - 90)
                 if self.thousand_test == False:
-                    self.particles.append(FireParticle(self.bottomPos,self.RadRot))
+                    self.particles.append(FireParticle(self.bottomPos, self.RadRot))
                 else:
                     for part in range(25):
-                        self.particles.append(FireParticle(self.bottomPos,self.RadRot))
-        
+                        self.particles.append(FireParticle(self.bottomPos, self.RadRot))
+
         self.speed += raw_acceleration * self.ACCELERATION
         self.speed *= self.FRICTION  # friction
 
@@ -346,7 +414,6 @@ class Player(Object):
         self.rotation += rotation_acc * self.ROTATION_ACCELERATION * min(1.0, 0.4 + abs(self.speed))
 
         self.vel.from_polar((self.speed, self.INITIAL_ROTATION - self.rotation))
-        
 
         super().logic()
 
@@ -357,16 +424,27 @@ class Player(Object):
         self.fire_cooldown = self.FIRE_COOLDOWN
         bullet = Bullet(self.center, 270 - self.rotation)
         self.state.add(bullet)
-        
-        
-        self.frontPos = [self.rect.center[0]+math.cos(math.radians(270 - self.rotation))*(self.rect.width//2),self.rect.center[1]+math.sin(math.radians(270 - self.rotation))*(self.rect.height//2)]
-        
+
+        self.frontPos = [
+            self.rect.center[0]
+            + math.cos(math.radians(270 - self.rotation)) * (self.rect.width // 2),
+            self.rect.center[1]
+            + math.sin(math.radians(270 - self.rotation)) * (self.rect.height // 2),
+        ]
+
         # You can add particles here too.
         for part in range(10):
-            addDir = rd.randint(-45,45)
-            self.frontPos = [self.rect.center[0]+math.cos(math.radians(270 - self.rotation+addDir))*(self.rect.width//2),self.rect.center[1]+math.sin(math.radians(270 - self.rotation+addDir))*(self.rect.height//2)]
-        
-            self.particles.append(ShootParticle(self.frontPos, math.radians(270 - self.rotation+addDir)))
+            addDir = rd.randint(-45, 45)
+            self.frontPos = [
+                self.rect.center[0]
+                + math.cos(math.radians(270 - self.rotation + addDir)) * (self.rect.width // 2),
+                self.rect.center[1]
+                + math.sin(math.radians(270 - self.rotation + addDir)) * (self.rect.height // 2),
+            ]
+
+            self.particles.append(
+                ShootParticle(self.frontPos, math.radians(270 - self.rotation + addDir))
+            )
 
     def on_asteroid_collision(self, asteroid: "Asteroid"):
         # For simplicity I just explode the asteroid, but depending on what you aim for,
@@ -411,18 +489,17 @@ class Asteroid(Object):
 
         self.points = points
 
-
-        super().__init__(pos, vel, self.colored_image(size, self.color,self.points))
+        super().__init__(pos, vel, self.colored_image(size, self.color, self.points))
 
     @staticmethod
     def colored_image(size, color, points):
         sprite = load_image(f"asteroid-{16*2**size}").copy()
         sprite.fill(color, special_flags=pygame.BLEND_RGBA_MULT)
-        sprite.set_colorkey((0,0,0))
+        sprite.set_colorkey((0, 0, 0))
 
         if points != None:
-            pygame.draw.polygon(sprite,(0,0,0,0),points)
-          
+            pygame.draw.polygon(sprite, (0, 0, 0, 0), points)
+
         return sprite
 
     def logic(self):
@@ -445,26 +522,31 @@ class Asteroid(Object):
         bullet.alive = False
         self.alive = False
 
-        
         if self.level > 1:
             # We spawn two smaller asteroids in the direction perpendicular to the collision.
             perp_velocity = pygame.Vector2(bullet.vel.y, -bullet.vel.x)
             perp_velocity.scale_to_length(self.vel.length() * self.EXPLOSION_SPEED_BOOST)
 
-            size = 16*2**(self.level-1)
-            rect_points = [[0,0],[size,0],[size,size],[0,size]]
-            intersectPoint = [rd.randint(0+size//3,size-size//3),rd.randint(0+size//3,size-size//3)]
-            
-            for mult in (-1, 1):
-                points = [rect_points[0],rect_points[1*mult],rect_points[2*mult],intersectPoint]
-                self.state.add(
+            size = 16 * 2 ** (self.level - 1)
+            rect_points = [[0, 0], [size, 0], [size, size], [0, size]]
+            intersectPoint = [
+                rd.randint(0 + size // 3, size - size // 3),
+                rd.randint(0 + size // 3, size - size // 3),
+            ]
 
-                    Asteroid(self.center, perp_velocity * mult, self.level - 1, self.color,points)
-                    
+            for mult in (-1, 1):
+                points = [
+                    rect_points[0],
+                    rect_points[1 * mult],
+                    rect_points[2 * mult],
+                    intersectPoint,
+                ]
+                self.state.add(
+                    Asteroid(self.center, perp_velocity * mult, self.level - 1, self.color, points)
                 )
 
         # You'll add particles here for sure ;)
-        Expm.particles.append(explodeParticle([self.center[0],self.center[1]]))
+        Expm.particles.append(explodeParticle([self.center[0], self.center[1]]))
 
     def random_color(self):
         r, g, b = hsv_to_rgb(uniform(0, 1), 0.8, 0.8)
@@ -535,8 +617,9 @@ class FpsCounter(Object):
         t = text(f"FPS: {int(self.current_fps)}", color)
         screen.blit(t, self.center)
 
+
 class ParticleCounter(Object):
-    def __init__(self,*args):
+    def __init__(self, *args):
         self.color = "#89C4F4"
 
         self.args = args
@@ -546,13 +629,14 @@ class ParticleCounter(Object):
         dummy_surface = pygame.Surface((1, 1))
         super().__init__((4, 8), (0, 0), dummy_surface)
 
-    def particle_count(self,*args):
+    def particle_count(self, *args):
         self.particleCount = 0
-        
+
         for arg in args[0]:
             self.particleCount += len(arg)
         return self.particleCount
-    def draw(self,screen):
+
+    def draw(self, screen):
         color = "#89C4F4"
         t = text(f"PARTICLES: {self.particle_count(self.args)}", color)
-        screen.blit(t, (5,25))
+        screen.blit(t, (5, 25))

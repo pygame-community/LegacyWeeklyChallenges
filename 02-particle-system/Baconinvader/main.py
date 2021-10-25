@@ -42,24 +42,21 @@ def mainloop():
     player = Player((SIZE[0] / 2, SIZE[1] / 2), (0, 0))
 
     particles_list = []
-    part = Particles(player.center, #pos
-                     player.vel, #vel
-
-                     player.rotation, #angle
-                     2, #spread
-                     0.6, #speed
-                     0.25, #speed var
-                     
-                     150, #max
-                     10, #size
-                     3, #size var
-                     60*20, #lifetime
-
-                     (128,128,128), #colour
-                     (256,256,256), #colour var
-
-                     -0.02 #size change
-                     )
+    part = Particles(
+        player.center,  # pos
+        player.vel,  # vel
+        player.rotation,  # angle
+        2,  # spread
+        0.6,  # speed
+        0.25,  # speed var
+        150,  # max
+        10,  # size
+        3,  # size var
+        60 * 20,  # lifetime
+        (128, 128, 128),  # colour
+        (256, 256, 256),  # colour var
+        -0.02,  # size change
+    )
     # The state is just a collection of all the objects in the game
     state = State(player, FpsCounter(60), *Asteroid.generate_many())
 
@@ -72,24 +69,21 @@ def mainloop():
                 state.handle_event(event)
 
         if player.vel.magnitude() > 0.1:
-            part = Particles(player.center, #pos
-                         player.vel, #vel
-
-                         -m.radians(player.rotation-90), #angle
-                         0.9, #spread
-                         1, #speed
-                         0.2, #speed var
-                         
-                         40, #max
-                         4, #size
-                         3, #size var
-                         60*5, #lifetime
-
-                         (256,128,0), #colour
-                         (128,64,0), #colour var
-
-                         -0.1#size change
-                         )
+            part = Particles(
+                player.center,  # pos
+                player.vel,  # vel
+                -m.radians(player.rotation - 90),  # angle
+                0.9,  # spread
+                1,  # speed
+                0.2,  # speed var
+                40,  # max
+                4,  # size
+                3,  # size var
+                60 * 5,  # lifetime
+                (256, 128, 0),  # colour
+                (128, 64, 0),  # colour var
+                -0.1,  # size change
+            )
             state.add(part)
 
         # Note: the logic for collisions is in the Asteroids class.

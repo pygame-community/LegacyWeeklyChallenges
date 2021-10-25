@@ -8,13 +8,13 @@ except ImportError:
     # of all the challenges and the fact that there are many
     # way to run them (through the showcase, or on their own)
 
-    ROOT_FOLDER = Path(__file__).parent.parent.parent
+    ROOT_FOLDER = Path(__file__).absolute().parent.parent.parent
     sys.path.append(str(ROOT_FOLDER))
     import wclib
 
 # This line tells python how to handle the relative imports
 # when you run this file directly.
-__package__ = "02-particle-system." + Path(__file__).parent.name
+__package__ = "02-particle-system." + Path(__file__).absolute().parent.name
 
 # ---- Recommended: don't modify anything above this line ---- #
 
@@ -47,7 +47,9 @@ def mainloop():
     PARTICLE_EVENT = pygame.USEREVENT + 1
     pygame.time.set_timer(PARTICLE_EVENT, 5)
 
-    font = pygame.font.Font(None, 30)
+    from wclib.showcase import font as mk_font
+
+    font = mk_font(30)
 
     while True:
         screen, events = yield
@@ -75,9 +77,13 @@ def mainloop():
         # particle counter display
         parts = 0
         for i in state.objects:
-            if isinstance(i, ExplosionParticles) or isinstance(i, ThrusterParticles) or isinstance(i, StarParticles):
+            if (
+                isinstance(i, ExplosionParticles)
+                or isinstance(i, ThrusterParticles)
+                or isinstance(i, StarParticles)
+            ):
                 parts += len(i.particles)
-        partic_count = font.render(f"Particles: {str(parts)}", True, pygame.Color('white'))
+        partic_count = font.render(f"Particles: {str(parts)}", True, pygame.Color("white"))
         screen.blit(partic_count, (0, 50))
 
         state.draw(screen)

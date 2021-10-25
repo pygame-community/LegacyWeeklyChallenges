@@ -7,19 +7,22 @@ from typing import Union
 scale = pygame.transform.scale
 rotate = pygame.transform.rotate
 
+
 class ParticleSystem:
     def __init__(self):
         self.particles: list[BaseParticle] = []
 
-    def add_particle(self, pos, vel, particle_type: Union[str, None] = None, extra_params: dict = None):
+    def add_particle(
+        self, pos, vel, particle_type: Union[str, None] = None, extra_params: dict = None
+    ):
         if particle_type is not None:
-            if particle_type == 'trail':
+            if particle_type == "trail":
                 self.particles.append(TrailParticles(pos, vel))
-            elif particle_type == 'exhaust':
+            elif particle_type == "exhaust":
                 self.particles.append(ExhaustParticles(pos, vel))
-            elif particle_type == 'damage':
+            elif particle_type == "damage":
                 self.particles.append(DamageParticle(pos, vel, extra_params=extra_params))
-            elif particle_type == 'break':
+            elif particle_type == "break":
                 self.particles.append(ObjectBreakingParticle(pos, vel, extra_params=extra_params))
 
     def update(self, screen: pygame.Surface):
@@ -69,17 +72,28 @@ class TrailParticles(BaseParticle):
         super().update()
 
     def draw(self, screen: pygame.Surface):
-        pygame.draw.rect(screen, (255, 125, 0), pygame.Rect(self.center.x, self.center.y, self.size, self.size))
+        pygame.draw.rect(
+            screen, (255, 125, 0), pygame.Rect(self.center.x, self.center.y, self.size, self.size)
+        )
 
 
 class ExhaustParticles(BaseParticle):
     particle_sprite = pygame.Surface((10, 10), pygame.SRCALPHA)
-    pygame.draw.circle(particle_sprite, (0, 255, 0), particle_sprite.get_rect().center, particle_sprite.get_width() // 2)
+    pygame.draw.circle(
+        particle_sprite,
+        (0, 255, 0),
+        particle_sprite.get_rect().center,
+        particle_sprite.get_width() // 2,
+    )
 
     def __init__(self, pos, vel, size=5):
         super().__init__(pos, vel, ExhaustParticles.particle_sprite)
         self.rotation = random.randint(0, 360)
-        color = (random.choice([0, 150, 255]), random.choice([0, 150, 255]), random.choice([0, 150, 255]))
+        color = (
+            random.choice([0, 150, 255]),
+            random.choice([0, 150, 255]),
+            random.choice([0, 150, 255]),
+        )
         self.sprite.fill((0, 0, 0), special_flags=pygame.BLEND_RGB_MULT)
         self.sprite.fill(color, special_flags=pygame.BLEND_ADD)
         self.size = size
@@ -100,16 +114,25 @@ class ExhaustParticles(BaseParticle):
 class DamageParticle(BaseParticle):
     def __init__(self, pos, vel, extra_params: dict = None):
         super().__init__(pos, vel)
-        self.player_sprite: pygame.Surface = extra_params['sprite']
+        self.player_sprite: pygame.Surface = extra_params["sprite"]
         size = random.randint(1, 10)
         self.sprite = pygame.Surface((size, size), pygame.SRCALPHA)
-        rect = pygame.Rect(random.randint(0, self.player_sprite.get_width() - size), random.randint(0, self.player_sprite.get_height() - size), size, size)
+        rect = pygame.Rect(
+            random.randint(0, self.player_sprite.get_width() - size),
+            random.randint(0, self.player_sprite.get_height() - size),
+            size,
+            size,
+        )
         self.sprite.blit(self.player_sprite, (0, 0), rect)
         self.player_sprite.lock()
         for i in range(size * 10):
-            x, y = random.randint(0, self.player_sprite.get_width() - 1), random.randint(0, self.player_sprite.get_height() - 1)
+            x, y = random.randint(0, self.player_sprite.get_width() - 1), random.randint(
+                0, self.player_sprite.get_height() - 1
+            )
             if self.player_sprite.get_at([x, y])[3] > 128:
-                self.player_sprite.set_at([x, y], (58, 68, 102, 255))  # a particular color selected from image
+                self.player_sprite.set_at(
+                    [x, y], (58, 68, 102, 255)
+                )  # a particular color selected from image
         self.player_sprite.unlock()
         self.size = size
         self.original_size = size
@@ -133,9 +156,15 @@ class DamageParticle(BaseParticle):
 
 class ObjectBreakingParticle(BaseParticle):
     def __init__(self, pos, vel, extra_params: dict = None):
-        super().__init__(pos, vel, extra_params['sprite'])
+        super().__init__(pos, vel, extra_params["sprite"])
         # self.color = extra_params['color']
-        self.points = [[random.randint(0, self.sprite.get_width()), random.randint(0, self.sprite.get_height())] for _ in range(3)]
+        self.points = [
+            [
+                random.randint(0, self.sprite.get_width()),
+                random.randint(0, self.sprite.get_height()),
+            ]
+            for _ in range(3)
+        ]
         # p = [[0, 0], [self.sprite.get_width(), 0], [self.sprite.get_width(), self.sprite.get_height()]]
         # p += points
         # pygame.draw.polygon(self.sprite, (0, 255, 0), points)
@@ -158,11 +187,20 @@ class ObjectBreakingParticle(BaseParticle):
     def update(self):
         self.rotation += self.rot_speed
         offset = 50
-        if self.center.x < -self.sprite.get_width() - offset or self.center.x > SIZE[0] + self.sprite.get_width() + offset:
+        if (
+            self.center.x < -self.sprite.get_width() - offset
+            or self.center.x > SIZE[0] + self.sprite.get_width() + offset
+        ):
             self.alive = False
-        elif self.center.y < -self.sprite.get_height() - offset or self.center.y > SIZE[1] + self.sprite.get_height() + offset:
+        elif (
+            self.center.y < -self.sprite.get_height() - offset
+            or self.center.y > SIZE[1] + self.sprite.get_height() + offset
+        ):
             self.alive = False
         else:
-            if time.time() - self.timer > 10 and max(self.sprite.get_width(), self.sprite.get_height()) < 25:
+            if (
+                time.time() - self.timer > 10
+                and max(self.sprite.get_width(), self.sprite.get_height()) < 25
+            ):
                 self.alive = False
         super().update()
