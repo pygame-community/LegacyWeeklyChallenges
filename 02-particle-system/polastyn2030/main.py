@@ -30,6 +30,12 @@ __achievements__ = [  # Uncomment the ones you've done
 # otherwise your project will not be compatible with the showcase.
 # noinspection PyPackages
 from .objects import *
+# noinspection PyPackages
+from .particle_system import load_particle_spawner as load
+# noinspection PyPackages
+from .particle_system_template import ParticleTemplate, SpawnerTemplate
+# noinspection PyPackages
+from . import particle_system as par
 
 BACKGROUND = 0x0F1012
 
@@ -40,6 +46,12 @@ def mainloop():
     player = Player((SIZE[0] / 2, SIZE[1] / 2), (0, 0))
     # The state is just a collection of all the objects in the game
     state = State(player, FpsCounter(60), *Asteroid.generate_many())
+    image = pygame.Surface((10, 10))
+    image.fill((255, 255, 255))
+    spawner = load(
+        ParticleTemplate(life_time=100, size=(20, 20, 20, 20), speed=(10, 20), moving_angle=(-90, 90)),
+        image, SpawnerTemplate(spawn_pos=(30, 30, 30), spawn_delay=0)
+    )
 
     while True:
         screen, events = yield
@@ -53,9 +65,11 @@ def mainloop():
         # This may seem arbitrary, but the only collisions that we consider
         # are with asteroids.
         state.logic()
+        spawner.update()
 
         screen.fill(BACKGROUND)
         state.draw(screen)
+        spawner.draw(screen)
 
 
 if __name__ == "__main__":

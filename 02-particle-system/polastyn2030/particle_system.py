@@ -3,12 +3,27 @@ File for particle system
 """
 from __future__ import annotations
 
+from builtins import super
 from typing import Callable, TypeVar as _TypeVar, Type, cast, overload, Union, Tuple, Literal
 import random as rd
 
 import pygame as pg
 
-import particle_system_template as pst
+try:
+    # noinspection PyPackages
+    from . import particle_system_template as pst
+except ImportError:
+    import particle_system_template as pst
+
+
+class _FixedGetAttr:
+    def __getattribute__(self, item: str):
+        data = super().__getattribute__(item)
+        try:
+            data = data.__get__(self, self.__class__)
+        except AttributeError:
+            pass
+        return data
 
 
 class BaseDynamicSurface(pg.Surface):
@@ -36,7 +51,7 @@ class BaseDynamicSurface(pg.Surface):
         )
 
 
-class BaseParticleObject(pg.sprite.Sprite):
+class BaseParticleObject(_FixedGetAttr, pg.sprite.Sprite):
     def __init__(self, surface: pg.Surface | BaseDynamicSurface, size: pg.Vector2, position: pg.Vector2,
                  rotation: float, bounding_box: pg.Rect, life_time: int):
         super().__init__()
@@ -142,9 +157,23 @@ class RandomPos:
     def __init__(self, center: pg.Vector2, pos_range: float | pg.Rect):
         self.center = center
         self.pos_range = pos_range
+        self.__names__ = {"center", "pos_range", "get"}
 
     def __get__(self, instance, owner):
         return self.get()
+
+    def __getattribute__(self, item: str):
+        if item.startswith("__") and item.endswith("__"):
+            try:
+                return super().__getattribute__(item)
+            except ValueError:
+                val = self.get()
+                return getattr(val, item)
+        elif item in self.__names__:
+            return super().__getattribute__(item)
+        else:
+            val = self.get()
+            return getattr(val, item)
 
     def get(self):
         if isinstance(self.pos_range, float):
@@ -163,15 +192,27 @@ class RandomPos:
 
 
 class RandomFloat:
+    # noinspection PyInitNewSignature
     def __init__(self, smallest: float, biggest: float):
         self.smallest = smallest
         self.biggest = biggest
+        self.__names__ = {"smallest", "biggest", "get"}
 
     def __get__(self, instance, owner):
         return self.get()
 
-    def __float__(self):
-        return self.get()
+    def __getattribute__(self, item: str):
+        if item.startswith("__") and item.endswith("__"):
+            try:
+                return super().__getattribute__(item)
+            except ValueError:
+                val = self.get()
+                return getattr(val, item)
+        elif item in self.__names__:
+            return super().__getattribute__(item)
+        else:
+            val = self.get()
+            return getattr(val, item)
 
     def get(self):
         random = rd.random()
@@ -187,7 +228,34 @@ class RandomInt(RandomFloat):
         return int(ret)
 
 
-class ParticleObjectInfo:
+class RemotePos(RandomPos):
+    # noinspection PyMissingConstructor
+    def __init__(self, obj: object, attr: str):
+        self.obj = obj
+        self.attr = attr
+        self.__names__ = {"obj", "attr", "get"}
+
+    def get(self):
+        return pg.Vector2(getattr(self.obj, self.attr))
+
+
+class RemoteFloat(RandomFloat):
+    # noinspection PyMissingConstructor
+    def __init__(self, obj: object, attr: str):
+        self.obj = obj
+        self.attr = attr
+        self.__names__ = {"obj", "attr", "get"}
+
+    def get(self):
+        return float(getattr(self.obj, self.attr))
+
+
+class RemoteInt(RemoteFloat):
+    def get(self):
+        return int(super(RemoteInt, self).get())
+
+
+class ParticleObjectInfo(_FixedGetAttr):
     def __init__(self,
                  surface: pg.Surface | BaseDynamicSurface,
                  size: pg.Vector2 | RandomPos,
@@ -212,7 +280,7 @@ class ParticleObjectInfo:
         self.particle_class = particle_class if particle_class is not None else DynamicParticle
 
 
-class ParticleSpawnerInfo:
+class ParticleSpawnerInfo(_FixedGetAttr):
     def __init__(
             self,
             spawn_pos: pg.Vector2 | RandomPos,
@@ -227,7 +295,7 @@ class ParticleSpawnerInfo:
 
     def generate(self):
         info = self.object_info
-        speed = pg.Vector2(1, 0).rotate(float(self.object_info.angle)) * self.object_info.speed
+        speed = pg.Vector2(1, 0).rotate(info.angle) * info.speed
         obj = self.object_info.particle_class(
             info.surface, info.size, self.spawn_pos, info.rotation, info.bounding_box,
             info.life_time, speed, info.rotation_speed, info.size_change
