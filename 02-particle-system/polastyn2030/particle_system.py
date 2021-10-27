@@ -19,6 +19,10 @@ except ImportError:
 class _FixedGetAttr:
     def __getattribute__(self, item: str):
         data = super().__getattribute__(item)
+
+        if item.startswith("__") and item.endswith("__"):
+            return data
+
         try:
             data = data.__get__(self, self.__class__)
         except AttributeError:
@@ -176,7 +180,7 @@ class RandomPos:
             return getattr(val, item)
 
     def get(self):
-        if isinstance(self.pos_range, float):
+        if isinstance(self.pos_range, (float, int)):
             offset = pg.Vector2(1, 0)
             offset.rotate(rd.randint(0, 360))
             offset *= rd.randint(0, int(self.pos_range))
@@ -230,24 +234,26 @@ class RandomInt(RandomFloat):
 
 class RemotePos(RandomPos):
     # noinspection PyMissingConstructor
-    def __init__(self, obj: object, attr: str):
+    def __init__(self, obj: object, attr: str, op: str = "x"):
         self.obj = obj
         self.attr = attr
-        self.__names__ = {"obj", "attr", "get"}
+        self.op = op
+        self.__names__ = {"obj", "attr", "op", "get"}
 
     def get(self):
-        return pg.Vector2(getattr(self.obj, self.attr))
+        return eval(self.op, {}, {"x": pg.Vector2(getattr(self.obj, self.attr))})
 
 
 class RemoteFloat(RandomFloat):
     # noinspection PyMissingConstructor
-    def __init__(self, obj: object, attr: str):
+    def __init__(self, obj: object, attr: str, op: str = "x"):
         self.obj = obj
         self.attr = attr
-        self.__names__ = {"obj", "attr", "get"}
+        self.op = op
+        self.__names__ = {"obj", "attr", "op", "get"}
 
     def get(self):
-        return float(getattr(self.obj, self.attr))
+        return eval(self.op, {}, {"x": float(getattr(self.obj, self.attr))})
 
 
 class RemoteInt(RemoteFloat):
@@ -286,11 +292,13 @@ class ParticleSpawnerInfo(_FixedGetAttr):
             spawn_pos: pg.Vector2 | RandomPos,
             spawn_delay: int | RandomInt,
             object_info: ParticleObjectInfo,
-            burst_function: Callable[[int], int] | None
+            limit: int = -1,
+            burst_function: Callable[[int], int] | None = None
     ):
         self.spawn_pos = spawn_pos
         self.spawn_delay = spawn_delay
         self.object_info = object_info
+        self.limit = limit
         self.burst_function = burst_function
 
     def generate(self):
@@ -305,11 +313,15 @@ class ParticleSpawnerInfo(_FixedGetAttr):
 
 class BaseParticleSpawner(pg.sprite.Group):
     def __init__(self, info: ParticleSpawnerInfo):
-        super().__init__()
         self.info = info
         self.active = True
         self.next_spawn = 0
         self.spawn_count = 0
+        super().__init__()
+
+    def add(self, *sprites: pg.Sprite) -> None:
+        if len(self) < self.info.limit:
+            super(BaseParticleSpawner, self).add(*sprites)
 
     def spawn(self):
         if self.info.burst_function:
@@ -416,8 +428,9 @@ def load_spawner_info(
         burst_function: Callable[[int], int] | None = None
 ):
     spawn_pos = _convert_to_valid(template['spawn_pos'], "p")
-    spawn_delay = _convert_to_valid(template['spawn_delay'], 'i')
-    return ParticleSpawnerInfo(spawn_pos, spawn_delay, object_info, burst_function)
+    spawn_delay = _convert_to_valid(template['spawn_delay'], "i")
+    limit = _convert_to_valid(template['limit'], "i")
+    return ParticleSpawnerInfo(spawn_pos, spawn_delay, object_info, limit, burst_function)
 
 
 def load_particle_spawner(

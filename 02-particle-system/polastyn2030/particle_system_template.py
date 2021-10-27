@@ -39,3 +39,4 @@ particle_template_filler: _NotImportantParticleTemplate = _NotImportantParticleT
 class SpawnerTemplate(TypedDict):
     spawn_pos: Union[Tuple[float, float], Tuple[float, float, float], Tuple[float, float, float, float]]
     spawn_delay: Union[int, Tuple[int, int]]
+    limit: Union[int, Tuple[int, int]]

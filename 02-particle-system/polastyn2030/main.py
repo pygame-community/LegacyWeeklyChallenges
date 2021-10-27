@@ -49,9 +49,11 @@ def mainloop():
     image = pygame.Surface((10, 10))
     image.fill((255, 255, 255))
     spawner = load(
-        ParticleTemplate(life_time=100, size=(20, 20, 20, 20), speed=(10, 20), moving_angle=(-90, 90)),
-        image, SpawnerTemplate(spawn_pos=(30, 30, 30), spawn_delay=0)
+        ParticleTemplate(life_time=10, size=(5, 5), speed=(10, 20)),
+        image, SpawnerTemplate(spawn_pos=(30, 30, 30), spawn_delay=0, limit=10)
     )
+    spawner.info.spawn_pos = par.RemotePos(player, "center")
+    spawner.info.object_info.angle = par.RemoteFloat(player, "rotation", "-x+90")
 
     while True:
         screen, events = yield
@@ -68,8 +70,8 @@ def mainloop():
         spawner.update()
 
         screen.fill(BACKGROUND)
-        state.draw(screen)
         spawner.draw(screen)
+        state.draw(screen)
 
 
 if __name__ == "__main__":
