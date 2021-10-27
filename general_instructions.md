@@ -67,6 +67,58 @@ If you are used to classes, you can also have all your code in a class, for inst
 then you only need a statement like `mainloop = App.run` if the `run()` method is your main loop,
 to have your submission discovered.
 
+### Using your own assets
+
+Since you can only modify your own folder, you can only add your assets there.
+However, when you want to load them, you need to be a bit careful, because your 
+code will be run from different places (at least the showcase and on its own),
+so you need to specify your paths well.
+
+#### With the provided utilities
+
+If you use the utility provided, for instance `load_image()`, you can always
+configure the base path from which they search for the assets. 
+Typically, to load an image stored in your submission folder, you would use
+
+```python
+image = load_image(..., base=SUBMISSION_DIR)
+```
+Where the `...` stand for all the other parametters that I... can't predict!
+If you use a subfolder, for instance called `my_assets`, you could change the loading by
+```python
+image = load_image(..., base=SUBMISSION_DIR / "my_assets")
+```
+
+#### Manually
+
+If you want to do that manually, the best way is to use the 
+[`pathlib`](https://docs.python.org/3/library/pathlib.html#module-pathlib) module,
+which is part of the standard python library, and has a simple interface for dealing with paths.
+
+The first step is to get the path of your current directory, 
+which is
+```python
+from pathlib import Path
+
+current_file = Path(__file__)
+current_directory = Path(__file__).parent
+```
+
+Then you can navigate up in the folder hierarchy by chaining `.parent.parent`..., 
+and to go to a subfolder, you use the division operator `/`, so
+if your structure is like this, 
+```
+root
+├── assets
+│   └── image.png
+└── my_file.py
+```
+With your code is in `my_file.py` and you
+want to access `image.png` reliably, you should use:j
+```python
+image = Path(__file__).parent / "assets" / "image.png"
+```
+
 ### External modules
 
 It is possible to use modules others than pygame in your submission.
@@ -115,3 +167,4 @@ from .utils import foo
 ```
 Where the dot in front of `.utils` signifies that python needs to look inside the
 same directory (here, the `yourname/` directory).
+
