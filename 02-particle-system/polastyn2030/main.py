@@ -53,7 +53,8 @@ def mainloop():
         image, SpawnerTemplate(spawn_pos=(30, 30, 30), spawn_delay=0, limit=10)
     )
     spawner.info.spawn_pos = par.RemotePos(player, "center")
-    spawner.info.object_info.angle = par.RemoteFloat(player, "rotation", "-x+90")
+    spawner_angle = par.RandomFloat(-10, 10)
+    spawner.info.object_info.angle = spawner_angle
 
     while True:
         screen, events = yield
@@ -67,6 +68,7 @@ def mainloop():
         # This may seem arbitrary, but the only collisions that we consider
         # are with asteroids.
         state.logic()
+        spawner_angle.move_center(-player.rotation+90)
         spawner.update()
 
         screen.fill(BACKGROUND)

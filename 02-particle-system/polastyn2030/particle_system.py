@@ -79,7 +79,7 @@ class BaseParticleObject(_FixedGetAttr, pg.sprite.Sprite):
         if self._smooth_scale:
             copy = pg.transform.smoothscale(copy, self.tuple_size)
         else:
-            copy = pg.transform.smoothscale(copy, self.tuple_size)
+            copy = pg.transform.scale(copy, self.tuple_size)
 
         copy = pg.transform.rotate(copy, self.rotation)
 
@@ -200,7 +200,7 @@ class RandomFloat:
     def __init__(self, smallest: float, biggest: float):
         self.smallest = smallest
         self.biggest = biggest
-        self.__names__ = {"smallest", "biggest", "get"}
+        self.__names__ = {"smallest", "biggest", "get", "move_left", "move_right", "move_center"}
 
     def __get__(self, instance, owner):
         return self.get()
@@ -224,6 +224,22 @@ class RandomFloat:
         random *= diff
         random += self.smallest
         return random
+
+    def move_left(self, to: float):
+        diff = self.biggest - self.smallest
+        self.smallest = to
+        self.biggest = to + diff
+
+    def move_right(self, to: float):
+        diff = self.biggest - self.smallest
+        self.biggest = to
+        self.smallest = to - diff
+
+    def move_center(self, to: float):
+        diff = self.biggest - self.smallest
+        half = diff / 2
+        self.smallest = to - half
+        self.biggest = to + half
 
 
 class RandomInt(RandomFloat):
