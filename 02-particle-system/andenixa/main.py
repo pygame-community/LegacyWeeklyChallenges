@@ -119,7 +119,8 @@ class AsteroidEx(Asteroid):
         self_xy = self.center - asteroid_rect.center
         bullet_xy = bullet.center - bullet.rotated_sprite.get_rect().center
 
-        overlap = asteroid_mask.overlap(bullet_mask, bullet_xy - self_xy)
+        offset = int(bullet_xy.x - self_xy.x), int(bullet_xy.y - self_xy.y)
+        overlap = asteroid_mask.overlap(bullet_mask, offset)
         if not overlap:
             return
 

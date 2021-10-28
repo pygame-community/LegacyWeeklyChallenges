@@ -103,8 +103,9 @@ def get_mainloop(challenge: str, entry: str) -> MainLoop:
 
 def get_challenges():
     """"""
-    # Challenges are the only files/folders that start with digits
-    return [c.stem for c in ROOT_DIR.glob("[0-9]*")]
+    # Challenges are the only files/folders that start with a digit
+    # and contain a data.json file.
+    return [c.stem for c in ROOT_DIR.glob("[0-9]*") if (c / "data.json").exists()]
 
 
 def get_entries(challenge: str) -> Iterator[str]:
