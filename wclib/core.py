@@ -102,10 +102,12 @@ def get_mainloop(challenge: str, entry: str) -> MainLoop:
 
 
 def get_challenges():
-    """"""
+    """Return all the challenges, from the more recent to the least."""
     # Challenges are the only files/folders that start with a digit
     # and contain a data.json file.
-    return [c.stem for c in ROOT_DIR.glob("[0-9]*") if (c / "data.json").exists()]
+    return sorted(
+        [c.stem for c in ROOT_DIR.glob("[0-9]*") if (c / "data.json").exists()], reverse=True
+    )
 
 
 def get_entries(challenge: str) -> Iterator[str]:
