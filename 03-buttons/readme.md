@@ -32,6 +32,36 @@ Even simpler could just be to change the color of the background or of some butt
 
 Bonus: You win 420 virtual fame points if you make a simple game using *only* your buttons!
 
+### What is Ninepatch?
+
+(Summarized from https://ichi.pro/de/erstellen-sie-in-der-grosse-veranderbare-bitmaps-9-patch-dateien-80021496218918)
+
+Ninepatch is a system that divides an image into 9 different sections where each section reacts in a different way when being scaled:
+
+![1_zuenDjgdkTEmtLClvRe4fg](https://user-images.githubusercontent.com/85095943/139265360-eb228192-9527-4b12-bfd4-df0fcc1b1403.png)
+
+**Corner Regions (1, 3, 7, 9)** These regions are fixed and nothing in them will stretch.
+
+**Horizontal sides (4, 6)** The pixels in this area are stretched vertically if necessary.
+
+**Vertical sides (2, 8)** The pixels in this area are stretched horizontally if necessary. 
+
+**Center (5)** The pixels in this area are stretched evenly in both the horizontal and vertical directions.
+
+This is useful because it allows for button images to be streched based on the text that hold without loosing the roundness on the corners of the image
+
+Let take a look at an example:
+
+The image below is of a text box with a resolution of 258x141
+
+![ninepatch_bubble 9](https://user-images.githubusercontent.com/85095943/139268352-a13d9587-f198-432c-aabd-50890177da60.png)
+
+Lets say we want to resize this text box to a resolution of 200x200. the top image represents what the text box would look like if we did this using a ninepatch texture and the bottom image would demonstrate what would happen if you simpily resized the image to 200x200 (in this case using `pygame.transform.scale(image, (200,200))`) 
+
+![Capture](https://user-images.githubusercontent.com/85095943/139269034-97bada52-7c3f-47df-ae41-643eba41687e.PNG)
+
+As you can clearly see, the top image has maintained the correct resolution on the corners whilst the bottom image has not.
+
 ### Setup
 
 The setup code in [`base/`](./base) consists of mostly of a bare pygame template. 
