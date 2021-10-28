@@ -48,27 +48,36 @@ class Button:
         self.sound = sound
         self.border_radius = border_radius
         self.button = self.create_button()
+        self.rect = self.button.get_rect(center=(self.size[0] + self.position[0], self.size[1] + self.position[1]))
+        self.highlight = None
 
     def create_button(self):
         button = pygame.Surface((self.size[0]+10, self.size[1]+10)).convert_alpha()
-        button.fill((255,255,255,0))
-        pygame.draw.rect(button, (0,0,0,255), (5,5,self.size[0],self.size[1]), border_radius=self.border_radius)
-        pygame.draw.rect(button, self.colour, (0,0,200,200), border_radius=self.border_radius)
+        button.fill((0,0,0,0))
 
         return button
 
     def handle_event(self, event: pygame.event.Event):
-        pass
+        if self.rect.collidepoint(pygame.mouse.get_pos()):
+            surf = pygame.Surface((self.size))
+            surf.fill((122,122,122))
+            self.highlight = surf
+        else:
+            self.highlight = None
 
     def draw(self, screen: pygame.Surface):
+        pygame.draw.rect(self.button, (0,0,0,255), (5,5,200,200), border_radius=self.border_radius)
+        pygame.draw.rect(self.button, self.colour, (0,0,200,200), border_radius=self.border_radius)
         screen.blit(self.button, self.position)
+        if self.highlight:
+            screen.blit(self.highlight, self.position)
 
 
 def mainloop():
     pygame.init()
 
     buttons = [
-        Button((100, 100), (200, 200), border_radius=20 ),
+        Button((400, 400), (200, 200), colour="blue", border_radius=20 ),
         # Define more buttons here when you have one working!
         # With different styles, behavior, or whatever cool stuff you made :D
     ]
