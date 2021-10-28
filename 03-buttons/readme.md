@@ -42,9 +42,9 @@ Ninepatch is a system that divides an image into 9 different sections where each
 
 **Corner Regions (1, 3, 7, 9)** These regions are fixed and nothing in them will stretch.
 
-**Horizontal sides (4, 6)** The pixels in this area are stretched vertically if necessary.
+**Horizontal sides (4, 6)** The pixels in this area are stretched or repeated vertically if necessary.
 
-**Vertical sides (2, 8)** The pixels in this area are stretched horizontally if necessary. 
+**Vertical sides (2, 8)** The pixels in this area are stretched or repeated horizontally if necessary. 
 
 **Center (5)** The pixels in this area are stretched evenly in both the horizontal and vertical directions.
 
