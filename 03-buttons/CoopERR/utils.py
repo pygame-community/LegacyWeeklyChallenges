@@ -36,7 +36,7 @@ def load_image(name: str, scale=1, alpha=True, base: Path = ASSETS):
     .copy() it first.
     """
 
-    image = pygame.image.load(base / f"{name}.png")
+    image = pygame.image.load(base / f"{name}")
     if scale != 1:
         new_size = int(image.get_width() * scale), int(image.get_height() * scale)
         image = pygame.transform.scale(image, new_size)

@@ -1,5 +1,7 @@
-import sys
+import sys, os
 from pathlib import Path
+
+import achievement
 
 from pygame.constants import MOUSEBUTTONDOWN
 
@@ -41,8 +43,9 @@ BACKGROUND = 0x0F1012
 # This is a suggestion of the interface of the button class.
 # There are many other ways to do it, but I strongly suggest to
 # at least use a class, so that it is more reusable.
+
 class Button:
-    def __init__(self, position, size, content=None, sound=None, colour=(255,255,255), border_radius=0):  # Just an example!
+    def __init__(self, position, size, content=None, sound=None, colour=(255,255,255), border_radius=0):
         self.position = position
         self.size = size
         self.content = content
@@ -55,6 +58,7 @@ class Button:
         self.highlight = False
         self.clicked = False
         self.double_clicked = False
+        self.achievement = False
 
     def get_highlight_colour(self):
         HIGHLIGHT_FACTOR = 50
@@ -78,18 +82,19 @@ class Button:
             if double_click:
                 self.double_clicked = True
             self.clicked = True
+            self.achievement = True
         else:
             self.clicked = False
             self.double_clicked = False
 
+    def get_achievement(self):
+        self.achievement = True
+            
     def draw(self, screen: pygame.Surface):
         if self.highlight:
             colour = self.highlight_colour
         else:
             colour = self.colour
-
-        if self.clicked:
-            print("clicked")
 
         pygame.draw.rect(self.button, (0,0,0,255), (3,3,self.size[0],self.size[1]), border_radius=self.border_radius)
         pygame.draw.rect(self.button, colour, (0,0,self.size[0],self.size[1]), border_radius=self.border_radius)
@@ -99,7 +104,7 @@ class Button:
             t = text(self.content, "black")
             t_rect = t.get_rect()
             screen.blit(t, (self.rect.centerx - t_rect.centerx, self.rect.centery - t_rect.centery))
-
+        
 
 
 def mainloop():
@@ -113,9 +118,26 @@ def mainloop():
         # With different styles, behavior, or whatever cool stuff you made :D
     ]
 
+    path = SUBMISSION_DIR / "assets" / "click"
+    frames = []
+
+    for file_name in os.listdir(path):
+        image = load_image(file_name, scale=5, base=path)
+        frames.append(image)
+
+    click_achievement = achievement.Achievement((0,0), frames)
+    sprites = pygame.sprite.Group(click_achievement)
+
+    achi = False
+
     timer = 0
     dt = 0
     double_click = False
+
+    def draw_achi(screen):
+        sprites.update()
+        print(sprites)
+        sprites.draw(screen)
 
     clock = pygame.time.Clock()
     while True:
@@ -138,6 +160,12 @@ def mainloop():
         for button in buttons:
             button.draw(screen)
 
+            if button.achievement:
+                achi = True
+
+        if achi:
+            draw_achi(screen)
+
         clock.tick(60)
 
         if timer != 0:
@@ -145,6 +173,7 @@ def mainloop():
         if timer >= 0.5:
             timer = 0
         dt = clock.tick(60) / 1000
+
 
 
 if __name__ == "__main__":
