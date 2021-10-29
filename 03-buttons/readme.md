@@ -16,11 +16,11 @@ and reuse every time you need buttons in a game / project.
     Buttons need to support a background color, some text content and a nice way to
     define the action that happens when a user clicks them. 
     Also, make them look as good as you can!
-- Ambitious `+2 CP`: Implement ninepatch textures for your buttons (see what ninepatch is bellow).
-- Adventurous `+1 CP`: Make full-featured buttons, with hovering, double click, optional icon,
+- Ambitious `+2 CP`: Make full-featured buttons, with hovering, double click, optional icon,
     give feedback when the button is clicked (visual, but maybe sound too ?).
     This is also a design challenge, that is, the buttons must look *and* feel good from a user point
     of view.
+- Adventurous `+1 CP`: Implement ninepatch textures for your buttons (search about this cool technique on internet!)
     
 
 In any case, remember to always try to make things as reusable as possible,
@@ -64,7 +64,7 @@ As you can clearly see, the top image has maintained the correct resolution on t
 
 ### Setup
 
-The setup code in [`base/`](./base) consists of mostly of a bare pygame template. 
+The setup code in [`base/`](./base) consists of mostly of a simple pygame template. 
 There is also a suggested interface for your buttons to help you get started
 and some utilities to draw text and load images, but that's it.
 
