@@ -1,6 +1,8 @@
 import sys
 from pathlib import Path
 
+from pygame.constants import MOUSEBUTTONDOWN
+
 try:
     import wclib
 except ImportError:
@@ -40,16 +42,25 @@ BACKGROUND = 0x0F1012
 # There are many other ways to do it, but I strongly suggest to
 # at least use a class, so that it is more reusable.
 class Button:
-    def __init__(self, position, size, content=None, sound=None, colour="white", border_radius=0):  # Just an example!
+    def __init__(self, position, size, content=None, sound=None, colour=(255,255,255), border_radius=0):  # Just an example!
         self.position = position
         self.size = size
         self.content = content
         self.colour = colour
+        self.highlight_colour = self.get_highlight_colour()
         self.sound = sound
         self.border_radius = border_radius
         self.button = self.create_button()
-        self.rect = self.button.get_rect(center=(self.size[0] + self.position[0], self.size[1] + self.position[1]))
-        self.highlight = None
+        self.rect = self.button.get_rect(topleft=self.position)
+        self.highlight = False
+        self.clicked = False
+        self.double_clicked = False
+
+    def get_highlight_colour(self):
+        HIGHLIGHT_FACTOR = 50
+        l = [y+HIGHLIGHT_FACTOR for y in self.colour]
+        m = [255 if y > 255 else y for y in l]
+        return tuple(m)
 
     def create_button(self):
         button = pygame.Surface((self.size[0]+10, self.size[1]+10)).convert_alpha()
@@ -57,46 +68,83 @@ class Button:
 
         return button
 
-    def handle_event(self, event: pygame.event.Event):
+    def handle_event(self, event: pygame.event.Event, double_click):
         if self.rect.collidepoint(pygame.mouse.get_pos()):
-            surf = pygame.Surface((self.size))
-            surf.fill((122,122,122))
-            self.highlight = surf
+            self.highlight = True
         else:
-            self.highlight = None
+            self.highlight = False
+
+        if self.rect.collidepoint(pygame.mouse.get_pos()) and event.type == pygame.MOUSEBUTTONDOWN:
+            if double_click:
+                self.double_clicked = True
+            self.clicked = True
+        else:
+            self.clicked = False
+            self.double_clicked = False
 
     def draw(self, screen: pygame.Surface):
-        pygame.draw.rect(self.button, (0,0,0,255), (5,5,200,200), border_radius=self.border_radius)
-        pygame.draw.rect(self.button, self.colour, (0,0,200,200), border_radius=self.border_radius)
-        screen.blit(self.button, self.position)
         if self.highlight:
-            screen.blit(self.highlight, self.position)
+            colour = self.highlight_colour
+        else:
+            colour = self.colour
+
+        if self.clicked:
+            print("clicked")
+
+        pygame.draw.rect(self.button, (0,0,0,255), (3,3,self.size[0],self.size[1]), border_radius=self.border_radius)
+        pygame.draw.rect(self.button, colour, (0,0,self.size[0],self.size[1]), border_radius=self.border_radius)
+
+        screen.blit(self.button, self.position)
+        if self.content:
+            t = text(self.content, "black")
+            t_rect = t.get_rect()
+            screen.blit(t, (self.rect.centerx - t_rect.centerx, self.rect.centery - t_rect.centery))
+
 
 
 def mainloop():
     pygame.init()
 
     buttons = [
-        Button((400, 400), (200, 200), colour="blue", border_radius=20 ),
+        Button((400, 400), (100, 50), colour=(0,0,255), content="hello", border_radius=20 ),
+        Button((100, 100), (200, 200), colour=(255,0,255), content="goodbye", border_radius=50 ),
+        Button((600, 550), (80, 140), colour=(120,120,255), content="ugh", border_radius=5 )
         # Define more buttons here when you have one working!
         # With different styles, behavior, or whatever cool stuff you made :D
     ]
+
+    timer = 0
+    dt = 0
+    double_click = False
 
     clock = pygame.time.Clock()
     while True:
         screen, events = yield
         for event in events:
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if timer == 0:
+                    double_click = False
+                    timer = 0.001
+                elif timer < 0.5:
+                    double_click = True
+                    timer = 0
             if event.type == pygame.QUIT:
                 return
 
             for button in buttons:
-                button.handle_event(event)
+                button.handle_event(event, double_click)
 
         screen.fill(BACKGROUND)
         for button in buttons:
             button.draw(screen)
 
         clock.tick(60)
+
+        if timer != 0:
+            timer += dt
+        if timer >= 0.5:
+            timer = 0
+        dt = clock.tick(60) / 1000
 
 
 if __name__ == "__main__":
