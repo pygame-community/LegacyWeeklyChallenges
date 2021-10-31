@@ -32,6 +32,24 @@ Even simpler could just be to change the color of the background or of some butt
 
 Bonus: You win 420 virtual fame points if you make a simple game using *only* your buttons!
 
+### Setup
+
+The setup code in [`base/`](./base) consists of mostly of a simple pygame template. 
+There is also a suggested interface for your buttons to help you get started
+and some utilities to draw text and load images, but that's it.
+
+In the [`assets/`][./assets] folder, you can find two textures for ninepatching.
+
+To get started, **duplicate** the whole `base` folder and rename the copy with your username
+(we will call it `yourname/` from now on). All your modifications should be inside the `yourname/` folder,
+otherwise it would be impossible to have a showcase of all the submissions.
+
+> PLEASE. Do not modify the base folder.
+
+Further instructions and tips are [available on this document](../general_instructions.md).
+
+Have fun !
+
 ### What is Ninepatch?
 
 (Summarized from https://ichi.pro/de/erstellen-sie-in-der-grosse-veranderbare-bitmaps-9-patch-dateien-80021496218918)
@@ -62,21 +80,6 @@ Lets say we want to resize this text box to a resolution of 200x200. the top ima
 
 As you can clearly see, the top image has maintained the correct resolution on the corners whilst the bottom image has not.
 
-### Setup
-
-The setup code in [`base/`](./base) consists of mostly of a simple pygame template. 
-There is also a suggested interface for your buttons to help you get started
-and some utilities to draw text and load images, but that's it.
-
-To get started, **duplicate** the whole `base` folder and rename the copy with your username
-(we will call it `yourname/` from now on). All your modifications should be inside the `yourname/` folder,
-otherwise it would be impossible to have a showcase of all the submissions.
-
-> PLEASE. Do not modify the base folder.
-
-Further instructions and tips are [available on this document](../general_instructions.md).
-
-Have fun !
 
 ### Credits
 
