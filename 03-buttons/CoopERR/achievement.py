@@ -11,11 +11,12 @@ class Achievement(pygame.sprite.Sprite):
         self.image = images[self.index]
 
         self.animation_frames = len(self.images)
-        self.current_frame = 0
+        self.step = -1
 
     def update(self):
-        self.current_frame += 1
-        if self.current_frame >= self.animation_frames:
-            self.current_frame = 0
+        SPEED = 2
+        self.step += 1
+        if self.step >= SPEED:
             self.index = (self.index + 1) % len(self.images)
-            self.image = self.images[self.current_frame]
+            self.image = self.images[self.index]
+            self.step = 0

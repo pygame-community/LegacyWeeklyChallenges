@@ -86,9 +86,6 @@ class Button:
         else:
             self.clicked = False
             self.double_clicked = False
-
-    def get_achievement(self):
-        self.achievement = True
             
     def draw(self, screen: pygame.Surface):
         if self.highlight:
@@ -122,22 +119,28 @@ def mainloop():
     frames = []
 
     for file_name in os.listdir(path):
-        image = load_image(file_name, scale=5, base=path)
+        image = load_image(file_name, scale=3, base=path)
         frames.append(image)
 
     click_achievement = achievement.Achievement((0,0), frames)
     sprites = pygame.sprite.Group(click_achievement)
 
-    achi = False
+
+    path2 = SUBMISSION_DIR / "assets" / "doubleclick"
+    frames2 = []
+
+    for file_name in os.listdir(path2):
+        image = load_image(file_name, scale=3, base=path2)
+        frames2.append(image)
+
+    doubleclick_achievement = achievement.Achievement((0,0), frames2)
+    sprites2 = pygame.sprite.Group(doubleclick_achievement)
 
     timer = 0
     dt = 0
     double_click = False
 
-    def draw_achi(screen):
-        sprites.update()
-        print(sprites)
-        sprites.draw(screen)
+    play = False
 
     clock = pygame.time.Clock()
     while True:
@@ -159,18 +162,30 @@ def mainloop():
         screen.fill(BACKGROUND)
         for button in buttons:
             button.draw(screen)
-
             if button.achievement:
-                achi = True
+                if button.double_clicked:
+                    play = True
+                    button.achievement = False
+                    click_achievement.index = 0
+                    break
+                if click_achievement.index >= click_achievement.animation_frames -1:
+                    button.achievement = False
+                    click_achievement.index = 0
+                sprites.update()
+                sprites.draw(screen)
 
-        if achi:
-            draw_achi(screen)
+        if play:
+            sprites2.update()
+            sprites2.draw(screen)
+        if doubleclick_achievement.index >= doubleclick_achievement.animation_frames - 1:
+            play = False
+            doubleclick_achievement.index = 0
 
         clock.tick(60)
 
         if timer != 0:
             timer += dt
-        if timer >= 0.5:
+        if timer >= 0.2:
             timer = 0
         dt = clock.tick(60) / 1000
 
