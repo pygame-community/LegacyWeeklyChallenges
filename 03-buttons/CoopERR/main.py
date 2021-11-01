@@ -38,6 +38,7 @@ import pygame
 from .utils import *
 
 BACKGROUND = 0x0F1012
+BACKGROUND = (52, 143, 235)
 
 
 # This is a suggestion of the interface of the button class.
@@ -88,13 +89,20 @@ class Button:
             self.double_clicked = False
             
     def draw(self, screen: pygame.Surface):
+        self.button = pygame.Surface((self.size[0]+10, self.size[1]+10)).convert_alpha()
+        self.button.fill((0,0,0,0))
         if self.highlight:
             colour = self.highlight_colour
         else:
             colour = self.colour
 
-        pygame.draw.rect(self.button, (0,0,0,255), (3,3,self.size[0],self.size[1]), border_radius=self.border_radius)
-        pygame.draw.rect(self.button, colour, (0,0,self.size[0],self.size[1]), border_radius=self.border_radius)
+        size = 3
+        if self.clicked:
+            pygame.draw.rect(self.button, (0,0,0,255), (size,size,self.size[0],self.size[1]), border_radius=self.border_radius)
+            pygame.draw.rect(self.button, colour, (size,size,self.size[0]+size,self.size[1]+size), border_radius=self.border_radius)
+        else:
+            pygame.draw.rect(self.button, (0,0,0,255), (size,size,self.size[0],self.size[1]), border_radius=self.border_radius)
+            pygame.draw.rect(self.button, colour, (0,0,self.size[0],self.size[1]), border_radius=self.border_radius)
 
         screen.blit(self.button, self.position)
         if self.content:
@@ -109,7 +117,7 @@ def mainloop():
 
     buttons = [
         Button((400, 400), (100, 50), colour=(0,0,255), content="hello", border_radius=20 ),
-        Button((100, 100), (200, 200), colour=(255,0,255), content="goodbye", border_radius=50 ),
+        Button((100, 100), (200, 200), colour=(150,50,255), content="goodbye", border_radius=50 ),
         Button((600, 550), (80, 140), colour=(120,120,255), content="ugh", border_radius=5 )
         # Define more buttons here when you have one working!
         # With different styles, behavior, or whatever cool stuff you made :D
