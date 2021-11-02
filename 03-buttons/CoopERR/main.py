@@ -1,8 +1,6 @@
 import sys, os
 from pathlib import Path
 
-import achievement
-
 from pygame.constants import MOUSEBUTTONDOWN
 
 try:
@@ -21,6 +19,8 @@ except ImportError:
 __package__ = "03-buttons." + Path(__file__).absolute().parent.name
 
 # ---- Recommended: don't modify anything above this line ---- #
+
+import achievement
 
 # Metadata about your submission
 __author__ = "CoopERR"  # Put yours!
@@ -51,7 +51,6 @@ class Button:
         self.size = size
         self.content = content
         self.colour = colour
-        self.highlight_colour = self.get_highlight_colour()
         self.sound = sound
         self.border_radius = border_radius
         self.button = self.create_button()
@@ -92,7 +91,7 @@ class Button:
         self.button = pygame.Surface((self.size[0]+10, self.size[1]+10)).convert_alpha()
         self.button.fill((0,0,0,0))
         if self.highlight:
-            colour = self.highlight_colour
+            colour = self.get_highlight_colour()
         else:
             colour = self.colour
 
@@ -119,36 +118,17 @@ def mainloop():
         Button((400, 400), (100, 50), colour=(0,0,255), content="hello", border_radius=20 ),
         Button((100, 100), (200, 200), colour=(150,50,255), content="goodbye", border_radius=50 ),
         Button((600, 550), (80, 140), colour=(120,120,255), content="ugh", border_radius=5 )
-        # Define more buttons here when you have one working!
-        # With different styles, behavior, or whatever cool stuff you made :D
     ]
 
     path = SUBMISSION_DIR / "assets" / "click"
-    frames = []
-
-    for file_name in os.listdir(path):
-        image = load_image(file_name, scale=3, base=path)
-        frames.append(image)
-
-    click_achievement = achievement.Achievement((0,0), frames)
-    sprites = pygame.sprite.Group(click_achievement)
-
+    click_achievement = achievement.Achievement((0,0), path)
 
     path2 = SUBMISSION_DIR / "assets" / "doubleclick"
-    frames2 = []
-
-    for file_name in os.listdir(path2):
-        image = load_image(file_name, scale=3, base=path2)
-        frames2.append(image)
-
-    doubleclick_achievement = achievement.Achievement((0,0), frames2)
-    sprites2 = pygame.sprite.Group(doubleclick_achievement)
+    doubleclick_achievement = achievement.Achievement((0,0), path2)
 
     timer = 0
     dt = 0
     double_click = False
-
-    play = False
 
     clock = pygame.time.Clock()
     while True:
@@ -170,24 +150,23 @@ def mainloop():
         screen.fill(BACKGROUND)
         for button in buttons:
             button.draw(screen)
-            if button.achievement:
-                if button.double_clicked:
-                    play = True
-                    button.achievement = False
-                    click_achievement.index = 0
-                    break
-                if click_achievement.index >= click_achievement.animation_frames -1:
-                    button.achievement = False
-                    click_achievement.index = 0
-                sprites.update()
-                sprites.draw(screen)
 
-        if play:
-            sprites2.update()
-            sprites2.draw(screen)
-        if doubleclick_achievement.index >= doubleclick_achievement.animation_frames - 1:
-            play = False
-            doubleclick_achievement.index = 0
+            if button.clicked:
+                click_achievement.play = True
+                doubleclick_achievement = False
+                
+            if button.double_clicked:
+                doubleclick_achievement.play = True
+                click_achievement.play = False
+
+        
+        if click_achievement.play:
+            click_achievement.sprites.update()
+            click_achievement.sprites.draw(screen)
+
+        # if doubleclick_achievement.play:
+        #     doubleclick_achievement.sprites.update()
+        #     doubleclick_achievement.sprites.draw(screen)
 
         clock.tick(60)
 
