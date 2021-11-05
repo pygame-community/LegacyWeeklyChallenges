@@ -19,10 +19,10 @@ __package__ = "03-buttons." + Path(__file__).absolute().parent.name
 # ---- Recommended: don't modify anything above this line ---- #
 
 # Metadata about your submission
-__author__ = "CozyFractal#0042"  # Put yours!
+__author__ = "fkS#2984"  # Put yours!
 __achievements__ = [  # Uncomment the ones you've done
-    # "Casual",
-    # "Ambitious",
+    "Casual",
+    "Ambitious",
     # "Adventurous",
 ]
 
