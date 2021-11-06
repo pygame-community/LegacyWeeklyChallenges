@@ -46,7 +46,7 @@ BACKGROUND = (52, 143, 235)
 # at least use a class, so that it is more reusable.
 
 class Button:
-    def __init__(self, position, size, content=None, sound=None, colour=(255,255,255), border_radius=0):
+    def __init__(self, position, size, content=None, sound=None, colour=(255,255,255), icon=None, border_radius=0):
         self.position = position
         self.size = size
         self.content = content
@@ -60,6 +60,7 @@ class Button:
         self.clicked = False
         self.double_clicked = False
         self.achievement = False
+        self.icon = icon
 
     def get_highlight_colour(self):
         HIGHLIGHT_FACTOR = 50
@@ -96,7 +97,7 @@ class Button:
         else:
             colour = self.colour
 
-        size = 3
+        size = 3 #shadow
         if self.clicked:
             pygame.draw.rect(self.button, (0,0,0,255), (size,size,self.size[0],self.size[1]), border_radius=self.border_radius)
             pygame.draw.rect(self.button, colour, (size,size,self.size[0]+size,self.size[1]+size), border_radius=self.border_radius)
@@ -108,17 +109,32 @@ class Button:
         if self.content:
             t = text(self.content, "black")
             t_rect = t.get_rect()
-            screen.blit(t, (self.rect.centerx - t_rect.centerx, self.rect.centery - t_rect.centery))
-        
+            if self.clicked:
+                screen.blit(t, (self.rect.centerx - t_rect.centerx + size - 2, self.rect.centery - t_rect.centery + size - 2))
+                if self.icon:
+                    screen.blit(self.icon, (self.rect.centerx - t_rect.centerx + size - 32, self.rect.centery - t_rect.centery + size - 8))
+            else:
+                screen.blit(t, (self.rect.centerx - t_rect.centerx - 2, self.rect.centery - t_rect.centery - 2))
+                if self.icon:
+                    screen.blit(self.icon, (self.rect.centerx - t_rect.centerx- 32, self.rect.centery - t_rect.centery - 8))
 
 
 def mainloop():
     pygame.init()
+    
+    path3 = SUBMISSION_DIR / "assets" / "icons"
+    icons = []
+
+    for file_name in os.listdir(path3):
+        image = load_image(file_name, scale=1, base=path3)
+        icons.append(image)
 
     buttons = [
-        Button((400, 400), (100, 50), colour=(0,0,255), content="hello", border_radius=20 ),
-        Button((100, 100), (200, 200), colour=(150,50,255), content="goodbye", border_radius=50 ),
-        Button((600, 550), (80, 140), colour=(120,120,255), content="ugh", border_radius=5 )
+        Button((50, 100), (100, 100), colour=(0,0,255), content="exit", icon=icons[0], border_radius=20 ),
+        Button((50, 300), (200, 100), colour=(150,50,255), content="start", icon=icons[1], border_radius=50 ),
+        Button((50, 500), (80, 40), colour=(120,120,255), content="ugh", border_radius=5 ),
+        Button((150, 500), (70, 200), colour=(0,255,0), content="weird", border_radius=2 ),
+        Button((250, 500), (50, 50), colour=(20,175,75), content="?", border_radius=100 )
         # Define more buttons here when you have one working!
         # With different styles, behavior, or whatever cool stuff you made :D
     ]
