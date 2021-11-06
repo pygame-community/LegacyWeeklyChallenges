@@ -171,7 +171,7 @@ def mainloop():
 
             if button.clicked:
                 click_achievement.play = True
-                doubleclick_achievement = False
+                doubleclick_achievement.play = False
                 
             if button.double_clicked:
                 doubleclick_achievement.play = True
@@ -182,9 +182,9 @@ def mainloop():
             click_achievement.sprites.update()
             click_achievement.sprites.draw(screen)
 
-        # if doubleclick_achievement.play:
-        #     doubleclick_achievement.sprites.update()
-        #     doubleclick_achievement.sprites.draw(screen)
+        if doubleclick_achievement.play:
+            doubleclick_achievement.sprites.update()
+            doubleclick_achievement.sprites.draw(screen)
 
         clock.tick(60)
 
