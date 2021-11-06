@@ -134,13 +134,15 @@ def mainloop():
         Button((50, 500), (80, 40), colour=(120,120,255), content="ugh", border_radius=5 ),
         Button((150, 500), (70, 200), colour=(0,255,0), content="weird", border_radius=2 ),
         Button((250, 500), (50, 50), colour=(20,175,75), content="?", border_radius=100 )
+        # Define more buttons here when you have one working!
+        # With different styles, behavior, or whatever cool stuff you made :D
     ]
 
     path = SUBMISSION_DIR / "assets" / "click"
     click_achievement = achievement.Achievement((0,0), path)
 
     path2 = SUBMISSION_DIR / "assets" / "doubleclick"
-    dba = achievement.Achievement((0,0), path2)
+    doubleclick_achievement = achievement.Achievement((0,0), path2)
 
     timer = 0
     dt = 0
@@ -169,10 +171,10 @@ def mainloop():
 
             if button.clicked:
                 click_achievement.play = True
-                dba = False
+                doubleclick_achievement = False
                 
             if button.double_clicked:
-                dba.play = True
+                doubleclick_achievement.play = True
                 click_achievement.play = False
 
         
