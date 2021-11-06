@@ -1,5 +1,5 @@
 import pygame
-from utils import *
+from .utils import *
 import os
 
 class Achievement(pygame.sprite.Sprite):

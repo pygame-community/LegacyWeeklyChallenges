@@ -20,7 +20,7 @@ __package__ = "03-buttons." + Path(__file__).absolute().parent.name
 
 # ---- Recommended: don't modify anything above this line ---- #
 
-import achievement
+from .achievement import *
 
 # Metadata about your submission
 __author__ = "CoopERR"  # Put yours!
@@ -139,10 +139,10 @@ def mainloop():
     ]
 
     path = SUBMISSION_DIR / "assets" / "click"
-    click_achievement = achievement.Achievement((0,0), path)
+    click_achievement = Achievement((0,0), path)
 
     path2 = SUBMISSION_DIR / "assets" / "doubleclick"
-    doubleclick_achievement = achievement.Achievement((0,0), path2)
+    doubleclick_achievement = Achievement((0,0), path2)
 
     timer = 0
     dt = 0
