@@ -33,11 +33,9 @@ BACKGROUND = (173,216,255)
 #Images
 start_img = pygame.image.load(f"{current_directory}/assets/start_img.png")
 start_img = pygame.transform.scale(start_img,(50,50))
-scaled_start_img = pygame.transform.smoothscale(start_img,(55,55))
 
 exit_img = pygame.image.load(f"{current_directory}/assets/exit_img.png")
 exit_img = pygame.transform.scale(exit_img,(50,50))
-scaled_exit_img = pygame.transform.smoothscale(exit_img,(55,55))
 
 #Text
 title_font = pygame.font.Font(None,100)
