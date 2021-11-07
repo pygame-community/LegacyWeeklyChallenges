@@ -42,10 +42,13 @@ ButtonCallback = Callable[["Button"], None]
 
 
 class ButtonStyle:
-    def __init__(self, text_color="black", bg_color="white", icon: pygame.Surface = None):
+    def __init__(
+        self, text_color="black", bg_color="white", icon: pygame.Surface = None, icon_padding=10
+    ):
         self.text_color = text_color
         self.bg_color = pygame.Color(bg_color)
-        self.icon = icon
+        self.icon = auto_crop(icon) if icon else None
+        self.icon_padding = icon_padding
 
     def get_button_bg(self, button):
         bg = pygame.Surface(button.rect.size)
@@ -59,10 +62,25 @@ class ButtonStyle:
 
     def get_button_surf(self, button: "Button"):
         bg = self.get_button_bg(button)
+        bg_rect = bg.get_rect()
 
-        t = text(button.text, self.text_color)
-        bg.blit(t, t.get_rect(center=bg.get_rect().center))
+        t = auto_crop(text(button.text, self.text_color))
+        if self.icon is None:
+            bg.blit(t, t.get_rect(center=bg_rect.center))
+        else:
+            icon_rect = self.icon.get_rect()
+            icon_rect.inflate_ip(self.icon_padding, 0)
+            text_rect = t.get_rect(midleft=icon_rect.midright)
+            both_rect = icon_rect.union(text_rect)
+            both_rect.center = bg_rect.center
+            icon_rect.midleft = both_rect.midleft
+            text_rect.midright = both_rect.midright
+            bg.blit(self.icon, icon_rect)
+            bg.blit(self.icon, icon_rect)
+            bg.blit(t, text_rect)
 
+            # for rect in (both_rect, icon_rect, text_rect):
+            #     pygame.draw.rect(bg, "purple", rect, 1)
         return bg
 
 
@@ -168,8 +186,8 @@ def mainloop():
     pygame.init()
 
     dark_theme = False
-    no_style = ButtonStyle("red", "white")
-    yes_style = ButtonStyle("green", "white")
+    no_style = ButtonStyle("red", "white", load_image("x"))
+    yes_style = ButtonStyle("green", "white", load_image("check"))
     click_me_style = ButtonStyle("#eeeeee", "blue")
 
     def callback(button):
@@ -190,8 +208,8 @@ def mainloop():
 
     buttons = [
         Button((SIZE[0] / 2 - 100, SIZE[1] / 2 - 30, 200, 60), "Click me!", click_me_style, print),
-        Button((20, 20, 50, 200), "yes", yes_style, callback, double_click),
-        Button((200, 20, 50, 200), "yes", yes_style, callback, double_click),
+        Button((20, 20, 100, 50), "yes", yes_style, callback, double_click),
+        Button((200, 20, 100, 50), "yes", yes_style, callback, double_click),
     ]
     pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
 

@@ -13,10 +13,11 @@ __all__ = [
     "load_image",
     "text",
     "radius_to_cover_rectangle",
+    "auto_crop",
 ]
 
 SUBMISSION_DIR = Path(__file__).parent
-ASSETS = SUBMISSION_DIR.parent / "assets"
+ASSETS = SUBMISSION_DIR / "assets"
 SCREEN = pygame.Rect(0, 0, *SIZE)
 
 
@@ -79,3 +80,10 @@ def radius_to_cover_rectangle(center, rect):
         center.distance_to(corner)
         for corner in (rect.topleft, rect.topright, rect.bottomright, rect.bottomleft)
     )
+
+
+def auto_crop(surf: pygame.Surface):
+    """Return the smallest subsurface of an image that contains all the visible pixels."""
+
+    rect = surf.get_bounding_rect()
+    return surf.subsurface(rect)
