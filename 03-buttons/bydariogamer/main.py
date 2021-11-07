@@ -52,8 +52,8 @@ class Button:
             rect,
             color=None,
             outcolor=None,
-            background=None,
-            image=None,
+            images=None,
+            resize=False,
             icon=None,
             label=None,
             sound=None,
@@ -62,8 +62,7 @@ class Button:
         self.rect = pygame.Rect(rect)
         self.color = pygame.Color(color) if color else None
         self.outcolor = outcolor if outcolor else self.color + pygame.Color(15, 15, 15) if color else None
-        self.background = background
-        self.image = image
+        self.images = [ninepatch(image, tuple(self.rect)) for image in images] if resize else images
         self.icon = icon
         self.label = label
         self.sound = sound
@@ -91,10 +90,10 @@ class Button:
                 self.outcolor if self.mouseover else self.color,
                 self.rect
             )
-        if self.image:
+        if self.images:
             blit_centered(
                 screen,
-                self.image,
+                self.images[1] if self.mouseclicking else self.images[0],
                 self.rect
             )
         if (self.icon and not self.label) or (self.icon and self.label and not self.mouseover):
@@ -172,6 +171,15 @@ def mainloop():
             (100, 250, 250),
             label="Click me many times",
             on_click=[Button.update_text],
+        ),
+        Button(
+            (300, 50, 300, 400),
+            images=[
+                pygame.image.load(str(assets / "button.png")).convert_alpha(),
+                pygame.image.load(str(assets / "button-pressed.png")).convert_alpha()
+            ],
+            resize=True,
+            label="I have ninepatched textures",
         ),
     ]
 
