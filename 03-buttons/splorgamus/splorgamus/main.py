@@ -98,9 +98,6 @@ class Button:
     #Function for button double click
     def double_click(self, screen: pygame.Surface):
         if self.doubleClick:
-            
-            if self.inside.collidepoint(self.mouse_pos):
-                self.colour = self.darker_colour
                 
             screen.blit(self.confirm_text,(self.confirm_rect))
 
