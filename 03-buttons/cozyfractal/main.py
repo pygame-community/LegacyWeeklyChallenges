@@ -37,7 +37,7 @@ import pygame
 # noinspection PyPackages
 from .utils import *
 
-BACKGROUND = 0x0F1012
+BACKGROUND = 0xFFF0F2
 ButtonCallback = Callable[["Button"], None]
 
 
@@ -82,6 +82,21 @@ class ButtonStyle:
             # for rect in (both_rect, icon_rect, text_rect):
             #     pygame.draw.rect(bg, "purple", rect, 1)
         return bg
+
+
+class NinePatchStyle(ButtonStyle):
+    def __init__(
+        self,
+        background: pygame.Surface,
+        text_color="black",
+        icon: pygame.Surface = None,
+        icon_padding=10,
+    ):
+        self.background = background
+        super().__init__(text_color, "black", icon, icon_padding)
+
+    def get_button_bg(self, button):
+        return ninepatch(self.background, button.rect.size)
 
 
 class Button:
@@ -188,7 +203,7 @@ def mainloop():
     dark_theme = False
     no_style = ButtonStyle("red", "white", load_image("x"))
     yes_style = ButtonStyle("green", "white", load_image("check"))
-    click_me_style = ButtonStyle("#eeeeee", "blue")
+    click_me_style = NinePatchStyle(load_image("button"))
 
     def callback(button):
         if button.style is no_style:
@@ -207,7 +222,7 @@ def mainloop():
             style.bg_color = pygame.Color(42, 42, 42) if dark_theme else pygame.Color(230, 230, 230)
 
     buttons = [
-        Button((SIZE[0] / 2 - 100, SIZE[1] / 2 - 30, 200, 60), "Click me!", click_me_style, print),
+        Button((SIZE[0] / 2 - 100, SIZE[1] / 2 - 30, 200, 100), "Click me!", click_me_style, print),
         Button((20, 20, 100, 50), "yes", yes_style, callback, double_click),
         Button((200, 20, 100, 50), "yes", yes_style, callback, double_click),
     ]

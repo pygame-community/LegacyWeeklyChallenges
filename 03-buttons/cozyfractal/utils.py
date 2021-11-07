@@ -1,5 +1,7 @@
 from functools import lru_cache
 from pathlib import Path
+from pprint import pprint
+from typing import Tuple
 
 import pygame
 
@@ -14,6 +16,7 @@ __all__ = [
     "text",
     "radius_to_cover_rectangle",
     "auto_crop",
+    "ninepatch",
 ]
 
 SUBMISSION_DIR = Path(__file__).parent
@@ -87,3 +90,65 @@ def auto_crop(surf: pygame.Surface):
 
     rect = surf.get_bounding_rect()
     return surf.subsurface(rect)
+
+
+@lru_cache(1000)
+def ninepatch(surf: pygame.Surface, size: Tuple[int, int]):
+    """
+    Stretch the surface to [size] by using a ninepatch technique.
+
+    The surface should have black guidelines at the top and left that indicates
+    the parts of the image, that can be stretched.
+    """
+
+    w = surf.get_width() - 2
+    h = surf.get_height() - 2
+
+    top_guide = surf.subsurface(1, 0, w, 1).get_bounding_rect()
+    left_guide = surf.subsurface(0, 1, 1, h).get_bounding_rect()
+    surf = surf.subsurface((1, 1, w, h))
+    print(top_guide, left_guide)
+
+    def get_rects(center_rect, total_size):
+        print(center_rect)
+        center_rect = pygame.Rect(center_rect)
+        left = center_rect.left
+        right = center_rect.right
+
+        top = center_rect.top
+        bottom = center_rect.bottom
+
+        h_points = [0, left, right]
+        h_sizes = [left, right - left, total_size[0] - right]
+        v_points = [0, top, bottom]
+        v_sizes = [top, bottom - top, total_size[1] - bottom]
+
+        return [
+            pygame.Rect(x, y, w, h)
+            for (x, w) in zip(h_points, h_sizes)
+            for (y, h) in zip(v_points, v_sizes)
+        ]
+
+    in_rects = get_rects(
+        (top_guide.left, left_guide.top, top_guide.width, left_guide.height), (w, h)
+    )
+    out_rects = get_rects(
+        (
+            top_guide.left,
+            left_guide.top,
+            size[0] - (w - top_guide.right) - top_guide.left,
+            size[1] - (h - left_guide.bottom) - left_guide.top,
+        ),
+        size,
+    )
+
+    out = pygame.Surface(size, pygame.SRCALPHA)
+    out.fill((0, 0, 0, 0))
+    for input, output in zip(in_rects, out_rects):
+        print(input, output)
+        s = surf.subsurface(input)
+        if input.size != output.size:
+            s = pygame.transform.scale(s, output.size)
+        out.blit(s, output)
+
+    return out
