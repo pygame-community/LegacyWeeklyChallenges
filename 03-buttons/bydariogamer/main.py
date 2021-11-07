@@ -21,9 +21,9 @@ __package__ = "03-buttons." + Path(__file__).absolute().parent.name
 # Metadata about your submission
 __author__ = "bydariogamer#7949"  # Put yours!
 __achievements__ = [  # Uncomment the ones you've done
-    # "Casual",
-    # "Ambitious",
-    # "Adventurous",
+    "Casual",
+    "Ambitious",
+    "Adventurous",
 ]
 
 import pygame
