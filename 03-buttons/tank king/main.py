@@ -73,7 +73,6 @@ def mainloop():
     pygame.init()
     asset_path = os.path.join(os.path.dirname(__file__), 'assets')
     image_path = os.path.join(asset_path, 'images')
-    print(image_path)
 
     modes = ['retry', 'start', 'game']
     current_mode = modes[1]
