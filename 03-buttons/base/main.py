@@ -1,5 +1,6 @@
 import sys
 from pathlib import Path
+from time import time
 
 try:
     import wclib
@@ -19,7 +20,7 @@ __package__ = "03-buttons." + Path(__file__).absolute().parent.name
 # ---- Recommended: don't modify anything above this line ---- #
 
 # Metadata about your submission
-__author__ = "CozyFractal#0042"  # Put yours!
+__author__ = "CozyFractal#6978"  # Put yours!
 __achievements__ = [  # Uncomment the ones you've done
     # "Casual",
     # "Ambitious",
@@ -36,38 +37,125 @@ from .utils import *
 BACKGROUND = 0x0F1012
 
 
-# This is a suggestion of the interface of the button class.
-# There are many other ways to do it, but I strongly suggest to
-# at least use a class, so that it is more reusable.
 class Button:
-    def __init__(self, position, size, content: str):  # Just an example!
-        self.position = position
-        self.size = size
-        self.content = content
+    CLICK_ANIM_DURATION = 0.2
+    DOUBLE_CLICK_TIME = 0.2
+
+    def __init__(self, rect, text, text_color, bg_color, callback, double_click=None):
+        self.rect = pygame.Rect(rect)
+        self.text = text
+        self.text_color = text_color
+        self.bg_color = pygame.Color(bg_color)
+        self.callback = callback
+        self.callback_double_click = double_click
+
+        self._hovered = False
+        self.last_click = -1
+        self.last_click_pos = (0, 0)
+        self.is_pressed = False
+        # Only used when there is a double click
+        self.callback_called = True
+
+    @property
+    def hovered(self):
+        return self._hovered
+
+    @hovered.setter
+    def hovered(self, value):
+        if value != self._hovered:
+            self._hovered = value
+
+            if value:
+                pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
+            else:
+                pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
 
     def handle_event(self, event: pygame.event.Event):
-        # Use this to update the state of the button according to user inputs.
-        # It is usually a good idea to have this separated from the rest according
-        # to the principle of separation of concerns.
-        ...
+        if event.type == pygame.MOUSEMOTION:
+            self.hovered = self.rect.collidepoint(event.pos)
+            if not self.hovered:
+                self.is_pressed = False
+        elif event.type == pygame.MOUSEBUTTONDOWN:
+            if event.button == 1:
+                if self.rect.collidepoint(event.pos):
+                    self.click(event.pos)
+        elif event.type == pygame.MOUSEBUTTONUP:
+            if event.button == 1:
+                self.is_pressed = False
+
+    def click(self, pos):
+        now = time()
+        self.callback_called = False
+        if self.callback_double_click and now - self.last_click < self.DOUBLE_CLICK_TIME:
+            self.callback_called = True
+            self.callback_double_click()
+        self.last_click = now
+        self.last_click_pos = pos
+        self.is_pressed = True
+        if self.callback_double_click is None:
+            self.callback(12)
+
+    def logic(self):
+        if self.callback_double_click:
+            if self.last_click < time() - self.DOUBLE_CLICK_TIME and not self.callback_called:
+                self.callback()
+                self.callback_called = True
 
     def draw(self, screen: pygame.Surface):
-        # Use this to draw the button on the screen
-        # As a placeholder, I draw its content, but it may be more complex
-        # when you do it. Maybe you use images, maybe likely some background,
-        # maybe some border and even shadows ?
-        t = text(self.content, "orange")
-        screen.blit(t, self.position)
+        if self.hovered:
+            color = self.bg_color.lerp((0, 0, 0), 0.2)
+        else:
+            color = self.bg_color
+        screen.fill(color, self.rect)
+
+        now = time()
+        time_since_last_click = now - self.last_click
+        if time_since_last_click < self.CLICK_ANIM_DURATION or self.is_pressed:
+            circle_surface = pygame.Surface(self.rect.size)
+            radius = (time_since_last_click / self.CLICK_ANIM_DURATION) * radius_to_cover_rectangle(
+                self.last_click_pos, self.rect
+            )
+            pygame.draw.circle(
+                circle_surface,
+                "white",
+                pygame.Vector2(self.last_click_pos) - self.rect.topleft,
+                radius,
+            )
+            circle_surface.set_alpha(42)
+            screen.blit(circle_surface, self.rect)
+
+        t = text(self.text, self.text_color)
+        screen.blit(t, t.get_rect(center=self.rect.center))
 
 
 def mainloop():
     pygame.init()
 
+    def callback(*args):
+        b = buttons[1]
+        if b.text == "Yes":
+            b.text = "No"
+            b.text_color = "red"
+        else:
+            b.text = "Yes"
+            b.text_color = "green"
+
+    def double_click(*args):
+        c = buttons[1].bg_color
+        if c == (255, 255, 255, 255):
+            c.update(0, 0, 0, 255)
+        else:
+            c.update(255, 255, 255, 255)
+
     buttons = [
-        Button((20, 20), (200, 60), "Click me!"),
+        Button(
+            (SIZE[0] / 2 - 100, SIZE[1] / 2 - 30, 200, 60), "Click me!", "#eeeeee", "blue", print
+        ),
+        Button((20, 20, 50, 200), "ok", "green", "white", callback, double_click)
         # Define more buttons here when you have one working!
         # With different styles, behavior, or whatever cool stuff you made :D
     ]
+    pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
 
     clock = pygame.time.Clock()
     while True:
@@ -78,6 +166,9 @@ def mainloop():
 
             for button in buttons:
                 button.handle_event(event)
+
+        for button in buttons:
+            button.logic()
 
         screen.fill(BACKGROUND)
         for button in buttons:

@@ -12,6 +12,7 @@ __all__ = [
     "SCREEN",
     "load_image",
     "text",
+    "radius_to_cover_rectangle",
 ]
 
 SUBMISSION_DIR = Path(__file__).parent
@@ -69,3 +70,12 @@ def font(size=20, name=None):
 def text(txt, color, size=20, font_name=None):
     """Render a text on a surface. Results are cached."""
     return font(size, font_name).render(str(txt), True, color)
+
+
+def radius_to_cover_rectangle(center, rect):
+    """Minimum size of a a circle that covers completely a given rectangle."""
+    center = pygame.Vector2(center)
+    return max(
+        center.distance_to(corner)
+        for corner in (rect.topleft, rect.topright, rect.bottomright, rect.bottomleft)
+    )
