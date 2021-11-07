@@ -50,6 +50,8 @@ class Button:
     def __init__(
             self,
             rect,
+            round_rect=False,
+            circular=False,
             color=None,
             outcolor=None,
             images=None,
@@ -60,6 +62,8 @@ class Button:
             on_click=None,
     ):
         self.rect = pygame.Rect(rect)
+        self.round_rect = round_rect
+        self.circular = circular
         self.color = pygame.Color(color) if color else None
         self.outcolor = outcolor if outcolor else self.color + pygame.Color(15, 15, 15) if color else None
         self.images = [ninepatch(image, tuple(self.rect)) for image in images] if resize else images
@@ -88,12 +92,13 @@ class Button:
             pygame.draw.rect(
                 screen,
                 self.outcolor if self.mouseover else self.color,
-                self.rect
+                self.rect,
+                border_radius=min(self.rect.size)//2 if self.circular else min(self.rect.size)//4 if self.round_rect else 0
             )
         if self.images:
             blit_centered(
                 screen,
-                self.images[1] if self.mouseclicking else self.images[0],
+                self.images[1] if self.mouseclicking and len(self.images) > 1 else self.images[0],
                 self.rect
             )
         if (self.icon and not self.label) or (self.icon and self.label and not self.mouseover):
@@ -140,6 +145,9 @@ class Button:
         times = "once" if self.click_count == 1 else "twice" if self.click_count == 2 else "many times"
         self.label = "I've been clicked " + times
 
+    def put_exit(self):
+        pygame.event.post(pygame.event.Event(pygame.QUIT))
+
 
 def mainloop():
     pygame.init()
@@ -147,28 +155,30 @@ def mainloop():
     buttons = [
         Button(
             (20, 20, 200, 60),
-            (150, 20, 20),
+            color=(150, 20, 20),
             label="Click!",
             sound=pygame.mixer.Sound(str(assets / "click.wav")),
             on_click=[Button.play_sound],
         ),
         Button(
             (20, 100, 200, 60),
-            (150, 150, 20),
+            round_rect=True,
+            color=(150, 150, 20),
             label="Sparks!",
             on_click=[Button.shoot_particles],
         ),
         Button(
-            (20, 400, 200, 300),
-            (100, 100, 250),
+            (20, 500, 300, 200),
+            color=(100, 100, 250),
             sound=pygame.mixer.Sound(str(assets / "click.wav")),
             icon=pygame.image.load(str(assets / "play.png")),
             label="Play",
             on_click=[Button.burst_particles, Button.play_sound],
         ),
         Button(
-            (300, 500, 500, 100),
-            (100, 250, 250),
+            (400, 600, 500, 100),
+            round_rect=True,
+            color=(100, 250, 250),
             label="Click me many times",
             on_click=[Button.update_text],
         ),
@@ -180,6 +190,14 @@ def mainloop():
             ],
             resize=True,
             label="I have ninepatched textures",
+        ),
+        Button(
+            (600, 20, 200, 60),
+            circular=True,
+            color=(200, 240, 200),
+            label="EXIT",
+            sound=pygame.mixer.Sound(str(assets / "click.wav")),
+            on_click=[Button.put_exit],
         ),
     ]
 

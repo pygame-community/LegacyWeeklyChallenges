@@ -95,7 +95,7 @@ def ninepatch(surface: pygame.Surface, rect: tuple):
 
     result.blit(a1, (0, 0))
     result.blit(pygame.transform.scale(a2, (rect.w - 2 * subsurf_w, subsurf_h)), (subsurf_w, 0))
-    result.blit(a3, (2*subsurf_w, 0))
+    result.blit(a3, (rect.w - subsurf_w, 0))
     result.blit(pygame.transform.scale(b1, (subsurf_w, rect.h - 2 * subsurf_h)), (0, subsurf_h))
     result.blit(pygame.transform.scale(b2, (rect.w - 2 * subsurf_w, rect.h - 2 * subsurf_h)), (subsurf_w, subsurf_h))
     result.blit(pygame.transform.scale(b3, (subsurf_w, rect.h - 2 * subsurf_h)), (rect.w - subsurf_w, subsurf_h))
