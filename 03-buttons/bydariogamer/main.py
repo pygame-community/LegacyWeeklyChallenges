@@ -60,6 +60,7 @@ class Button:
             label=None,
             sound=None,
             on_click=None,
+            arguments=(),
     ):
         self.rect = pygame.Rect(rect)
         self.round_rect = round_rect
@@ -71,6 +72,7 @@ class Button:
         self.label = label
         self.sound = sound
         self.on_click = on_click
+        self.arguments = arguments
 
         self.last_clicked = 0
         self.click_count = 0
@@ -84,8 +86,8 @@ class Button:
                     self.click_count = 1
                 self.last_clicked = time.time()
                 if self.on_click:
-                    for function in self.on_click:
-                        function(self)
+                    for i, function in enumerate(self.on_click):
+                        function(self, *self.arguments[i] if len(self.arguments) > i else ())
 
     def draw(self, screen: pygame.Surface):
         if self.color:
@@ -131,22 +133,27 @@ class Button:
     def burst_particles(self):
         self.PARTICLE_MANAGER.burst(
             self.rect.center,
-            pygame.Vector2(2, 0),
+            pygame.Vector2(5, 0),
             color=self.color
         )
 
     def shoot_particles(self):
         self.PARTICLE_MANAGER.shot(
             self.rect.center,
-            pygame.Vector2(20, 0),
+            pygame.Vector2(0, 50),
         )
 
-    def update_text(self):
-        times = "once" if self.click_count == 1 else "twice" if self.click_count == 2 else "many times"
-        self.label = "I've been clicked " + times
+    def update_text(self, new_text=""):
+        if new_text:
+            self.label = new_text
+        else:
+            times = "once" if self.click_count == 1 else "twice" if self.click_count == 2 else "many times"
+            self.label = "I've been clicked " + times
 
-    def put_exit(self):
+    def put_exit(self, exit_routine=None):
         pygame.event.post(pygame.event.Event(pygame.QUIT))
+        if exit_routine:
+            exit_routine()
 
 
 def mainloop():
@@ -192,12 +199,35 @@ def mainloop():
             label="I have ninepatched textures",
         ),
         Button(
-            (600, 20, 200, 60),
+            (750, 20, 200, 60),
             circular=True,
             color=(200, 240, 200),
             label="EXIT",
             sound=pygame.mixer.Sound(str(assets / "click.wav")),
             on_click=[Button.put_exit],
+        ),
+        Button(
+            (400, 470, 300, 100),
+            label="Cool ninepatch",
+            images=[
+                pygame.image.load(str(assets / "ninetexture.png")).convert_alpha(),
+                pygame.image.load(str(assets / "ninetexture-pressed.png")).convert_alpha()
+            ],
+            resize=True,
+            sound=pygame.mixer.Sound(str(assets / "click.wav")),
+            on_click=[Button.play_sound],
+        ),
+        Button(
+            (700, 150, 300, 300),
+            label="More ninepatch",
+            images=[
+                pygame.image.load(str(assets / "ninetexture.png")).convert_alpha(),
+                pygame.image.load(str(assets / "ninetexture-pressed.png")).convert_alpha()
+            ],
+            resize=True,
+            sound=pygame.mixer.Sound(str(assets / "click.wav")),
+            on_click=[Button.update_text, Button.burst_particles, Button.play_sound],
+            arguments=[("enough ninepatchs imho",)]
         ),
     ]
 
