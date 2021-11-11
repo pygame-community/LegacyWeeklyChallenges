@@ -198,7 +198,9 @@ class EmbeddedApp(Widget):
             self.mainloop = self.crashed_mainloop(e)
 
     def load_mainloop(self):
-        if self.entry.get_missing_dependencies():
+        if self.entry.min_python_version > sys.version_info:
+            loop = self.python_too_old_mainloop()
+        elif self.entry.get_missing_dependencies():
             loop = self.install_mainloop()
         else:
             try:
@@ -324,6 +326,25 @@ class EmbeddedApp(Widget):
         t = text(f"Crashed: {error}", "red", 30)
         r = screen.blit(t, t.get_rect(center=screen.get_rect().center))
         t = text("Check the console for details.", "red", 30)
+        screen.blit(t, t.get_rect(midtop=r.midbottom))
+
+        while True:
+            # Do nothing.
+            screen, events = yield
+
+    def python_too_old_mainloop(self):
+        text_version = ".".join(map(str, self.entry.min_python_version))
+        needed_version = ".".join(map(str, sys.version_info[:3]))
+
+        print("Python version too old for", self.entry, file=sys.stderr)
+        print("Current:", needed_version, file=sys.stderr)
+        print("Required:", text_version, file=sys.stderr)
+
+        screen, events = yield
+
+        t = text(f"You need Python {text_version} to run this entry,", "red", 30)
+        r = screen.blit(t, t.get_rect(center=screen.get_rect().center))
+        t = text(f"but you currently have Python {needed_version}.", "red", 30)
         screen.blit(t, t.get_rect(midtop=r.midbottom))
 
         while True:

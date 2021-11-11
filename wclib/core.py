@@ -53,6 +53,9 @@ class Entry:
         self.min_python_version = data.min_python_version
         self.dependencies = data.dependencies
 
+    def __str__(self):
+        return f"{self.challenge}/{self.entry}"
+
     def get_missing_dependencies(self) -> List[str]:
         """Return the dependencies that are not found on import."""
         missing = []
