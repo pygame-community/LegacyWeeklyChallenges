@@ -20,14 +20,6 @@ __package__ = "02-particle-system." + Path(__file__).parent.name
 
 # ---- Recommended: don't modify anything above this line ---- #
 
-# Metadata about your submission
-__author__ = "CozyFractal#0042"  # Put yours!
-__achievements__ = [  # Uncomment the ones you've done
-    # "Casual",
-    # "Ambitious",
-    # "Adventurous",
-]
-
 # To import the modules in yourname/, you need to use relative imports,
 # otherwise your project will not be compatible with the showcase.
 # noinspection PyPackages

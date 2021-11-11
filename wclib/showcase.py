@@ -148,7 +148,7 @@ class ChallengeSelectState(MenuState):
 
 class EntrySelectState(MenuState):
     def __init__(self, app: "App", challenge):
-        buttons = [(challenge, entry) for entry in get_entries(challenge)]
+        buttons = [(entry.challenge, entry.entry) for entry in get_entries(challenge)]
         super().__init__(app, get_challenge_data(challenge).name, buttons)
         self.challenge = challenge
         self.sorted = True
@@ -165,7 +165,7 @@ class EntrySelectState(MenuState):
         self.sorted = not self.sorted
         if self.sorted:
             button.surf = load_image("shuffle")
-            buttons.sort(key=lambda b: b.entry.casefold())
+            buttons.sort(key=lambda b: b.entry.entry.casefold())
         else:
             button.surf = load_image("sort")
             shuffle(buttons)
@@ -177,17 +177,16 @@ class EntrySelectState(MenuState):
 
     def button_click(self, data):
         challenge, entry = data
-        self.app.states.append(EntryViewState(self.app, self.challenge, entry))
+        self.app.states.append(EntryViewState(self.app, Entry(challenge, entry)))
 
 
 class EntryViewState(State):
-    def __init__(self, app: "App", challenge, entry):
+    def __init__(self, app: "App", entry: Entry):
         super().__init__(app)
 
-        self.challenge = challenge
         self.entry = entry
 
-        self.embedded_app = EmbeddedApp(challenge, entry)
+        self.embedded_app = EmbeddedApp(entry)
 
     def handle_event(self, event):
         super().handle_event(event)

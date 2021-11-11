@@ -113,17 +113,15 @@ class BigButton(Widget):
     def __init__(self, challenge, entry, callback, position):
         super().__init__(position, self.TOTAL_SIZE)
         # If entry is None, it is a button to select a challenge.
-        self.challenge = challenge
-        self.entry = entry
+        self.title = entry or get_challenge_data(challenge).name
+        self.entry = Entry(challenge, entry or "base")
         self.callback = callback
         self.mouse_over = False
 
-        self.title = self.entry or get_challenge_data(challenge).name
-
-        self.app = EmbeddedApp(challenge, entry or "base", self.position, self.SIZE)
+        self.app = EmbeddedApp(self.entry, self.position, self.SIZE)
 
     def __repr__(self):
-        return f"<{self.__class__.__name__}({self.challenge}, {self.entry})>"
+        return f"<{self.__class__.__name__}({self.entry})>"
 
     def draw(self, screen):
         background = "#222728" if self.mouse_over else "#212121"
@@ -158,12 +156,10 @@ class BigButton(Widget):
 
 
 class EmbeddedApp(Widget):
-    def __init__(self, challenge, entry, pos=(0, 0), size=SIZE):
+    def __init__(self, entry: Entry, pos=(0, 0), size=SIZE):
         super().__init__(pos, size)
-        self.challenge = challenge
         self.entry = entry
         self.virtual_screen = pygame.Surface(SIZE)
-        self.missing_requirements = get_missing_requirements(challenge, entry)
 
         # This one is for performance improvement.
         # Most buttons are not to be redrawn nor scaled every frame,
@@ -202,11 +198,11 @@ class EmbeddedApp(Widget):
             self.mainloop = self.crashed_mainloop(e)
 
     def load_mainloop(self):
-        if self.missing_requirements:
+        if self.entry.get_missing_dependencies():
             loop = self.install_mainloop()
         else:
             try:
-                loop = get_mainloop(self.challenge, self.entry)
+                loop = self.entry.get_mainloop()
             except Exception as e:
                 loop = self.crashed_mainloop(e)
 
@@ -298,7 +294,7 @@ class EmbeddedApp(Widget):
             t = text("Missing requirements:", "white", 90)
             r = screen.blit(t, t.get_rect(midtop=(w / 2, 50)))
 
-            for req in self.missing_requirements:
+            for req in self.entry.get_missing_dependencies():
                 t = text(req, "white", 72)
                 r.top += 30
                 r = screen.blit(t, t.get_rect(midtop=r.midbottom))
@@ -317,8 +313,7 @@ class EmbeddedApp(Widget):
             # installation finished!
             if installing and not install_thread.is_alive():
                 self.mainloop = None
-                self.missing_requirements = get_missing_requirements(self.challenge, self.entry)
-                print("Still missing after install:", self.missing_requirements)
+                print("Still missing after install:", self.entry.get_missing_dependencies())
                 return
 
     def crashed_mainloop(self, error):
