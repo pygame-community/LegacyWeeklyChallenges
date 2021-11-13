@@ -34,7 +34,7 @@ def load_image(name: str, scale=1, alpha=True, base: Path = ASSETS):
     The results are cached, so this function returns the same surface every time it
     is called with the same arguments. If you want to modify the returned surface,
     .copy() it first.
-    """    
+    """
 
     image = pygame.image.load(base / f"{name}.png")
     if scale != 1:

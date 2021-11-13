@@ -38,7 +38,17 @@ BACKGROUND = 0x0F1012
 
 
 class Button:
-    def __init__(self, rect, content: str, text_color, bg_color, bg_hover_color, border_color, border_thick, action):
+    def __init__(
+        self,
+        rect,
+        content: str,
+        text_color,
+        bg_color,
+        bg_hover_color,
+        border_color,
+        border_thick,
+        action,
+    ):
         self.rect = pygame.Rect(rect)
         self.content = content
         self.text_color = text_color
@@ -69,13 +79,21 @@ class Button:
         if event.type == pygame.MOUSEBUTTONDOWN:
             if self.hover:
                 if self.action == "change_own_col":
-                    self.bg_color = pygame.Color((randint(0, 255), randint(0, 255), randint(0, 255)))
-                    self.bg_hover_color = pygame.Color((randint(0, 255), randint(0, 255), randint(0, 255)))
-                    self.border_color = pygame.Color((randint(0, 255), randint(0, 255), randint(0, 255)))
+                    self.bg_color = pygame.Color(
+                        (randint(0, 255), randint(0, 255), randint(0, 255))
+                    )
+                    self.bg_hover_color = pygame.Color(
+                        (randint(0, 255), randint(0, 255), randint(0, 255))
+                    )
+                    self.border_color = pygame.Color(
+                        (randint(0, 255), randint(0, 255), randint(0, 255))
+                    )
 
     def draw(self, screen: pygame.Surface):
         screen.fill(self.border_color, self.rect)
-        screen.fill(self.background_color, self.rect.inflate(-self.border_thick * 2, -self.border_thick * 2))
+        screen.fill(
+            self.background_color, self.rect.inflate(-self.border_thick * 2, -self.border_thick * 2)
+        )
 
         t = text(self.content, self.text_color)
         t_rect = t.get_rect(center=self.rect.center)
@@ -86,10 +104,29 @@ def mainloop():
     pygame.init()
 
     buttons = [
-        Button((200, 200, 200, 60), "Click me!", "white", "darkblue", "blue", "white", 5, "change_own_col"),
-        Button((500, 300, 300, 160), "Don't click me!", "green", "red", "pink", "black", 20, "change_own_col"),
-        Button((300, 400, 50, 300), "tall", "black", "darkgreen", "green", "pink", 2, "change_own_col"),
-
+        Button(
+            (200, 200, 200, 60),
+            "Click me!",
+            "white",
+            "darkblue",
+            "blue",
+            "white",
+            5,
+            "change_own_col",
+        ),
+        Button(
+            (500, 300, 300, 160),
+            "Don't click me!",
+            "green",
+            "red",
+            "pink",
+            "black",
+            20,
+            "change_own_col",
+        ),
+        Button(
+            (300, 400, 50, 300), "tall", "black", "darkgreen", "green", "pink", 2, "change_own_col"
+        ),
     ]
 
     clock = pygame.time.Clock()

@@ -2,6 +2,7 @@ import pygame
 from .utils import *
 import os
 
+
 class Achievement(pygame.sprite.Sprite):
     def __init__(self, position, path):
         super(Achievement, self).__init__()
@@ -36,5 +37,5 @@ class Achievement(pygame.sprite.Sprite):
         for file_name in os.listdir(path):
             image = load_image(file_name, scale=3, base=path)
             frames.append(image)
-        
+
         return frames

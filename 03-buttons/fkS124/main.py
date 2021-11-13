@@ -50,7 +50,6 @@ def mainloop():
                 return
 
             app.handle_events(event)
-            
 
         screen.fill(BACKGROUND)
 

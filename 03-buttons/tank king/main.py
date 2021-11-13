@@ -71,10 +71,10 @@ text_list: list[Text] = []
 
 def mainloop():
     pygame.init()
-    asset_path = os.path.join(os.path.dirname(__file__), 'assets')
-    image_path = os.path.join(asset_path, 'images')
+    asset_path = os.path.join(os.path.dirname(__file__), "assets")
+    image_path = os.path.join(asset_path, "images")
 
-    modes = ['retry', 'start', 'game']
+    modes = ["retry", "start", "game"]
     current_mode = modes[1]
 
     rate = 0.01
@@ -91,15 +91,29 @@ def mainloop():
         EventsManager.clear_all_events()
         text_list.clear()
 
-    button1 = NinePatchedButton(os.path.join(image_path, 'button.9.png'),
-                                os.path.join(image_path, 'button_selected.9.png'),
-                                rect=pygame.Rect(SIZE[0] // 2 - 100, SIZE[1] // 2, 200, 100), zoom=1, msg='Retry', action=start)
-    button2 = NinePatchedButton(os.path.join(image_path, 'button2.9.png'),
-                                os.path.join(image_path, 'button4.9.png'),
-                                rect=pygame.Rect(100, SIZE[1] // 2, 200, 100), zoom=1, msg='Click me!')
-    button3 = NinePatchedButton(os.path.join(image_path, 'button.9.png'),
-                                os.path.join(image_path, 'button_selected.9.png'),
-                                rect=pygame.Rect(SIZE[0] // 2 - 100, SIZE[1] // 2, 200, 100), zoom=1, msg='Start', action=start)
+    button1 = NinePatchedButton(
+        os.path.join(image_path, "button.9.png"),
+        os.path.join(image_path, "button_selected.9.png"),
+        rect=pygame.Rect(SIZE[0] // 2 - 100, SIZE[1] // 2, 200, 100),
+        zoom=1,
+        msg="Retry",
+        action=start,
+    )
+    button2 = NinePatchedButton(
+        os.path.join(image_path, "button2.9.png"),
+        os.path.join(image_path, "button4.9.png"),
+        rect=pygame.Rect(100, SIZE[1] // 2, 200, 100),
+        zoom=1,
+        msg="Click me!",
+    )
+    button3 = NinePatchedButton(
+        os.path.join(image_path, "button.9.png"),
+        os.path.join(image_path, "button_selected.9.png"),
+        rect=pygame.Rect(SIZE[0] // 2 - 100, SIZE[1] // 2, 200, 100),
+        zoom=1,
+        msg="Start",
+        action=start,
+    )
     # current_button = random.choice([button1, button2])
     clock = pygame.time.Clock()
 
@@ -114,13 +128,13 @@ def mainloop():
         for event in events:
             if event.type == pygame.QUIT:
                 return
-        if current_mode == 'game':
+        if current_mode == "game":
             button2.update(events)
             for i in range(len(EventsManager.get_all_events())):
                 name = EventsManager.get_next_event().name
-                if current_mode == 'game':
-                    if 'released' in name:
-                        if int(name.split(':')[1]) == target_number - current_number:
+                if current_mode == "game":
+                    if "released" in name:
+                        if int(name.split(":")[1]) == target_number - current_number:
                             target_number = random.randint(1, 10) * 10
                             current_number = target_number - random.randint(1, 9)
                             score += 10
@@ -132,13 +146,13 @@ def mainloop():
                     for j in text_list:
                         j.y -= Text.size
                     text_list.append(Text(name))
-        elif current_mode == 'retry':
+        elif current_mode == "retry":
             button1.update(events)
-        elif current_mode == 'start':
+        elif current_mode == "start":
             button3.update(events)
 
         screen.fill(BACKGROUND)
-        if current_mode == 'game':
+        if current_mode == "game":
             button2.draw(screen)
             for i in text_list:
                 i.update()
@@ -146,8 +160,8 @@ def mainloop():
                 if i.alpha <= 10:
                     text_list.remove(i)
                     del i
-            screen.blit(text('Lives: ' + str(lives), (0, 150, 255), 50), (50, 50))
-            screen.blit(text('Score: ' + str(score), (0, 150, 255), 50), (50, 125))
+            screen.blit(text("Lives: " + str(lives), (0, 150, 255), 50), (50, 50))
+            screen.blit(text("Score: " + str(score), (0, 150, 255), 50), (50, 125))
             t = text(str(current_number), (255, 255, 255), 150)
             screen.blit(t, t.get_rect(center=(SIZE[0] // 2, 150)))
             timer -= rate
@@ -155,20 +169,20 @@ def mainloop():
                 lives -= 1
                 timer = 100
                 if lives <= 0:
-                    current_mode = 'retry'
+                    current_mode = "retry"
             pygame.draw.line(screen, (0, 255, 0), (50, 210), (50 + timer * 8, 210), 10)
-        elif current_mode == 'retry':
+        elif current_mode == "retry":
             button1.draw(screen)
-            t = text('Score: ' + str(score), (255, 255, 255), 75)
+            t = text("Score: " + str(score), (255, 255, 255), 75)
             screen.blit(t, t.get_rect(center=(SIZE[0] // 2, 250)))
 
-        elif current_mode == 'start':
+        elif current_mode == "start":
             button3.draw(screen)
-            t = text('NumClic!', (255, 255, 255), 75)
+            t = text("NumClic!", (255, 255, 255), 75)
             screen.blit(t, t.get_rect(center=(SIZE[0] // 2, 250)))
-            t = text('Keep clicking to reach the nearest greatest integer', (255, 255, 255), 25)
+            t = text("Keep clicking to reach the nearest greatest integer", (255, 255, 255), 25)
             screen.blit(t, t.get_rect(center=(SIZE[0] // 2, SIZE[1] - 150)))
-            t = text('Press m to mute/unmute', (255, 255, 255), 25)
+            t = text("Press m to mute/unmute", (255, 255, 255), 25)
             screen.blit(t, t.get_rect(center=(SIZE[0] // 2, SIZE[1] - 100)))
 
         clock.tick(60)

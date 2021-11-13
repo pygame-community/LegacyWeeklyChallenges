@@ -13,6 +13,8 @@ __all__ = [
     "ShootParticle",
     "FilledParticle",
 ]
+
+
 class ParticleManager:
 
     __slots__ = ("particles",)
