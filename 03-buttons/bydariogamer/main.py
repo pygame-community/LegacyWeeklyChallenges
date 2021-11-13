@@ -48,25 +48,27 @@ class Button:
     PARTICLE_MANAGER = ParticleManager()
 
     def __init__(
-            self,
-            rect,
-            round_rect=False,
-            circular=False,
-            color=None,
-            outcolor=None,
-            images=None,
-            resize=False,
-            icon=None,
-            label=None,
-            sound=None,
-            on_click=None,
-            arguments=(),
+        self,
+        rect,
+        round_rect=False,
+        circular=False,
+        color=None,
+        outcolor=None,
+        images=None,
+        resize=False,
+        icon=None,
+        label=None,
+        sound=None,
+        on_click=None,
+        arguments=(),
     ):
         self.rect = pygame.Rect(rect)
         self.round_rect = round_rect
         self.circular = circular
         self.color = pygame.Color(color) if color else None
-        self.outcolor = outcolor if outcolor else self.color + pygame.Color(15, 15, 15) if color else None
+        self.outcolor = (
+            outcolor if outcolor else self.color + pygame.Color(15, 15, 15) if color else None
+        )
         self.images = [ninepatch(image, tuple(self.rect)) for image in images] if resize else images
         self.icon = icon
         self.label = label
@@ -95,28 +97,30 @@ class Button:
                 screen,
                 self.outcolor if self.mouseover else self.color,
                 self.rect,
-                border_radius=min(self.rect.size)//2 if self.circular else min(self.rect.size)//4 if self.round_rect else 0
+                border_radius=min(self.rect.size) // 2
+                if self.circular
+                else min(self.rect.size) // 4
+                if self.round_rect
+                else 0,
             )
         if self.images:
             blit_centered(
                 screen,
                 self.images[1] if self.mouseclicking and len(self.images) > 1 else self.images[0],
-                self.rect
+                self.rect,
             )
         if (self.icon and not self.label) or (self.icon and self.label and not self.mouseover):
-            blit_centered(
-                screen,
-                self.icon,
-                self.rect
-            )
+            blit_centered(screen, self.icon, self.rect)
         if (self.label and not self.icon) or (self.icon and self.label and self.mouseover):
             blit_centered(
                 screen,
                 text(
                     self.label,
-                    tuple(pygame.Color(255, 255, 255) - self.color) if self.color else tuple(
-                        pygame.Color(255, 255, 255) - pygame.Color(BACKGROUND))),
-                self.rect
+                    tuple(pygame.Color(255, 255, 255) - self.color)
+                    if self.color
+                    else tuple(pygame.Color(255, 255, 255) - pygame.Color(BACKGROUND)),
+                ),
+                self.rect,
             )
 
     @property
@@ -131,11 +135,7 @@ class Button:
         self.sound.play()
 
     def burst_particles(self):
-        self.PARTICLE_MANAGER.burst(
-            self.rect.center,
-            pygame.Vector2(5, 0),
-            color=self.color
-        )
+        self.PARTICLE_MANAGER.burst(self.rect.center, pygame.Vector2(5, 0), color=self.color)
 
     def shoot_particles(self):
         self.PARTICLE_MANAGER.shot(
@@ -147,7 +147,13 @@ class Button:
         if new_text:
             self.label = new_text
         else:
-            times = "once" if self.click_count == 1 else "twice" if self.click_count == 2 else "many times"
+            times = (
+                "once"
+                if self.click_count == 1
+                else "twice"
+                if self.click_count == 2
+                else "many times"
+            )
             self.label = "I've been clicked " + times
 
     def put_exit(self, exit_routine=None):
@@ -193,7 +199,7 @@ def mainloop():
             (300, 50, 300, 400),
             images=[
                 pygame.image.load(str(assets / "button.png")).convert_alpha(),
-                pygame.image.load(str(assets / "button-pressed.png")).convert_alpha()
+                pygame.image.load(str(assets / "button-pressed.png")).convert_alpha(),
             ],
             resize=True,
             label="I have ninepatched textures",
@@ -211,7 +217,7 @@ def mainloop():
             label="Cool ninepatch",
             images=[
                 pygame.image.load(str(assets / "ninetexture.png")).convert_alpha(),
-                pygame.image.load(str(assets / "ninetexture-pressed.png")).convert_alpha()
+                pygame.image.load(str(assets / "ninetexture-pressed.png")).convert_alpha(),
             ],
             resize=True,
             sound=pygame.mixer.Sound(str(assets / "click.wav")),
@@ -222,12 +228,12 @@ def mainloop():
             label="More ninepatch",
             images=[
                 pygame.image.load(str(assets / "ninetexture.png")).convert_alpha(),
-                pygame.image.load(str(assets / "ninetexture-pressed.png")).convert_alpha()
+                pygame.image.load(str(assets / "ninetexture-pressed.png")).convert_alpha(),
             ],
             resize=True,
             sound=pygame.mixer.Sound(str(assets / "click.wav")),
             on_click=[Button.update_text, Button.burst_particles, Button.play_sound],
-            arguments=[("enough ninepatchs imho",)]
+            arguments=[("enough ninepatchs imho",)],
         ),
     ]
 

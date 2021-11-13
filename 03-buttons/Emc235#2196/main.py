@@ -52,7 +52,7 @@ def mainloop():
 
     buttons = [
         Button(
-            pygame.math.Vector2(SIZE)//2,
+            pygame.math.Vector2(SIZE) // 2,
             (250, 100),
             anchor="center",
             bg_clr=(30, 30, 30),
@@ -62,7 +62,7 @@ def mainloop():
             border_radius=60,
             on_click=lambda: print("Clicked!"),
             sprite=sprite,
-            hover_sprite=hover_sprite
+            hover_sprite=hover_sprite,
         ),
         Button(
             (5, 5),
@@ -74,7 +74,7 @@ def mainloop():
             border_radius=60,
             on_click=lambda: print("Double Clicked!"),
             double_click=True,
-            double_click_limit=300
+            double_click_limit=300,
         )
         # Define more buttons here when you have one working!
         # With different styles, behavior, or whatever cool stuff you made :D

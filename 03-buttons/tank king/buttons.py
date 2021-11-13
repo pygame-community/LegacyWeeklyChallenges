@@ -6,17 +6,25 @@ from .utils import text
 
 import pygame
 
-asset_path = os.path.join(os.path.dirname(__file__), 'assets')
-image_path = os.path.join(asset_path, 'images')
-sounds_path = os.path.join(asset_path, 'sounds')
+asset_path = os.path.join(os.path.dirname(__file__), "assets")
+image_path = os.path.join(asset_path, "images")
+sounds_path = os.path.join(asset_path, "sounds")
 
 
 class NinePatchedButton:
-    def __init__(self, inactive_img_name, active_img_name=None, rect: pygame.Rect = None, zoom=1, msg='button', action=None):
+    def __init__(
+        self,
+        inactive_img_name,
+        active_img_name=None,
+        rect: pygame.Rect = None,
+        zoom=1,
+        msg="button",
+        action=None,
+    ):
         self.action = action
-        self.inactive_img = NinePatchImage(inactive_img_name, inactive_img_name + '.npj')
+        self.inactive_img = NinePatchImage(inactive_img_name, inactive_img_name + ".npj")
         if active_img_name is not None:
-            self.active_img = NinePatchImage(active_img_name, active_img_name + '.npj')
+            self.active_img = NinePatchImage(active_img_name, active_img_name + ".npj")
         else:
             self.active_img = None
         self.rect = rect
@@ -39,23 +47,34 @@ class NinePatchedButton:
 
     @staticmethod
     def get_click_count_name(clicks: int):
-        names = ['single', 'double', 'triple', 'quad', 'penta', 'hexa', 'hepta', 'octa', 'nona', 'deca']
+        names = [
+            "single",
+            "double",
+            "triple",
+            "quad",
+            "penta",
+            "hexa",
+            "hepta",
+            "octa",
+            "nona",
+            "deca",
+        ]
         try:
             return names[clicks]
         except IndexError:
-            return 'multi'
+            return "multi"
 
     def update(self, events):
         if time.time() - self.last_clicked > self.click_delay:
             if self.clicks > 0:
-                EventsManager.add_event(Event('released:' + str(self.clicks)))
+                EventsManager.add_event(Event("released:" + str(self.clicks)))
             self.clicks = 0
         self.active = False
         if time.time() - self.push_timer > 0.1:
             if self.y_offset != 0:
                 self.y_offset = 0
                 if not self.muted:
-                    pygame.mixer.music.load(os.path.join(sounds_path, 'mouserelease1') + '.ogg')
+                    pygame.mixer.music.load(os.path.join(sounds_path, "mouserelease1") + ".ogg")
                     pygame.mixer.music.play()
 
         mx, my = pygame.mouse.get_pos()
@@ -69,13 +88,15 @@ class NinePatchedButton:
                 if e.type == pygame.MOUSEBUTTONDOWN:
                     if e.button == 1:
                         if not self.muted:
-                            pygame.mixer.music.load(os.path.join(sounds_path, 'mouseclick1') + '.ogg')
+                            pygame.mixer.music.load(
+                                os.path.join(sounds_path, "mouseclick1") + ".ogg"
+                            )
                             pygame.mixer.music.play()
                         self.last_clicked = time.time()
                         self.clicks += 1
                         self.y_offset = -10
                         self.push_timer = time.time()
-                        message = self.get_click_count_name(self.clicks - 1) + '-click!'
+                        message = self.get_click_count_name(self.clicks - 1) + "-click!"
                         EventsManager.add_event(Event(message))
                         if self.action is not None:
                             self.action()

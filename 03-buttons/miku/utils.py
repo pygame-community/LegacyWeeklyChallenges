@@ -46,8 +46,10 @@ def load_image(name: str, scale=1, alpha=True, base: Path = ASSETS):
     else:
         return image.convert()
 
+
 def random_color():
-    return(tuple([random.randint(0, 255) for _ in range(3)]))
+    return tuple([random.randint(0, 255) for _ in range(3)])
+
 
 @lru_cache()
 def font(size=20, name=None):

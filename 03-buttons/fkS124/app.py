@@ -42,7 +42,6 @@ Button(
 
 
 class App:
-
     def __init__(self):
 
         self.canvas = pg.Surface((500, 500))
@@ -50,105 +49,104 @@ class App:
 
         self.buttons = [
             Button(
-                pos=pg.Vector2(1024//2-250+50, 768//2-250-100-5),
+                pos=pg.Vector2(1024 // 2 - 250 + 50, 768 // 2 - 250 - 100 - 5),
                 size=(500, 80),
-                bg_color=(80,60,129),
-                bg_color_hover=(69,47,88),
+                bg_color=(80, 60, 129),
+                bg_color_hover=(69, 47, 88),
                 text="UP",
                 font=pg.font.Font("regular.ttf", 25),
                 text_color=(255, 255, 255),
-                text_color_hover=(200, 200, 200), 
+                text_color_hover=(200, 200, 200),
                 on_click=self.snake.move_direction,
                 on_click_args="up",
                 shadow_on_click=2,
                 db_click_func=self.snake.db_click,
                 db_click_f_args="up",
-                border_radius=8
+                border_radius=8,
             ),
             Button(
-                pos=pg.Vector2(1024//2-250+50,768//2+250+20),
+                pos=pg.Vector2(1024 // 2 - 250 + 50, 768 // 2 + 250 + 20),
                 size=(500, 80),
-                bg_color=(80,60,129),
-                bg_color_hover=(69,47,88),
+                bg_color=(80, 60, 129),
+                bg_color_hover=(69, 47, 88),
                 text="DOWN",
                 font=pg.font.Font("regular.ttf", 25),
                 text_color=(255, 255, 255),
-                text_color_hover=(200, 200, 200), 
+                text_color_hover=(200, 200, 200),
                 on_click=self.snake.move_direction,
                 on_click_args="down",
                 shadow_on_click=2,
                 db_click_func=self.snake.db_click,
                 db_click_f_args="down",
-                border_radius=8
+                border_radius=8,
             ),
             Button(
-                pos=pg.Vector2(1024//2-250-25-50, 768//2-250),
+                pos=pg.Vector2(1024 // 2 - 250 - 25 - 50, 768 // 2 - 250),
                 size=(100, 500),
-                bg_color=(80,60,129),
-                bg_color_hover=(69,47,88),
+                bg_color=(80, 60, 129),
+                bg_color_hover=(69, 47, 88),
                 text="LEFT",
                 font=pg.font.Font("regular.ttf", 25),
                 text_color=(255, 255, 255),
-                text_color_hover=(200, 200, 200), 
+                text_color_hover=(200, 200, 200),
                 on_click=self.snake.move_direction,
                 on_click_args="left",
                 shadow_on_click=2,
                 db_click_func=self.snake.db_click,
                 db_click_f_args="left",
-                border_radius=8
+                border_radius=8,
             ),
             Button(
-                pos=pg.Vector2(1024//2+250+75, 768//2-250),
+                pos=pg.Vector2(1024 // 2 + 250 + 75, 768 // 2 - 250),
                 size=(100, 500),
-                bg_color=(80,60,129),
-                bg_color_hover=(69,47,88),
+                bg_color=(80, 60, 129),
+                bg_color_hover=(69, 47, 88),
                 text="RIGHT",
                 font=pg.font.Font("regular.ttf", 25),
                 text_color=(255, 255, 255),
-                text_color_hover=(200, 200, 200),  
+                text_color_hover=(200, 200, 200),
                 on_click=self.snake.move_direction,
                 on_click_args="right",
                 shadow_on_click=2,
                 db_click_func=self.snake.db_click,
                 db_click_f_args="right",
-                border_radius=8
+                border_radius=8,
             ),
             Button(
                 pos=pg.Vector2(19, 19),
                 size=(110, 730),
-                bg_color=(80,60,129),
-                bg_color_hover=(69,47,88),
+                bg_color=(80, 60, 129),
+                bg_color_hover=(69, 47, 88),
                 text="Start",
                 font=pg.font.Font("regular.ttf", 25),
                 text_color=(255, 255, 255),
-                text_color_hover=(200, 200, 200),  
+                text_color_hover=(200, 200, 200),
                 on_click=self.snake.start_game,
                 shadow_on_click=2,
-            )
+            ),
         ]
 
-    def handle_events(self, event:pg.event.Event):
+    def handle_events(self, event: pg.event.Event):
 
         for button in self.buttons:
             button.handle_events(event)
-    
+
     def update(self, screen):
-        
-        screen.fill((46,20,64))
-        
+
+        screen.fill((46, 20, 64))
+
         for button in self.buttons:
             button.draw(screen)
-            
+
         self.snake.update(screen)
 
 
 class Snake:
-
     def __init__(self, canvas):
 
         # DISPLAY
         self.canvas = canvas
-        self.canvas.fill((69,47,88))
+        self.canvas.fill((69, 47, 88))
         self.W, self.H = self.canvas.get_size()
 
         # SNAKE
@@ -171,7 +169,7 @@ class Snake:
 
         # VEL
         self.DEFAULT_VEL = 125
-        self.vel = copy(self.DEFAULT_VEL) # -> higher vel = slower
+        self.vel = copy(self.DEFAULT_VEL)  # -> higher vel = slower
 
         # TEXT
         self.font = pg.font.Font("regular.ttf", 25)
@@ -181,7 +179,12 @@ class Snake:
         self.double_vel()
 
     def move_direction(self, dir_):
-        if dir_ == "left" and self.direction == "right" or dir_ == "right" and self.direction == "left":
+        if (
+            dir_ == "left"
+            and self.direction == "right"
+            or dir_ == "right"
+            and self.direction == "left"
+        ):
             return
         if dir_ == "up" and self.direction == "down" or dir_ == "down" and self.direction == "up":
             return
@@ -205,14 +208,14 @@ class Snake:
             dx = self.size[0]
         else:
             dx = 0
-        
+
         if self.direction == "up":
             dy = -self.size[1]
         elif self.direction == "down":
             dy = self.size[1]
         else:
             dy = 0
-        self.body.append([last[0]+dx, last[1]+dy])
+        self.body.append([last[0] + dx, last[1] + dy])
 
     def new_fruit(self):
         rangex = range(0, self.W, self.size[0])
@@ -229,17 +232,17 @@ class Snake:
         elif self.direction == "right":
             self.body[0][0] += self.size[0]
         elif self.direction == "up":
-            self.body[0][1] -= self.size[1]   
+            self.body[0][1] -= self.size[1]
 
     def double_vel(self):
         if self.vel == self.DEFAULT_VEL:
             self.vel /= 1.5
         else:
-            self.vel *= 1.5 
+            self.vel *= 1.5
 
     def check_win(self):
         if not 0 <= self.body[0][0] < 500 or not 0 <= self.body[0][1] < 500:
-            return True 
+            return True
         pos = copy(self.body[0])
         for i in range(1, len(self.body)):
             if pos == self.body[i]:
@@ -247,7 +250,7 @@ class Snake:
 
         return False
 
-    def draw_text(self, surf, txt:str, color, pos):
+    def draw_text(self, surf, txt: str, color, pos):
         render = self.font.render(txt, True, color)
         rect = render.get_rect(center=pos)
         surf.blit(render, rect)
@@ -265,11 +268,11 @@ class Snake:
 
         if self.began_game:
             # fill background
-            self.canvas.fill((69,47,88))
+            self.canvas.fill((69, 47, 88))
 
             # draw body
             for body in self.body:
-                pg.draw.rect(self.canvas, (14,189,175), [*body, *self.size])
+                pg.draw.rect(self.canvas, (14, 189, 175), [*body, *self.size])
 
             # draw fruit
             for fruit in self.fruits:
@@ -284,7 +287,7 @@ class Snake:
             if self.cur_time - self.delay > self.vel:
                 self.move()
                 self.delay = self.cur_time
-        
+
         if not self.began_game and not self.lost:
             self.draw_text(self.canvas, "Press Start to begin", (255, 255, 255), (250, 250))
 
@@ -293,12 +296,21 @@ class Snake:
             self.began_game = False
 
         if self.lost:
-            self.draw_text(self.canvas, f"LOST WITH: {self.score}, press start", (255, 255, 255), (250,250))
-    
+            self.draw_text(
+                self.canvas, f"LOST WITH: {self.score}, press start", (255, 255, 255), (250, 250)
+            )
+
         if self.vel != self.DEFAULT_VEL:
-            self.draw_text(screen, "VelX1.5", (255, 255, 0), (235,75))
+            self.draw_text(screen, "VelX1.5", (255, 255, 0), (235, 75))
 
         # draw canvas on screen
-        self.draw_text(screen, "Double click to change velocity", (100, 100, 100), (1078//2+25, 768-15))
-        screen.blit(self.canvas, self.canvas.get_rect(center=(screen.get_width()//2+50, screen.get_height()//2)))
-        self.draw_text(screen, f"Score : {self.score}", (255, 255, 255), (screen.get_width()-100, 75))
+        self.draw_text(
+            screen, "Double click to change velocity", (100, 100, 100), (1078 // 2 + 25, 768 - 15)
+        )
+        screen.blit(
+            self.canvas,
+            self.canvas.get_rect(center=(screen.get_width() // 2 + 50, screen.get_height() // 2)),
+        )
+        self.draw_text(
+            screen, f"Score : {self.score}", (255, 255, 255), (screen.get_width() - 100, 75)
+        )

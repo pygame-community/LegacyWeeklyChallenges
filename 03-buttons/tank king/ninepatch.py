@@ -7,10 +7,10 @@ class NinePatchImage:
     def __init__(self, img, img_config):
         self.img = pygame.image.load(img)
         self.img_config = {}
-        with open(img_config, 'r') as f:
+        with open(img_config, "r") as f:
             self.img_config = json.loads(f.read())
-        self.x = self.img_config['x']
-        self.y = self.img_config['y']
+        self.x = self.img_config["x"]
+        self.y = self.img_config["y"]
         self.patches = {}
         self.img_surf: Union[pygame.Surface, None] = None
         self.get_patches()
@@ -33,22 +33,17 @@ class NinePatchImage:
         w = self.img.get_width()
         h = self.img.get_height()
         # extracting corners in order a, c, i, g
-        corner_rectangles = [
-            (0, 0, x, y),
-            (w - x, 0, x, y),
-            (w - x, h - y, x, y),
-            (0, h - y, x, y)
-        ]
-        order = ('a', 'c', 'i', 'g')
+        corner_rectangles = [(0, 0, x, y), (w - x, 0, x, y), (w - x, h - y, x, y), (0, h - y, x, y)]
+        order = ("a", "c", "i", "g")
         for i in order:
             self.patches[i] = corner_rectangles[order.index(i)]
         # extracting edges
-        self.patches['b'] = (x, 0, w - 2 * x, y)
-        self.patches['h'] = (x, h - y, w - 2 * x, y)
-        self.patches['d'] = (0, y, x, h - 2 * y)
-        self.patches['f'] = (w - x, y, x, h - 2 * y)
+        self.patches["b"] = (x, 0, w - 2 * x, y)
+        self.patches["h"] = (x, h - y, w - 2 * x, y)
+        self.patches["d"] = (0, y, x, h - 2 * y)
+        self.patches["f"] = (w - x, y, x, h - 2 * y)
         # extracting center
-        self.patches['e'] = (x, y, w - 2 * x, h - 2 * y)
+        self.patches["e"] = (x, y, w - 2 * x, h - 2 * y)
 
     def generate_img(self, width, height):
         self.img_surf = pygame.Surface((width, height), pygame.SRCALPHA)
@@ -56,13 +51,8 @@ class NinePatchImage:
         x = self.x
         y = self.y
         # corners in order a, c, i, g
-        corner_start = [
-            (0, 0),
-            (width - x, 0),
-            (width - x, height - y),
-            (0, height - y)
-        ]
-        order = ('a', 'c', 'i', 'g')
+        corner_start = [(0, 0), (width - x, 0), (width - x, height - y), (0, height - y)]
+        order = ("a", "c", "i", "g")
         for i in range(len(corner_start)):
             rect = self.patches[order[i]]
             self.img_surf.blit(self.img, corner_start[i], rect)
@@ -70,11 +60,8 @@ class NinePatchImage:
         # edges will be scaled along 1 direction
         # b and h along x axis
         # and d and f along y axis
-        corner_start = [
-            (x, 0),
-            (x, height - y)
-        ]
-        order = ('b', 'h')
+        corner_start = [(x, 0), (x, height - y)]
+        order = ("b", "h")
         for i in range(len(order)):
             rect = pygame.Rect(self.patches[order[i]])
             surf = pygame.Surface(rect.size, pygame.SRCALPHA)
@@ -82,11 +69,8 @@ class NinePatchImage:
             surf = pygame.transform.scale(surf, (width - 2 * x, surf.get_height()))
             self.img_surf.blit(surf, corner_start[i])
 
-        corner_start = [
-            (0, y),
-            (width - x, y)
-        ]
-        order = ('d', 'f')
+        corner_start = [(0, y), (width - x, y)]
+        order = ("d", "f")
         for i in range(len(order)):
             rect = pygame.Rect(self.patches[order[i]])
             surf = pygame.Surface(rect.size, pygame.SRCALPHA)
@@ -95,7 +79,7 @@ class NinePatchImage:
             self.img_surf.blit(surf, corner_start[i])
 
         # placing center
-        rect = pygame.Rect(self.patches['e'])
+        rect = pygame.Rect(self.patches["e"])
         surf = pygame.Surface(rect.size, pygame.SRCALPHA)
         surf.blit(self.img, (0, 0), rect)
         surf = pygame.transform.scale(surf, (abs(width - 2 * x), abs(height - 2 * y)))

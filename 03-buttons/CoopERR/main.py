@@ -45,8 +45,18 @@ BACKGROUND = (52, 143, 235)
 # There are many other ways to do it, but I strongly suggest to
 # at least use a class, so that it is more reusable.
 
+
 class Button:
-    def __init__(self, position, size, content=None, sound=None, colour=(255,255,255), icon=None, border_radius=0):
+    def __init__(
+        self,
+        position,
+        size,
+        content=None,
+        sound=None,
+        colour=(255, 255, 255),
+        icon=None,
+        border_radius=0,
+    ):
         self.position = position
         self.size = size
         self.content = content
@@ -63,13 +73,13 @@ class Button:
 
     def get_highlight_colour(self):
         HIGHLIGHT_FACTOR = 50
-        l = [y+HIGHLIGHT_FACTOR for y in self.colour]
+        l = [y + HIGHLIGHT_FACTOR for y in self.colour]
         m = [255 if y > 255 else y for y in l]
         return tuple(m)
 
     def create_button(self):
-        button = pygame.Surface((self.size[0]+10, self.size[1]+10)).convert_alpha()
-        button.fill((0,0,0,0))
+        button = pygame.Surface((self.size[0] + 10, self.size[1] + 10)).convert_alpha()
+        button.fill((0, 0, 0, 0))
 
         return button
 
@@ -87,40 +97,84 @@ class Button:
         else:
             self.clicked = False
             self.double_clicked = False
-            
+
     def draw(self, screen: pygame.Surface):
-        self.button = pygame.Surface((self.size[0]+10, self.size[1]+10)).convert_alpha()
-        self.button.fill((0,0,0,0))
+        self.button = pygame.Surface((self.size[0] + 10, self.size[1] + 10)).convert_alpha()
+        self.button.fill((0, 0, 0, 0))
         if self.highlight:
             colour = self.get_highlight_colour()
         else:
             colour = self.colour
 
-        size = 3 #shadow
+        size = 3  # shadow
         if self.clicked:
-            pygame.draw.rect(self.button, (0,0,0,255), (size,size,self.size[0],self.size[1]), border_radius=self.border_radius)
-            pygame.draw.rect(self.button, colour, (size,size,self.size[0]+size,self.size[1]+size), border_radius=self.border_radius)
+            pygame.draw.rect(
+                self.button,
+                (0, 0, 0, 255),
+                (size, size, self.size[0], self.size[1]),
+                border_radius=self.border_radius,
+            )
+            pygame.draw.rect(
+                self.button,
+                colour,
+                (size, size, self.size[0] + size, self.size[1] + size),
+                border_radius=self.border_radius,
+            )
         else:
-            pygame.draw.rect(self.button, (0,0,0,255), (size,size,self.size[0],self.size[1]), border_radius=self.border_radius)
-            pygame.draw.rect(self.button, colour, (0,0,self.size[0],self.size[1]), border_radius=self.border_radius)
+            pygame.draw.rect(
+                self.button,
+                (0, 0, 0, 255),
+                (size, size, self.size[0], self.size[1]),
+                border_radius=self.border_radius,
+            )
+            pygame.draw.rect(
+                self.button,
+                colour,
+                (0, 0, self.size[0], self.size[1]),
+                border_radius=self.border_radius,
+            )
 
         screen.blit(self.button, self.position)
         if self.content:
             t = text(self.content, "black")
             t_rect = t.get_rect()
             if self.clicked:
-                screen.blit(t, (self.rect.centerx - t_rect.centerx + size - 2, self.rect.centery - t_rect.centery + size - 2))
+                screen.blit(
+                    t,
+                    (
+                        self.rect.centerx - t_rect.centerx + size - 2,
+                        self.rect.centery - t_rect.centery + size - 2,
+                    ),
+                )
                 if self.icon:
-                    screen.blit(self.icon, (self.rect.centerx - t_rect.centerx + size - 32, self.rect.centery - t_rect.centery + size - 8))
+                    screen.blit(
+                        self.icon,
+                        (
+                            self.rect.centerx - t_rect.centerx + size - 32,
+                            self.rect.centery - t_rect.centery + size - 8,
+                        ),
+                    )
             else:
-                screen.blit(t, (self.rect.centerx - t_rect.centerx - 2, self.rect.centery - t_rect.centery - 2))
+                screen.blit(
+                    t,
+                    (
+                        self.rect.centerx - t_rect.centerx - 2,
+                        self.rect.centery - t_rect.centery - 2,
+                    ),
+                )
                 if self.icon:
-                    screen.blit(self.icon, (self.rect.centerx - t_rect.centerx- 32, self.rect.centery - t_rect.centery - 8))
+                    screen.blit(
+                        self.icon,
+                        (
+                            self.rect.centerx - t_rect.centerx - 32,
+                            self.rect.centery - t_rect.centery - 8,
+                        ),
+                    )
 
 
 def mainloop():
     pygame.init()
-    
+
     path3 = SUBMISSION_DIR / "assets" / "icons"
     icons = []
 
@@ -129,20 +183,34 @@ def mainloop():
         icons.append(image)
 
     buttons = [
-        Button((50, 100), (100, 100), colour=(0,0,255), content="exit", icon=icons[0], border_radius=20 ),
-        Button((50, 300), (200, 100), colour=(150,50,255), content="start", icon=icons[1], border_radius=50 ),
-        Button((50, 500), (80, 40), colour=(120,120,255), content="ugh", border_radius=5 ),
-        Button((150, 500), (70, 200), colour=(0,255,0), content="weird", border_radius=2 ),
-        Button((250, 500), (50, 50), colour=(20,175,75), content="?", border_radius=100 )
+        Button(
+            (50, 100),
+            (100, 100),
+            colour=(0, 0, 255),
+            content="exit",
+            icon=icons[0],
+            border_radius=20,
+        ),
+        Button(
+            (50, 300),
+            (200, 100),
+            colour=(150, 50, 255),
+            content="start",
+            icon=icons[1],
+            border_radius=50,
+        ),
+        Button((50, 500), (80, 40), colour=(120, 120, 255), content="ugh", border_radius=5),
+        Button((150, 500), (70, 200), colour=(0, 255, 0), content="weird", border_radius=2),
+        Button((250, 500), (50, 50), colour=(20, 175, 75), content="?", border_radius=100)
         # Define more buttons here when you have one working!
         # With different styles, behavior, or whatever cool stuff you made :D
     ]
 
     path = SUBMISSION_DIR / "assets" / "click"
-    click_achievement = Achievement((0,0), path)
+    click_achievement = Achievement((0, 0), path)
 
     path2 = SUBMISSION_DIR / "assets" / "doubleclick"
-    doubleclick_achievement = Achievement((0,0), path2)
+    doubleclick_achievement = Achievement((0, 0), path2)
 
     timer = 0
     dt = 0
@@ -172,12 +240,11 @@ def mainloop():
             if button.clicked:
                 click_achievement.play = True
                 doubleclick_achievement.play = False
-                
+
             if button.double_clicked:
                 doubleclick_achievement.play = True
                 click_achievement.play = False
 
-        
         if click_achievement.play:
             click_achievement.sprites.update()
             click_achievement.sprites.draw(screen)
@@ -193,7 +260,6 @@ def mainloop():
         if timer >= 0.2:
             timer = 0
         dt = clock.tick(60) / 1000
-
 
 
 if __name__ == "__main__":
