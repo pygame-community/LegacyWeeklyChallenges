@@ -1,4 +1,6 @@
 import pygame as pg
+
+from .utils import SUBMISSION_DIR
 from .buttons import Button
 import random
 from copy import copy
@@ -54,7 +56,7 @@ class App:
                 bg_color=(80, 60, 129),
                 bg_color_hover=(69, 47, 88),
                 text="UP",
-                font=pg.font.Font("regular.ttf", 25),
+                font=pg.font.Font(SUBMISSION_DIR / "regular.ttf", 25),
                 text_color=(255, 255, 255),
                 text_color_hover=(200, 200, 200),
                 on_click=self.snake.move_direction,
@@ -70,7 +72,7 @@ class App:
                 bg_color=(80, 60, 129),
                 bg_color_hover=(69, 47, 88),
                 text="DOWN",
-                font=pg.font.Font("regular.ttf", 25),
+                font=pg.font.Font(SUBMISSION_DIR / "regular.ttf", 25),
                 text_color=(255, 255, 255),
                 text_color_hover=(200, 200, 200),
                 on_click=self.snake.move_direction,
@@ -86,7 +88,7 @@ class App:
                 bg_color=(80, 60, 129),
                 bg_color_hover=(69, 47, 88),
                 text="LEFT",
-                font=pg.font.Font("regular.ttf", 25),
+                font=pg.font.Font(SUBMISSION_DIR / "regular.ttf", 25),
                 text_color=(255, 255, 255),
                 text_color_hover=(200, 200, 200),
                 on_click=self.snake.move_direction,
@@ -102,7 +104,7 @@ class App:
                 bg_color=(80, 60, 129),
                 bg_color_hover=(69, 47, 88),
                 text="RIGHT",
-                font=pg.font.Font("regular.ttf", 25),
+                font=pg.font.Font(SUBMISSION_DIR / "regular.ttf", 25),
                 text_color=(255, 255, 255),
                 text_color_hover=(200, 200, 200),
                 on_click=self.snake.move_direction,
@@ -118,7 +120,7 @@ class App:
                 bg_color=(80, 60, 129),
                 bg_color_hover=(69, 47, 88),
                 text="Start",
-                font=pg.font.Font("regular.ttf", 25),
+                font=pg.font.Font(SUBMISSION_DIR / "regular.ttf", 25),
                 text_color=(255, 255, 255),
                 text_color_hover=(200, 200, 200),
                 on_click=self.snake.start_game,
@@ -172,7 +174,7 @@ class Snake:
         self.vel = copy(self.DEFAULT_VEL)  # -> higher vel = slower
 
         # TEXT
-        self.font = pg.font.Font("regular.ttf", 25)
+        self.font = pg.font.Font(SUBMISSION_DIR / "regular.ttf", 25)
 
     def db_click(self, dir_):
         self.move_direction(dir_)
