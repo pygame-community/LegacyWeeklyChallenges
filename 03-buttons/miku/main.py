@@ -83,8 +83,11 @@ def mainloop():
     global score, time, sounds, buttons, part
     part = 0
     score, time = 0, 600
-    sounds = (pygame.mixer.Sound("btn_sound.mp3"), pygame.mixer.Sound("btn_sound1.mp3"))
-    music = pygame.mixer.music.load("cute_music.mp3")
+    sounds = (
+        pygame.mixer.Sound(SUBMISSION_DIR / "btn_sound.wav"),
+        pygame.mixer.Sound(SUBMISSION_DIR / "btn_sound1.wav"),
+    )
+    pygame.mixer.music.load(SUBMISSION_DIR / "cute_music.ogg")
     buttons = [
         SimpleButton(
             pygame.Rect(0, 0, 300, 120),

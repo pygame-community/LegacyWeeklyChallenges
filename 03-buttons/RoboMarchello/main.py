@@ -351,7 +351,7 @@ class perlinButton(Button):
                 self.crntCol -= 1.75
 
         mask = pygame.mask.from_threshold(
-            self.perlinNoise, (0, 0, 0), threshold=(self.crntCol, self.crntCol, self.crntCol, 255)
+            self.perlinNoise, (0, 0, 0), (self.crntCol, self.crntCol, self.crntCol, 255)
         )
         maskSurf = mask.to_surface()
         maskSurf.set_colorkey((255, 255, 255))
