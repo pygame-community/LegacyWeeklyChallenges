@@ -33,7 +33,7 @@ class Entry:
     # Metadata
     discord_tag: str
     display_name: str
-    acheivements: List[str]
+    achievements: List[str]
     min_python_version: Tuple[int, int]
     dependencies: List[str]
 
@@ -49,7 +49,7 @@ class Entry:
 
         self.discord_tag = data.discord_tag
         self.display_name = data.display_name
-        self.acheivements = data.acheivements
+        self.achievements = data.achievements
         self.min_python_version = data.min_python_version
         self.dependencies = data.dependencies
 

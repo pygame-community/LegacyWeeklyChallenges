@@ -1,7 +1,7 @@
 class Metadata:
     discord_tag = "CoopERR#2213"
     display_name = "CoopERR"
-    acheivements = [
+    achievements = [
         "Casual",
         # "Ambitious",
         "Adventurous",

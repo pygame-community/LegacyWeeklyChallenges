@@ -1,7 +1,7 @@
 class Metadata:
     discord_tag = "RoboMarchello#0570"
     display_name = "RoboMarchello"
-    acheivements = [
+    achievements = [
         "Casual",
         "Ambitious",
         "Adventurous",

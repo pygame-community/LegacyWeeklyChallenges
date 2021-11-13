@@ -1,7 +1,7 @@
 class Metadata:
     discord_tag = 'await ctx.send("Miku")#7006'
     display_name = "miku"
-    acheivements = [
+    achievements = [
         "Casual",
         # "Ambitious",
         # "Adventurous",
