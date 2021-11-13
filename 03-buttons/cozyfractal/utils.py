@@ -1,6 +1,5 @@
 from functools import lru_cache
 from pathlib import Path
-from pprint import pprint
 from typing import Tuple
 
 import pygame
@@ -20,12 +19,13 @@ __all__ = [
 ]
 
 SUBMISSION_DIR = Path(__file__).parent
+GLOBAL_ASSETS = SUBMISSION_DIR.parent / "assets"
 ASSETS = SUBMISSION_DIR / "assets"
 SCREEN = pygame.Rect(0, 0, *SIZE)
 
 
 @lru_cache()
-def load_image(name: str, scale=1, alpha=True, base: Path = ASSETS):
+def load_image(name: str, scale=1, alpha=True):
     """Load an image from the global assets folder given its name.
 
     If [base] is given, load a n image from this folder instead.
@@ -41,7 +41,12 @@ def load_image(name: str, scale=1, alpha=True, base: Path = ASSETS):
     .copy() it first.
     """
 
-    image = pygame.image.load(base / f"{name}.png")
+    try:
+        print(ASSETS / f"{name}.png")
+        image = pygame.image.load(ASSETS / f"{name}.png")
+    except (TypeError, FileNotFoundError):
+        image = pygame.image.load(GLOBAL_ASSETS / f"{name}.png")
+
     if scale != 1:
         new_size = int(image.get_width() * scale), int(image.get_height() * scale)
         image = pygame.transform.scale(image, new_size)
@@ -104,13 +109,13 @@ def ninepatch(surf: pygame.Surface, size: Tuple[int, int]):
     w = surf.get_width() - 2
     h = surf.get_height() - 2
 
+    assert w <= size[0] and h <= size[1], "Cannot downscale ninepatches."
+
     top_guide = surf.subsurface(1, 0, w, 1).get_bounding_rect()
     left_guide = surf.subsurface(0, 1, 1, h).get_bounding_rect()
     surf = surf.subsurface((1, 1, w, h))
-    print(top_guide, left_guide)
 
     def get_rects(center_rect, total_size):
-        print(center_rect)
         center_rect = pygame.Rect(center_rect)
         left = center_rect.left
         right = center_rect.right
@@ -145,7 +150,6 @@ def ninepatch(surf: pygame.Surface, size: Tuple[int, int]):
     out = pygame.Surface(size, pygame.SRCALPHA)
     out.fill((0, 0, 0, 0))
     for input, output in zip(in_rects, out_rects):
-        print(input, output)
         s = surf.subsurface(input)
         if input.size != output.size:
             s = pygame.transform.scale(s, output.size)

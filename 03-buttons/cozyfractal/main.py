@@ -25,9 +25,9 @@ __package__ = "03-buttons." + Path(__file__).absolute().parent.name
 # Metadata about your submission
 __author__ = "CozyFractal#6978"  # Put yours!
 __achievements__ = [  # Uncomment the ones you've done
-    # "Casual",
-    # "Ambitious",
-    # "Adventurous",
+    "Casual",
+    "Ambitious",
+    "Adventurous",
 ]
 
 import pygame
@@ -37,7 +37,7 @@ import pygame
 # noinspection PyPackages
 from .utils import *
 
-BACKGROUND = 0xFFF0F2
+BACKGROUND = 0x232426
 ButtonCallback = Callable[["Button"], None]
 
 
@@ -120,6 +120,7 @@ class Button:
         self._hovered = False
         self.last_click = -1
         self.last_click_pos = (0, 0)
+        self.last_click_end = -1
         self.is_pressed = False
         # Only used when there is a double click
         self.callback_called = True
@@ -146,6 +147,7 @@ class Button:
             if event.button == 1:
                 if self.rect.collidepoint(event.pos):
                     self.click(event.pos)
+                    return True
         elif event.type == pygame.MOUSEBUTTONUP:
             if event.button == 1:
                 self.is_pressed = False
@@ -192,6 +194,7 @@ class Button:
             pygame.Vector2(self.last_click_pos) - self.rect.topleft,
             radius,
         )
+        circle_surface.set_colorkey(0)
         circle_surface.set_alpha(42)
 
         return circle_surface
@@ -203,7 +206,12 @@ def mainloop():
     dark_theme = False
     no_style = ButtonStyle("red", "white", load_image("x"))
     yes_style = ButtonStyle("green", "white", load_image("check"))
-    click_me_style = NinePatchStyle(load_image("button"))
+    plus_style = ButtonStyle(bg_color="#dddddd", icon=load_image("plus"), icon_padding=0)
+    minus_style = ButtonStyle(bg_color="#dddddd", icon=load_image("minus"), icon_padding=0)
+
+    scale = 2
+    bsurf = load_image("button", scale)
+    click_me_style = NinePatchStyle(bsurf.subsurface(bsurf.get_rect().inflate(-2, -2)))
 
     def callback(button):
         if button.style is no_style:
@@ -221,10 +229,29 @@ def mainloop():
         for style in [no_style, yes_style]:
             style.bg_color = pygame.Color(42, 42, 42) if dark_theme else pygame.Color(230, 230, 230)
 
+    def change_size(amount, _):
+        b = buttons[0]
+        if (
+            b.rect.width + amount < b.style.background.get_width() - 2
+            or b.rect.height + amount < b.style.background.get_height() - 2
+        ):
+            return
+        b.rect.inflate_ip(amount, amount)
+
+    def change_bg(*args):
+        global BACKGROUND
+        BACKGROUND = 0xFFFFFF - BACKGROUND
+
+    r = pygame.Rect(0, 0, 42, 42)
+    r.bottomright = SIZE[0] - 5, SIZE[1] - 5
     buttons = [
-        Button((SIZE[0] / 2 - 100, SIZE[1] / 2 - 30, 200, 100), "Click me!", click_me_style, print),
+        Button(
+            (SIZE[0] / 2 - 100, SIZE[1] / 2 - 30, 200, 100), "Click me!", click_me_style, change_bg
+        ),
         Button((20, 20, 100, 50), "yes", yes_style, callback, double_click),
         Button((200, 20, 100, 50), "yes", yes_style, callback, double_click),
+        Button(r, "", plus_style, partial(change_size, 10)),
+        Button(r.move(-r.width - 5, 0), "", minus_style, partial(change_size, -10)),
     ]
     pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
 
@@ -235,8 +262,10 @@ def mainloop():
             if event.type == pygame.QUIT:
                 return
 
-            for button in buttons:
-                button.handle_event(event)
+            # Events for the buttons in the foreground first
+            for button in reversed(buttons):
+                if button.handle_event(event):
+                    break
 
         for button in buttons:
             button.logic()
