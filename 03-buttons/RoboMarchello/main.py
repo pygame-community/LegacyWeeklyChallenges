@@ -18,14 +18,6 @@ __package__ = "03-buttons." + Path(__file__).absolute().parent.name
 
 # ---- Recommended: don't modify anything above this line ---- #
 
-# Metadata about your submission
-__author__ = "RoboMarchello#0570"  # Put yours!
-__achievements__ = [  # Uncomment the ones you've done
-    "Casual",
-    "Ambitious",
-    "Adventurous",
-]
-
 import pygame, random
 
 # To import the modules in yourname/, you need to use relative imports,
