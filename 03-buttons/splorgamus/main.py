@@ -11,14 +11,6 @@ except ImportError:
 
 __package__ = "03-buttons." + Path(__file__).absolute().parent.name
 
-
-__author__ = "splorgamus#0257"
-__achievements__ = [  # Uncomment the ones you've done
-    "Casual",
-    "Ambitious",
-    # "Adventurous",
-]
-
 import pygame
 
 pygame.init()
