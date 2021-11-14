@@ -22,14 +22,6 @@ __package__ = "03-buttons." + Path(__file__).absolute().parent.name
 
 from .achievement import *
 
-# Metadata about your submission
-__author__ = "CoopERR"  # Put yours!
-__achievements__ = [  # Uncomment the ones you've done
-    "Casual",
-    "Ambitious",
-    # "Adventurous",
-]
-
 import pygame
 
 # To import the modules in yourname/, you need to use relative imports,
