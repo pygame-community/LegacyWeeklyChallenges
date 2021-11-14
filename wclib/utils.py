@@ -5,6 +5,8 @@ import pygame
 
 from wclib.constants import ASSETS
 
+__all__ = ["font", "text", "load_image", "clamp", "overlay", "auto_crop", "chrange"]
+
 
 @lru_cache()
 def font(size=20, name=None):

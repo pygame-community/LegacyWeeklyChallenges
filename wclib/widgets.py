@@ -1,6 +1,7 @@
 import sys
 import time
 import traceback
+from itertools import accumulate
 from threading import Thread
 from typing import Optional, Callable
 
@@ -8,7 +9,7 @@ import pygame
 import pygame.gfxdraw
 
 from wclib.core import *
-from wclib.utils import text, auto_crop
+from wclib.utils import *
 from wclib.constants import *
 
 __all__ = [
@@ -172,6 +173,36 @@ class BigButton(Widget):
 class EntryButton(BigButton):
     def __init__(self, entry: Entry, callback, position):
         super().__init__(entry, entry.display_name, callback, position)
+
+    def draw(self, screen):
+        super().draw(screen)
+
+        stars = self.stars()
+        screen.blit(stars, stars.get_rect(midtop=self.rect.midtop).move(0, 8))
+
+    def stars(self):
+        all_stars = [
+            self.star(color)
+            for difficulty, color in DIFFICULY_COLOR.items()
+            if difficulty in self.entry.achievements
+        ]
+
+        if not all_stars:
+            return pygame.Surface((0, 0))
+
+        padding = 4
+        # x positions of each star on the final image
+        xs = list(accumulate((s.get_width() + padding for s in all_stars), initial=0))
+        height = all_stars[0].get_height()  # they all have the same height
+        out = pygame.Surface((xs[-1] - padding, height), pygame.SRCALPHA)
+        for x, star in zip(xs, all_stars):
+            out.blit(star, (x, 0))
+
+        return out
+
+    def star(self, color):
+        s = load_image("star")
+        return overlay(s, color)
 
 
 class ChallengeButton(BigButton):

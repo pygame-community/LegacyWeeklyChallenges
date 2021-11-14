@@ -4,7 +4,7 @@ class Metadata:
     achievements = [
         "Casual",
         "Ambitious",
-        # "Adventurous",
+        "Adventurous",
     ]
     min_python_version = (3, 6)
     dependencies = [

@@ -3,8 +3,8 @@ class Metadata:
     display_name = "miku"
     achievements = [
         "Casual",
-        # "Ambitious",
-        # "Adventurous",
+        "Ambitious",
+        "Adventurous",
     ]
     min_python_version = (3, 6)
     dependencies = ["numpy"]
