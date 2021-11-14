@@ -1,9 +1,11 @@
 import sys
+import time
 import traceback
 from threading import Thread
 from typing import Optional, Callable
 
 import pygame
+import pygame.gfxdraw
 
 from wclib import SIZE
 from wclib.core import *
@@ -168,6 +170,7 @@ class EmbeddedApp(Widget):
         self.scaled_virtual_screen: Optional[pygame.Surface] = None
 
         self.mainloop = None
+        self.exited = False
 
         self.events_storage = []
 
@@ -187,7 +190,8 @@ class EmbeddedApp(Widget):
                 next(self.mainloop)
             self.mainloop.send((self.virtual_screen, events))
         except StopIteration:
-            pass
+            # The app just quitted.
+            self.mainloop = self.app_exited_mainloop()
         except TypeError as e:
             # Yuck!
             if e.args == ("can't send non-None value to a just-started generator",):
@@ -262,6 +266,8 @@ class EmbeddedApp(Widget):
         else:
             screen.blit(self.virtual_screen, self.rect)
 
+    # Different states of the widget.
+
     def install_mainloop(self):
         w, h = SIZE
         install_rect = pygame.Rect(0, 0, 600, 100)
@@ -286,10 +292,7 @@ class EmbeddedApp(Widget):
                     and not installing
                 ):
                     installing = True
-                    install_thread = Thread(
-                        target=install_missing_requirements,
-                        args=(self.challenge, self.entry),
-                    )
+                    install_thread = Thread(target=self.entry.install_missing_dependencies)
                     install_thread.start()
 
             screen.fill("#272822")
@@ -350,6 +353,21 @@ class EmbeddedApp(Widget):
         while True:
             # Do nothing.
             screen, events = yield
+
+    def app_exited_mainloop(self):
+        screen, events = yield
+
+        pygame.gfxdraw.box(screen, screen.get_rect(), (0, 0, 0, 100))
+        t = text(f"This app exited gracefully.", "#F6EDD4", 40)
+        screen.blit(t, t.get_rect(center=screen.get_rect().center))
+
+        start = time.monotonic()
+        while True:
+            # Do nothing.
+            screen, events = yield
+
+            if time.monotonic() - start > 1:
+                self.exited = True
 
 
 class ScrollableWidget(Container):

@@ -194,6 +194,8 @@ class EntryViewState(State):
 
     def logic(self):
         self.embedded_app.logic()
+        if self.embedded_app.exited:
+            self.app.states.pop()
 
     def draw(self, screen):
         self.embedded_app.draw(screen)
