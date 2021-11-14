@@ -7,10 +7,21 @@ from typing import Optional, Callable
 import pygame
 import pygame.gfxdraw
 
-from wclib import SIZE
 from wclib.core import *
-from wclib.utils import text
-from wclib.constants import ACCENT, BACKGROUND
+from wclib.utils import text, auto_crop
+from wclib.constants import *
+
+__all__ = [
+    "ImageWidget",
+    "BigButton",
+    "EntryButton",
+    "ChallengeButton",
+    "Widget",
+    "Container",
+    "ScrollableWidget",
+    "IconButton",
+    "EmbeddedApp",
+]
 
 
 class Widget:
@@ -108,15 +119,16 @@ class IconButton(Widget):
 
 
 class BigButton(Widget):
+    """Button to select an entry or challenge."""
+
     NAME_HEIGHT = 32
     SIZE = (SIZE[0] // 5, SIZE[1] // 5)
     TOTAL_SIZE = (SIZE[0], SIZE[1] + NAME_HEIGHT)
 
-    def __init__(self, challenge, entry, callback, position):
+    def __init__(self, entry, title, callback, position):
         super().__init__(position, self.TOTAL_SIZE)
-        # If entry is None, it is a button to select a challenge.
-        self.title = entry or get_challenge_data(challenge).name
-        self.entry = Entry(challenge, entry or "base")
+        self.entry = entry
+        self.title = title
         self.callback = callback
         self.mouse_over = False
 
@@ -155,6 +167,29 @@ class BigButton(Widget):
     def move_to(self, new_pos):
         self.position = pygame.Vector2(new_pos)
         self.app.position = self.position
+
+
+class EntryButton(BigButton):
+    def __init__(self, entry: Entry, callback, position):
+        super().__init__(entry, entry.display_name, callback, position)
+
+
+class ChallengeButton(BigButton):
+    def __init__(self, challenge, callback, position):
+        self.challenge_data = get_challenge_data(challenge)
+        super().__init__(Entry(challenge, "base"), self.challenge_data.name, callback, position)
+
+    def draw(self, screen):
+        super().draw(screen)
+
+        nb = self.challenge_data.entries_nb - 1
+        t = auto_crop(text(nb, GREY))
+        r = t.get_rect(bottomright=self.rect.bottomright)
+        r.move_ip(-4, -4)
+        r.inflate_ip(8, 8)
+
+        # pygame.gfxdraw.box(screen, r, (255, 255, 255, 10))
+        screen.blit(t, t.get_rect(center=r.center))
 
 
 class EmbeddedApp(Widget):
@@ -357,7 +392,7 @@ class EmbeddedApp(Widget):
     def app_exited_mainloop(self):
         screen, events = yield
 
-        pygame.gfxdraw.box(screen, screen.get_rect(), (0, 0, 0, 100))
+        pygame.gfxdraw.box(screen, screen.get_rect(), OVERLAY)
         t = text(f"This app exited gracefully.", "#F6EDD4", 40)
         screen.blit(t, t.get_rect(center=screen.get_rect().center))
 

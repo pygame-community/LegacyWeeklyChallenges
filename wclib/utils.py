@@ -1,4 +1,5 @@
 from functools import lru_cache
+from typing import Tuple
 
 import pygame
 
@@ -52,3 +53,25 @@ def overlay(image: pygame.Surface, color, alpha=255):
     img.blit(overlay, (0, 0))
 
     return img
+
+
+def auto_crop(surf: pygame.Surface):
+    """Return the smallest subsurface of an image that contains all the visible pixels."""
+
+    rect = surf.get_bounding_rect()
+    return surf.subsurface(rect)
+
+
+def chrange(
+    x: float,
+    initial_range: Tuple[float, float],
+    target_range: Tuple[float, float],
+    power=1,
+    flipped=False,
+):
+    """Change the range of a number by mapping the initial_range to target_range using a linear transformation."""
+    normalised = (x - initial_range[0]) / (initial_range[1] - initial_range[0])
+    normalised **= power
+    if flipped:
+        normalised = 1 - normalised
+    return normalised * (target_range[1] - target_range[0]) + target_range[0]
