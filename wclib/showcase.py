@@ -162,6 +162,14 @@ class EntrySelectState(MenuState):
 
         self.toggle_sort(sort_button)
 
+    def handle_event(self, event):
+        if super().handle_event(event):
+            return True
+
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_l:
+                self.print_score_update_command()
+
     def toggle_sort(self, button: IconButton):
         buttons = [w for w in self.scroll_area if isinstance(w, BigButton)]
 
@@ -180,6 +188,15 @@ class EntrySelectState(MenuState):
 
     def button_click(self, entry):
         self.app.states.append(EntryViewState(self.app, entry))
+
+    def print_score_update_command(self):
+        print("pg!events wc update")
+        for entry in get_entries(self.challenge):
+            if entry.entry != "base":
+                points = tuple(
+                    [3 - i for i, diff in enumerate(DIFFICULTIES) if diff in entry.achievements]
+                )
+                print(f"( <@{entry.discord_tag}> {points} )")
 
 
 class EntryViewState(State):
