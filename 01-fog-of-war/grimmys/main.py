@@ -20,14 +20,6 @@ __package__ = "01-fog-of-war." + Path(__file__).parent.name
 
 # ---- Recommended: don't modify anything above this line ---- #
 
-# Metadata about your submission
-__author__ = "Grimmys#0373"
-__achievements__ = [  # Uncomment the ones you've done
-    "Casual",
-    "Ambitious",
-    "Adventurous",
-]
-
 from operator import attrgetter
 import pygame
 
