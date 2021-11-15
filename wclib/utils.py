@@ -5,7 +5,7 @@ import pygame
 
 from wclib.constants import ASSETS
 
-__all__ = ["font", "text", "load_image", "clamp", "overlay", "auto_crop", "chrange"]
+__all__ = ["font", "text", "load_image", "clamp", "overlay", "auto_crop", "chrange", "star"]
 
 
 @lru_cache()
@@ -77,3 +77,29 @@ def chrange(
     if flipped:
         normalised = 1 - normalised
     return normalised * (target_range[1] - target_range[0]) + target_range[0]
+
+
+def outline(surf: pygame.Surface, color=(255, 255, 255), threshold=127):
+    """Create an outline on the surface of the given color."""
+
+    mask = pygame.mask.from_surface(surf, threshold)
+    outline = mask.outline()
+    output = pygame.Surface((surf.get_width() + 2, surf.get_height() + 2), pygame.SRCALPHA)
+
+    for x, y in outline:
+        for dx, dy in ((0, 1), (1, 0), (-1, 0), (0, -1)):
+            output.set_at((x + dx + 1, y + dy + 1), color)
+
+    output.blit(surf, (1, 1))
+    # output.set_colorkey(0)
+
+    return output
+
+
+@lru_cache()
+def star(color):
+    s = auto_crop(load_image("star")).copy()
+    # s = pygame.transform.scale(s, (32, 32))
+
+    s.fill(color, special_flags=pygame.BLEND_RGB_MULT)
+    return outline(outline(s, "white"), "black")

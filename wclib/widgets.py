@@ -178,11 +178,12 @@ class EntryButton(BigButton):
         super().draw(screen)
 
         stars = self.stars()
-        screen.blit(stars, stars.get_rect(midtop=self.rect.midtop).move(0, 8))
+        r = stars.get_rect(midright=self.rect.topleft + pygame.Vector2(self.SIZE)).move(-4, -6)
+        screen.blit(stars, r)
 
     def stars(self):
         all_stars = [
-            self.star(color)
+            star(color)
             for difficulty, color in DIFFICULY_COLOR.items()
             if difficulty in self.entry.achievements
         ]
@@ -190,19 +191,15 @@ class EntryButton(BigButton):
         if not all_stars:
             return pygame.Surface((0, 0))
 
-        padding = 4
+        padding = -10
         # x positions of each star on the final image
         xs = list(accumulate((s.get_width() + padding for s in all_stars), initial=0))
         height = all_stars[0].get_height()  # they all have the same height
         out = pygame.Surface((xs[-1] - padding, height), pygame.SRCALPHA)
-        for x, star in zip(xs, all_stars):
-            out.blit(star, (x, 0))
+        for x, s in zip(xs, all_stars):
+            out.blit(s, (x, 0))
 
         return out
-
-    def star(self, color):
-        s = load_image("star")
-        return overlay(s, color)
 
 
 class ChallengeButton(BigButton):
