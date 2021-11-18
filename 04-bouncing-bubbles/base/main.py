@@ -1,25 +1,14 @@
 import sys
 from dataclasses import dataclass
 from pathlib import Path
-
-# This line tells python how to handle the relative imports
-# when you run this file directly.
-__package__ = "04-bouncing-bubbles." + Path(__file__).absolute().parent.name
-
-# ---- Recommended: don't modify anything above this line ---- #
-
-# Metadata about your submission
-__author__ = "CozyFractal#0042"  # Put yours!
-__achievements__ = [  # Uncomment the ones you've done
-    # "Casual",
-    # "Ambitious",
-    # "Adventurous",
-]
-
 from random import gauss, uniform, randint
 from typing import List
 
 import pygame
+
+# This line tells python how to handle the relative imports
+# when you run this file directly. Don't modify this line.
+__package__ = "04-bouncing-bubbles." + Path(__file__).absolute().parent.name
 
 # To import the modules in yourname/, you need to use relative imports,
 # otherwise your project will not be compatible with the showcase.
@@ -40,23 +29,24 @@ class Collision:
     second: "Bubble"
 
 
-# This is a suggestion of the interface of the button class.
-# There are many other ways to do it, but I strongly suggest to
-# at least use a class, so that it is more reusable.
 class Bubble:
-    def __init__(self):  # Just an example!
+    def __init__(self):
         self.radius = 25
         # For variable size, uncomment the next line
-        # But then you also need to take the size of the bubbles in the collisions!
         # self.radius = int(gauss(25, 5))
+        # But then you also need to take the size of the bubbles in the collisions!
+        # Also, we would expect that larger bubbles are heavier and thus behave like they are.
+
         self.position = pygame.Vector2(
             randint(self.radius, SIZE[0] - self.radius),
             randint(self.radius, SIZE[1] - self.radius),
         )
 
+        # Set a random direction and a speed of around 3.
         self.velocity = pygame.Vector2()
         self.velocity.from_polar((gauss(3, 0.5), uniform(0, 360)))
 
+        # Pick a random color with high saturation and value.
         self.color = pygame.Color(0)
         self.color.hsva = uniform(0, 360), 80, 80, 100
 
