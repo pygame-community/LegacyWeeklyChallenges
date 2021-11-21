@@ -12,35 +12,26 @@ __package__ = "04-bouncing-bubbles." + Path(__file__).absolute().parent.name
 
 # To import the modules in yourname/, you need to use relative imports,
 # otherwise your project will not be compatible with the showcase.
-# noinspection PyPackages
 from .utils import *
 
 BACKGROUND = 0x0F1012
 NB_BUBBLES = 42
 
 
-@dataclass
-class Collision:
-    """ """
-
-    center: pygame.Vector2
-    normal: pygame.Vector2
-    first: "Bubble"
-    second: "Bubble"
-
-
 class Bubble:
-    def __init__(self):
-        self.radius = 25
-        # For variable size, uncomment the next line
-        # self.radius = int(gauss(25, 5))
-        # But then you also need to take the size of the bubbles in the collisions!
-        # Also, we would expect that larger bubbles are heavier and thus behave like they are.
+    MAX_VELOCITY = 7
 
-        self.position = pygame.Vector2(
-            randint(self.radius, SIZE[0] - self.radius),
-            randint(self.radius, SIZE[1] - self.radius),
-        )
+    def __init__(self, position=None):
+        self.radius = int(gauss(25, 5))
+
+        if position is None:
+            # Default position is random.
+            self.position = pygame.Vector2(
+                randint(self.radius, SIZE[0] - self.radius),
+                randint(self.radius, SIZE[1] - self.radius),
+            )
+        else:
+            self.position = position
 
         # Set a random direction and a speed of around 3.
         self.velocity = pygame.Vector2()
@@ -50,37 +41,25 @@ class Bubble:
         self.color = pygame.Color(0)
         self.color.hsva = uniform(0, 360), 80, 80, 100
 
-        self.collisions = []
-
-    def logic(self, mouse_pos):
-        self.collide_borders()
-        acceleration = self.move_away_from_mouse(mouse_pos)
-        acceleration += self.solve_collisions()
-
-        self.velocity += acceleration
-        self.position += self.velocity
-
     def draw(self, screen: pygame.Surface):
         pygame.draw.circle(screen, self.color, self.position, self.radius)
 
-    def solve_collisions(self):
-        acceleration = pygame.Vector2()
-
-        for collision in self.collisions:
-            pass
-
-        self.collisions.clear()
-        return acceleration
-
-    def move_away_from_mouse(self, mouse_pos):
-        """Return the acceleration to make the bubble move away from the mouse.
-        This acceleration can then just be added to the velocity."""
+    def move_away_from_mouse(self, mouse_pos: pygame.Vector2):
+        """Apply a force on the bubble to move away from the mouse."""
         bubble_to_mouse = mouse_pos - self.position
         distance_to_mouse = bubble_to_mouse.length()
-        if distance_to_mouse > 0:
-            direction = -bubble_to_mouse.normalize()
-            return direction * 10 / max(10, distance_to_mouse)
-        return pygame.Vector2()
+        if 0 < distance_to_mouse < 200:
+            strength = chrange(distance_to_mouse, (0, 200), (1, 0), power=2)
+            self.velocity -= bubble_to_mouse.normalize() * strength
+
+    def move(self):
+        """Move the bubble according to its velocity."""
+        # We first limit the velocity to not get bubbles that go faster than what we can enjoy.
+        if self.velocity.length() > self.MAX_VELOCITY:
+            self.velocity.scale_to_length(self.MAX_VELOCITY)
+
+        self.position += self.velocity
+        debug.vector(self.velocity, self.position, scale=10)
 
     def collide_borders(self):
         # We treat differently the borders, but if you do the ambitious challenge
@@ -103,42 +82,76 @@ class Bubble:
         elif self.position.y + self.radius >= SIZE[1] and self.velocity.y > 0:
             self.velocity.y *= -1
 
-    @classmethod
-    def update_all(cls, bubbles: "List[Bubble]"):
-        for bubble in bubbles:
-            bubble.position += bubble.velocity
-            bubble.collide_borders()
+    def collide(self, other):
+        pass
 
+
+@dataclass
+class Collision:
+    center: pygame.Vector2
+    normal: pygame.Vector2
+    first: "Bubble"
+    second: "Bubble"
+
+
+class World(List[Bubble]):
+    def __init__(self, nb):
+        super().__init__(Bubble() for _ in range(nb))
+
+    def logic(self, mouse_position: pygame.Vector2):
+        for bubble in self:
+            bubble.move()
+            bubble.collide_borders()
+            bubble.move_away_from_mouse(mouse_position)
+
+        # We collect all collisions
         collisions = []
-        for i, b1 in enumerate(bubbles):
-            for b2 in bubbles[i + 1 :]:
-                pass
+        for i, b1 in enumerate(self):
+            for b2 in self[i + 1 :]:
+                collision = b1.collide(b2)
+                if collision:
+                    collisions.append(collision)
+
+        # Then resolve them all at once.
+        # Indeed, if we resolve them at the same time as we find them, we may not get all collisions
+        for collision in collisions:
+            # TODO: Resolve the collision.
+            pass
+
+    def draw(self, screen):
+        for bubble in self:
+            bubble.draw(screen)
 
 
 def mainloop():
     pygame.init()
 
-    bubbles = [Bubble() for _ in range(NB_BUBBLES)]
+    world = World(NB_BUBBLES)
 
-    mouse_position = (0, 0)
+    mouse_position = pygame.Vector2()
 
-    clock = pygame.time.Clock()
+    fps_counter = FpsCounter(60, Bubbles=world)
     while True:
         screen, events = yield
         for event in events:
             if event.type == pygame.QUIT:
                 return
-            if event.type == pygame.MOUSEMOTION:
-                mouse_position = event.pos
+            elif event.type == pygame.MOUSEMOTION:
+                mouse_position.xy = event.pos
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                world.append(Bubble(event.pos))
+            debug.handle_event(event)
+            fps_counter.handle_event(event)
 
-        Bubble.update_all(bubbles)
+        # Handle the collisions
+        world.logic(mouse_position)
+        fps_counter.logic()
 
         # Drawing the screen
         screen.fill(BACKGROUND)
-        for button in bubbles:
-            button.draw(screen)
-
-        clock.tick(60)
+        world.draw(screen)
+        fps_counter.draw(screen)
+        debug.draw(screen)
 
 
 # ---- Recommended: don't modify anything bellow this line ---- #

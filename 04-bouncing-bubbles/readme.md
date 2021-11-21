@@ -17,6 +17,10 @@ There are no provided assets, we only need `pygame.draw.circle` this time!
 The setup can be controlled with the mouse: 
  - Bubbles tend to go away from the mouse.
  - Bubbles spawn when the mouse is clicked.
+And techincal info can be toggled with:
+ - `D` for the debug
+ - `U` for unlimited FPS
+ - `F` to show/hide the FPS
 
 ### Achievements
 
