@@ -3,7 +3,7 @@ class Metadata:
     display_name = "Blaatand29"
     achievements = [
         "Casual",
-        "Ambitious",
+        # "Ambitious", # No double click
     ]
     min_python_version = (3, 6)
-    dependencies = ["numpy"]
+    dependencies = []

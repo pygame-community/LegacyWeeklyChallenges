@@ -34,7 +34,7 @@ class Achievement(pygame.sprite.Sprite):
         path = images
         frames = []
 
-        for file_name in os.listdir(path):
+        for file_name in sorted(os.listdir(path)):
             image = load_image(file_name, scale=3, base=path)
             frames.append(image)
 
