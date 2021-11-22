@@ -121,6 +121,27 @@ class Collision:
     center: pygame.Vector2
     normal: pygame.Vector2
 
+    def resolve(self):
+        """Apply a force on both colliding object to help them move out of collision."""
+
+        # The second part of the Ambitious challenge is to resolve the collisions that we have collected.
+        # (See below in World.logic for how all this is put together).
+
+        # TODO: Resolve the collision.
+        # Resolving a collision, here, means to modify the velocity of the two bubbles
+        # so that they move out of collision. Not necessarly in one frame, but if
+        # they move away from each other for say 2-5 frames, the collision will be resolved.
+
+        # To do so, add a force to the velocity of each bubble to help the two bubbles to separate.
+        # The separating force is perpendicular to the normal, similarly to how bubbles bounce
+        # against a wall: only the part of the velocity perpendicular to the wall is reflected.
+        # Keep in mind that one bubble an have multiple collisions at the same time.
+        # You may need to define extra methods.
+        # If you have troubles handling the mass of the particles, start by assuming they
+        # have a mass of 1, and then upgrade your code to take the mass into account.
+
+        ...
+
 
 # The world is a list of bubbles.
 class World(List[Bubble]):
@@ -147,18 +168,9 @@ class World(List[Bubble]):
                 if collision:
                     collisions.append(collision)
 
-        # And finally we resolve them.
-        # Resolving a collision, here, means to modify the velocity of the bubbles
-        # so that they move out of collision. Not necessarly in one frame, but if
-        # they move away from each other for say 2-5 frames, the collision will be resolved.
+        # And finally we resolve them all at once, so that it doesn't impact the detection of collision.
         for collision in collisions:
-            # TODO: Resolve the collision.
-            # Add a force to the velocity of each bubble to help the two bubbles to separate.
-            # Keep in mind that one bubble an have multiple collisions at the same time.
-            # You may need to define extra methods.
-            # If you have troubles handling the mass of the particles, start by assuming they
-            # have a mass of 1, and then upgrade your code to take the mass into account.
-            ...
+            collision.resolve()
 
     def draw(self, screen):
         for bubble in self:

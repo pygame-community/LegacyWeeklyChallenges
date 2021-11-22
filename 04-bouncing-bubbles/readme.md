@@ -8,7 +8,7 @@ an elegant way.
 
 ### Setup
 
-The setup code in [`base/`](./base) contains a two classes, `Bubble` and `World`,
+The setup code in [`base/`](./base/main.py) contains two classes, `Bubble` and `World`,
 that together simulate a world full of circle. Those circles don't collide against each other,
 and neithers against the side of the screen. Your challenge will be to add glitchless collisions.
 
@@ -26,7 +26,11 @@ And techincal info can be toggled with:
 
 - Casual `+3 CP`: Make the bubbles collide glitchless against the walls.
 - Ambitious `+2 CP`: Make the bubbles collide against each other.
-- Adventurous `+1 CP`: Add moving rectangles that also collide with everything.
+- Adventurous `+1 CP`: Choose and make one of the following:
+  - Moving rectangles that also collide with bubbles and each other.
+  - Bubbles with a smaller world inside them, with other bubbles that bounce
+    inside them (recursively). The small bubbles don't interact with larger bubbles
+    except the one they are in, by giving momentum when colliding its border.
 
 For each challenge, it is required that it is impossible to make a bubble teleport,
 even if it spawns half into another bubble or a wall.
@@ -41,6 +45,11 @@ In any case, remember to always try to make things as reusable as possible,
 who knows, you may need it in a future project!
 
 ### Tips
+
+**Tip 0**: This is a more guided challenge and quite a few details about what you are supposed
+    to do is provided as comments inside the [`main.py`](base/main.py) file.
+    However, feel free to try to find other ways to do so and research how such
+    behaviours can be obtained.
 
 **Tip 1**: If you want to be sure that a bubble never teleports, never set its `x` and `y`
     coordinates directly, modify only its velocity. 
@@ -57,7 +66,6 @@ who knows, you may need it in a future project!
 
 **Tip 4**: If two objects collide, but already have velocities that pushes them in opposite directions,
     don't do anything !
-
 
 Have fun !
 
