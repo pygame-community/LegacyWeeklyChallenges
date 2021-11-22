@@ -16,6 +16,7 @@ The first season started on the 28th of September 2021 and will last about 4 mon
 1. [Fog of War](./01-fog-of-war) - 28 Sep → 10 oct 2021
 2. [Particle System](./02-particle-system) - 11 oct 2021 → 25 oct 2021
 3. [Buttons](./03-buttons) - 28 oct 2021 → 7 nov 2021
+4. **[current]** [Bouncing Bubbles](./04-bouncing-bubbles) - 22 nov 2021 → 5 dec 2021
 
 
 ### Detailed instructions

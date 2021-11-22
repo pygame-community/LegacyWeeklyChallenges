@@ -183,3 +183,14 @@ from .utils import foo
 Where the dot in front of `.utils` signifies that python needs to look inside the
 same directory (here, the `yourname/` directory).
 
+### Legal stuff
+
+By submitting your game, you agree that we add its code to the repository
+and that it can be:
+- used (for instance in the showcase),
+- modified (for instance to work with a future version of the showcase),
+- shared (for instance as a mean to illustrate the capabilities of pygames).
+
+But all those uses must be for the good of the community, and never for any individual.
+This concerns for instance any profits that could be made: they have to be used for the
+benefit of the whole community.
