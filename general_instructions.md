@@ -116,7 +116,7 @@ root
 With your code is in `my_file.py` and you
 want to access `image.png` reliably, you should use:j
 ```python
-image = Path(__file__).parent / "assets" / "image.png"
+image_path = Path(__file__).parent / "assets" / "image.png"
 ```
 
 ### External modules
@@ -126,17 +126,32 @@ However, please try to keep it as the minimum possible.
 Keep in mind also that people may have trouble installing your requirements,
 and then won't be able to play your entry.
 
-In order to use external modules, you need to have a `requirements.txt` file
-at the root of your submission. This file contains the name of the modules
-that you need, one by line but without any version specified.
+In order to use external modules, you need to specify each module in `metadata.py` file
+at the root of your submission, in the `dependencies` class attribute.
+This list should be a list of strings, which are the name of each module as you import it.
+We do not support (yet?) modules with a different name than the name with which you import it.
+Please open an issue on GitHub if you need one.
 
 Users will be prompted to install them when running your entry (without just having the game crash).
+
+### Python version
+
+We aim to have the whole showcase compatible with Python 3.7, however you
+are not required to write code that is compatible with Python 3.7, 
+but if you do so, (for instance using the new `match` keyword or the `:=` operator),
+you need to say so in the `metadata.py`.
+
+To that extent, set the `min_python_version` to the version of python that
+is required to run your code, as a tuple. For instance if your code cannot
+be run with less than Python 3.9, set `min_python_version = (3, 9)`.
+
+Your current python version can be found as a tuple in `sys.version_info`.
 
 ### Submitting your entry
 
 Before the deadline, make sure that your entry is runnable both via the showcase,
 when you run the top level [`main.py`](main.py) and when you run it individually
-from you own `yourname/main.py`.
+from you own `yourname/main.py`. Check also that `metadata.py` is up-to-date!
 
 There are two ways to submit an entry:
 - send a zip of your code in the discord

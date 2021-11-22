@@ -3,7 +3,7 @@ class Metadata:
     display_name = "Baconinvader"
     achievements = [
         "Casual",
-        "Ambitious",
+        # "Ambitious",
         # "Adventurous",
     ]
     min_python_version = (3, 6)

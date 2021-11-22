@@ -1,14 +1,28 @@
 import sys
+import time
 import traceback
+from itertools import accumulate
 from threading import Thread
 from typing import Optional, Callable
 
 import pygame
+import pygame.gfxdraw
 
-from wclib import SIZE
 from wclib.core import *
-from wclib.utils import text
-from wclib.constants import ACCENT, BACKGROUND
+from wclib.utils import *
+from wclib.constants import *
+
+__all__ = [
+    "ImageWidget",
+    "BigButton",
+    "EntryButton",
+    "ChallengeButton",
+    "Widget",
+    "Container",
+    "ScrollableWidget",
+    "IconButton",
+    "EmbeddedApp",
+]
 
 
 class Widget:
@@ -106,15 +120,16 @@ class IconButton(Widget):
 
 
 class BigButton(Widget):
+    """Button to select an entry or challenge."""
+
     NAME_HEIGHT = 32
     SIZE = (SIZE[0] // 5, SIZE[1] // 5)
     TOTAL_SIZE = (SIZE[0], SIZE[1] + NAME_HEIGHT)
 
-    def __init__(self, challenge, entry, callback, position):
+    def __init__(self, entry, title, callback, position):
         super().__init__(position, self.TOTAL_SIZE)
-        # If entry is None, it is a button to select a challenge.
-        self.title = entry or get_challenge_data(challenge).name
-        self.entry = Entry(challenge, entry or "base")
+        self.entry = entry
+        self.title = title
         self.callback = callback
         self.mouse_over = False
 
@@ -155,6 +170,56 @@ class BigButton(Widget):
         self.app.position = self.position
 
 
+class EntryButton(BigButton):
+    def __init__(self, entry: Entry, callback, position):
+        super().__init__(entry, entry.display_name, callback, position)
+
+    def draw(self, screen):
+        super().draw(screen)
+
+        stars = self.stars()
+        r = stars.get_rect(midright=self.rect.topleft + pygame.Vector2(self.SIZE)).move(-4, -6)
+        screen.blit(stars, r)
+
+    def stars(self):
+        all_stars = [
+            star(color)
+            for difficulty, color in DIFFICULY_COLOR.items()
+            if difficulty in self.entry.achievements
+        ]
+
+        if not all_stars:
+            return pygame.Surface((0, 0))
+
+        padding = -10
+        # x positions of each star on the final image
+        xs = list(accumulate((s.get_width() + padding for s in all_stars), initial=0))
+        height = all_stars[0].get_height()  # they all have the same height
+        out = pygame.Surface((xs[-1] - padding, height), pygame.SRCALPHA)
+        for x, s in zip(xs, all_stars):
+            out.blit(s, (x, 0))
+
+        return out
+
+
+class ChallengeButton(BigButton):
+    def __init__(self, challenge, callback, position):
+        self.challenge_data = get_challenge_data(challenge)
+        super().__init__(Entry(challenge, "base"), self.challenge_data.name, callback, position)
+
+    def draw(self, screen):
+        super().draw(screen)
+
+        nb = self.challenge_data.entries_nb - 1
+        t = auto_crop(text(nb, GREY))
+        r = t.get_rect(bottomright=self.rect.bottomright)
+        r.move_ip(-4, -4)
+        r.inflate_ip(8, 8)
+
+        # pygame.gfxdraw.box(screen, r, (255, 255, 255, 10))
+        screen.blit(t, t.get_rect(center=r.center))
+
+
 class EmbeddedApp(Widget):
     def __init__(self, entry: Entry, pos=(0, 0), size=SIZE):
         super().__init__(pos, size)
@@ -168,6 +233,7 @@ class EmbeddedApp(Widget):
         self.scaled_virtual_screen: Optional[pygame.Surface] = None
 
         self.mainloop = None
+        self.exited = False
 
         self.events_storage = []
 
@@ -187,7 +253,8 @@ class EmbeddedApp(Widget):
                 next(self.mainloop)
             self.mainloop.send((self.virtual_screen, events))
         except StopIteration:
-            pass
+            # The app just quitted.
+            self.mainloop = self.app_exited_mainloop()
         except TypeError as e:
             # Yuck!
             if e.args == ("can't send non-None value to a just-started generator",):
@@ -262,6 +329,8 @@ class EmbeddedApp(Widget):
         else:
             screen.blit(self.virtual_screen, self.rect)
 
+    # Different states of the widget.
+
     def install_mainloop(self):
         w, h = SIZE
         install_rect = pygame.Rect(0, 0, 600, 100)
@@ -286,10 +355,7 @@ class EmbeddedApp(Widget):
                     and not installing
                 ):
                     installing = True
-                    install_thread = Thread(
-                        target=install_missing_requirements,
-                        args=(self.challenge, self.entry),
-                    )
+                    install_thread = Thread(target=self.entry.install_missing_dependencies)
                     install_thread.start()
 
             screen.fill("#272822")
@@ -350,6 +416,21 @@ class EmbeddedApp(Widget):
         while True:
             # Do nothing.
             screen, events = yield
+
+    def app_exited_mainloop(self):
+        screen, events = yield
+
+        pygame.gfxdraw.box(screen, screen.get_rect(), OVERLAY)
+        t = text(f"This app exited gracefully.", "#F6EDD4", 40)
+        screen.blit(t, t.get_rect(center=screen.get_rect().center))
+
+        start = time.monotonic()
+        while True:
+            # Do nothing.
+            screen, events = yield
+
+            if time.monotonic() - start > 1:
+                self.exited = True
 
 
 class ScrollableWidget(Container):

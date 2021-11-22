@@ -11,10 +11,10 @@ from typing import Callable
 
 import pygame
 
-from .constants import SIZE, TITLE_FONT, ACCENT, BACKGROUND
+from .constants import *
 from .core import *
 from .utils import text, load_image
-from .widgets import BigButton, EmbeddedApp, Widget, ScrollableWidget, IconButton, ImageWidget
+from .widgets import *
 
 
 class State:
@@ -85,16 +85,17 @@ class App:
 
 class MenuState(State):
     GAPS = 20  # pixels between each button
+    ButtonClass = BigButton
 
     def __init__(self, app: "App", title, buttons):
         self.timer = 0
 
-        t = text(title, 0xEEEEEE00, 82, TITLE_FONT)
+        t = text(title, LIGHT, 82, TITLE_FONT)
         title = ImageWidget(t, t.get_rect(midtop=(SIZE[0] / 2, self.GAPS * 1.5)))
 
         buttons = [
-            BigButton(
-                *button,
+            self.ButtonClass(
+                button,
                 partial(self.button_click, button),
                 self.button_position(i),
             )
@@ -137,18 +138,20 @@ class MenuState(State):
 
 class ChallengeSelectState(MenuState):
     BG_COLOR = 0x151515
+    ButtonClass = ChallengeButton
 
     def __init__(self, app: "App"):
-        super().__init__(app, "Weekly Challenges", [[c, None] for c in get_challenges()])
+        super().__init__(app, "Weekly Challenges", get_challenges())
 
-    def button_click(self, data):
-        challenge, none = data
+    def button_click(self, challenge):
         self.app.states.append(EntrySelectState(self.app, challenge))
 
 
 class EntrySelectState(MenuState):
+    ButtonClass = EntryButton
+
     def __init__(self, app: "App", challenge):
-        buttons = [(entry.challenge, entry.entry) for entry in get_entries(challenge)]
+        buttons = get_entries(challenge)
         super().__init__(app, get_challenge_data(challenge).name, buttons)
         self.challenge = challenge
         self.sorted = True
@@ -158,6 +161,14 @@ class EntrySelectState(MenuState):
         sort_button = self.add(IconButton(r.topleft, r.size, icon, self.toggle_sort))
 
         self.toggle_sort(sort_button)
+
+    def handle_event(self, event):
+        if super().handle_event(event):
+            return True
+
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_l:
+                self.print_score_update_command()
 
     def toggle_sort(self, button: IconButton):
         buttons = [w for w in self.scroll_area if isinstance(w, BigButton)]
@@ -175,9 +186,17 @@ class EntrySelectState(MenuState):
         for i, button in enumerate(buttons):
             button.move_to(self.button_position(i))
 
-    def button_click(self, data):
-        challenge, entry = data
-        self.app.states.append(EntryViewState(self.app, Entry(challenge, entry)))
+    def button_click(self, entry):
+        self.app.states.append(EntryViewState(self.app, entry))
+
+    def print_score_update_command(self):
+        print("pg!events wc update")
+        for entry in get_entries(self.challenge):
+            if entry.entry != "base":
+                points = tuple(
+                    [3 - i for i, diff in enumerate(DIFFICULTIES) if diff in entry.achievements]
+                )
+                print(f"( <@{entry.discord_tag}> {points} )")
 
 
 class EntryViewState(State):
@@ -194,6 +213,8 @@ class EntryViewState(State):
 
     def logic(self):
         self.embedded_app.logic()
+        if self.embedded_app.exited:
+            self.app.states.pop()
 
     def draw(self, screen):
         self.embedded_app.draw(screen)
