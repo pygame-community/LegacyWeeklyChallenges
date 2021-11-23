@@ -15,14 +15,14 @@ __package__ = "04-bouncing-bubbles." + Path(__file__).absolute().parent.name
 from .utils import *
 
 BACKGROUND = 0x0F1012
-NB_BUBBLES = 15
-MAX_RADIUS = 120
+NB_BUBBLES = 10
+MAX_RADIUS = 150
 FRICTION = 0.999
 
 FORCE_STAY_INSIDE_PARENT = True
 
-CORRECTION_FACTORS = [10, 5, 2.5, 1]
-MAX_CHILDREN = [5, 1, 0]
+CORRECTION_FACTORS = [10, 5, 2.5, 1, 0.5]
+MAX_CHILDREN = [5, 3, 2, 1]
 
 
 class Bubble:
@@ -127,6 +127,15 @@ class Bubble:
         for c in self.children:
             c.collide_borders()
 
+    def all_child_collisions(self):
+        for i, c1 in enumerate(self.children):
+            for c2 in self.children[i + 1:]:
+                coll = c1.collide(c2)
+                if coll is not None:
+                    yield coll
+            for sub_collision in c1.all_child_collisions():
+                yield sub_collision
+
     def collide(self, other: "Bubble") -> Optional["Collision"]:
         """Get the collision data if there is a collision with the other Bubble"""
         if 0 < self.xy.distance_to(other.xy) < self.r + other.r:
@@ -184,11 +193,6 @@ class Collision:
         self.second.v_xy += correction2
 
 
-def reflect(v1: pygame.Vector2, v2: pygame.Vector2):
-        k = v1.dot(v2) / v2.dot(v2)
-        return 2*k*v2 - v1
-
-
 def gen_bubble(xy=None, depth=0, max_radius=MAX_RADIUS, parent=None):
     r = randint(1 + max_radius // 3, max_radius)
     n_children = 0 if depth >= len(MAX_CHILDREN) else randint(0, MAX_CHILDREN[depth])
@@ -232,10 +236,12 @@ class World(List[Bubble]):
         # Then we check each pair of bubbles to collect all collisions.
         collisions = []
         for i, b1 in enumerate(self):
-            for b2 in self[i + 1 :]:  # holy N^2 batman
+            for b2 in self[i + 1:]:
                 collision = b1.collide(b2)
-                if collision:
+                if collision is not None:
                     collisions.append(collision)
+            for c in b1.all_child_collisions():
+                collisions.append(c)
 
         # And finally we resolve them all at once, so that it doesn't impact the detection of collision.
         for collision in collisions:
@@ -263,6 +269,10 @@ def mainloop():
                 mouse_position.xy = event.pos
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 world.append(gen_bubble(xy=event.pos))
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_r:
+                    world = World(NB_BUBBLES)  # reset
+
             debug.handle_event(event)
             fps_counter.handle_event(event)
 
