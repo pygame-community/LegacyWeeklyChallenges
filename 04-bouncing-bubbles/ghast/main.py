@@ -15,59 +15,68 @@ __package__ = "04-bouncing-bubbles." + Path(__file__).absolute().parent.name
 from .utils import *
 
 BACKGROUND = 0x0F1012
-NB_BUBBLES = 42
+NB_BUBBLES = 30
+CORRECTION_FACTOR = 10
 
 
 class Bubble:
     MAX_VELOCITY = 7
 
-    def __init__(self, position=None):
-        self.radius = int(gauss(25, 5))
+    def __init__(self, r: float, xy: pygame.Vector2, color=None, parent: 'Bubble' = None):
+        self.r = r
+        self.xy = xy
 
-        if position is None:
-            # Default position is random.
-            self.position = pygame.Vector2(
-                randint(self.radius, SIZE[0] - self.radius),
-                randint(self.radius, SIZE[1] - self.radius),
-            )
-        else:
-            self.position = position
+        self.parent = parent
+        if self.parent is not None:
+            self.parent._add_child(self)
+        self.depth = 0 if self.parent is None else self.parent.depth + 1
 
         # Set a random direction and a speed of around 3.
-        self.velocity = pygame.Vector2()
-        self.velocity.from_polar((gauss(3, 0.5), uniform(0, 360)))
+        self.v_xy = pygame.Vector2()
+        self.v_xy.from_polar((gauss(3, 0.5), uniform(0, 360)))
+        self.v_accum = pygame.Vector2(0, 0)
 
         # Pick a random color with high saturation and value.
-        self.color = pygame.Color(0)
-        self.color.hsva = uniform(0, 360), 80, 80, 100
+        if color is None:
+            self.color = pygame.Color(0)
+            self.color.hsva = uniform(0, 360), 80, 80, 100
+        else:
+            self.color = color
+
+        self.children = []
+
+    def _add_child(self, bubble):
+        self.children.append(bubble)
 
     @property
     def mass(self):
-        return self.radius ** 2
+        return self.r ** 2
 
-    def draw(self, screen: pygame.Surface):
-        pygame.draw.circle(screen, self.color, self.position, self.radius)
+    def draw(self, screen: pygame.Surface, offs=pygame.Vector2(0, 0)):
+        for c in self.children:
+            c.draw(screen, offs=self.xy + offs)
+        pygame.draw.circle(screen, self.color, self.xy + offs, self.r, width=1)
 
     def move_away_from_mouse(self, mouse_pos: pygame.Vector2):
         """Apply a force on the bubble to move away from the mouse."""
-        bubble_to_mouse = mouse_pos - self.position
+        bubble_to_mouse = mouse_pos - self.xy
         distance_to_mouse = bubble_to_mouse.length()
         if 0 < distance_to_mouse < 200:
             strength = chrange(distance_to_mouse, (0, 200), (1, 0), power=2)
-            self.velocity -= bubble_to_mouse.normalize() * strength
+            self.v_xy -= bubble_to_mouse.normalize() * strength
 
     def move(self):
         """Move the bubble according to its velocity."""
         # We first limit the velocity to not get bubbles that go faster than what we can enjoy.
-        if self.velocity.length() > self.MAX_VELOCITY:
-            self.velocity.scale_to_length(self.MAX_VELOCITY)
+        if self.v_xy.length() > self.MAX_VELOCITY:
+            self.v_xy.scale_to_length(self.MAX_VELOCITY)
 
-        self.position += self.velocity
-        debug.vector(self.velocity, self.position, scale=10)
+        self.xy += self.v_xy
+        debug.vector(self.v_xy, self.v_xy, scale=10)
 
     def collide_borders(self):
         # The first challenge is to make the bubbles bounce against the border.
-        # Hover that doesn't mean that a bubble must always be completely inside of the screen:
+        # However that doesn't mean that a bubble must always be completely inside of the screen:
         # If for instance it spawned on the edge, we don't want it to teleport so that it fits the screen,
         # we want everything to be *smooooth*.
         #
@@ -78,19 +87,29 @@ class Bubble:
         # resolve itself naturally in a few frames, that is, if the bubble is already moving
         # away from the wall.
 
-        # TODO: handle collisions for each of the four edges.
+        if self.parent is None:
+            # top-level bubble, bounce off screen borders
+            if self.xy[0] - self.r < 0 and self.v_xy[0] < 0:
+                self.v_xy[0] *= -1
+            elif self.xy[0] + self.r >= SIZE[0] and self.v_xy[0] > 0:
+                self.v_xy[0] *= -1
 
-        if not "self-resolving collision with left wall":
-            self.velocity.x *= -1
-        ...
-
-        # Remove this. It is only a placeholder to keep the bubble inside the screen
-        self.position.x %= SIZE[0]
-        self.position.y %= SIZE[1]
+            if self.xy[1] - self.r < 0 and self.v_xy[1] < 0:
+                self.v_xy[1] *= -1
+            elif self.xy[1] + self.r >= SIZE[1] and self.v_xy[1] > 0:
+                self.v_xy[1] *= -1
+        else:
+            pass  # TODO child-parent collisions
 
     def collide(self, other: "Bubble") -> Optional["Collision"]:
         """Get the collision data if there is a collision with the other Bubble"""
-        return None
+        if 0 < self.xy.distance_to(other.xy) < self.r + other.r:
+            return Collision(first=self,
+                             second=other,
+                             center=(self.xy + other.xy) / 2,
+                             normal=(self.xy - other.xy).rotate(90).normalize())
+        else:
+            return None
 
 
 # The second challenge contains two parts.
@@ -99,7 +118,6 @@ class Bubble:
 # The data for a collision is stored into the Collision class below,
 # and is generated by the Bubble.collide method above.
 # The second part is then to process those collision data, and resolve them.
-
 
 @dataclass
 class Collision:
@@ -124,29 +142,40 @@ class Collision:
     def resolve(self):
         """Apply a force on both colliding object to help them move out of collision."""
 
-        # The second part of the Ambitious challenge is to resolve the collisions that we have collected.
-        # (See below in World.logic for how all this is put together).
+        xy1 = self.first.xy
+        xy2 = self.second.xy
 
-        # TODO: Resolve the collision.
-        # Resolving a collision, here, means to modify the velocity of the two bubbles
-        # so that they move out of collision. Not necessarly in one frame, but if
-        # they move away from each other for say 2-5 frames, the collision will be resolved.
+        overlap = (self.first.r + self.second.r) - xy1.distance_to(xy2)
 
-        # To do so, add a force to the velocity of each bubble to help the two bubbles to separate.
-        # The separating force is perpendicular to the normal, similarly to how bubbles bounce
-        # against a wall: only the part of the velocity perpendicular to the wall is reflected.
-        # Keep in mind that one bubble an have multiple collisions at the same time.
-        # You may need to define extra methods.
-        # If you have troubles handling the mass of the particles, start by assuming they
-        # have a mass of 1, and then upgrade your code to take the mass into account.
+        pcnt_overlap_1 = min(1.0, overlap / self.first.r)
+        correction1 = CORRECTION_FACTOR * pcnt_overlap_1 * (xy1 - xy2).normalize()
+        self.first.v_xy += correction1
 
-        ...
+        pcnt_overlap_2 = min(1.0, overlap / self.second.r)
+        correction2 = CORRECTION_FACTOR * pcnt_overlap_2 * (xy2 - xy1).normalize()
+        self.second.v_xy += correction2
+
+        # momentum = v1 * self.first.mass + v2 * self.second.mass
+        # n = self.normal
+        #
+        # # only care if they're moving towards each other
+        # if v1.dot(xy2 - xy1) > 0:
+        #     v1_new = reflect(v1, n)
+        #     self.first.v_accum += v1_new - v1
+        # if v1.dot(xy1 - xy1) > 0:
+        #     v2_new = reflect(v2, n)
+        #     self.second.v_accum += v2_new - v2
+
+
+def reflect(v1: pygame.Vector2, v2: pygame.Vector2):
+        k = v1.dot(v2) / v2.dot(v2)
+        return 2*k*v2 - v1
 
 
 # The world is a list of bubbles.
 class World(List[Bubble]):
     def __init__(self, nb):
-        super().__init__(Bubble() for _ in range(nb))
+        super().__init__(Bubble(50, pygame.Vector2(300, 200)) for _ in range(nb))
 
     def logic(self, mouse_position: pygame.Vector2):
         """Handles the collision and evolution of all the objects."""
@@ -163,7 +192,7 @@ class World(List[Bubble]):
         # Then we check each pair of bubbles to collect all collisions.
         collisions = []
         for i, b1 in enumerate(self):
-            for b2 in self[i + 1 :]:
+            for b2 in self[i + 1 :]:  # holy N^2 batman
                 collision = b1.collide(b2)
                 if collision:
                     collisions.append(collision)
@@ -193,7 +222,7 @@ def mainloop():
             elif event.type == pygame.MOUSEMOTION:
                 mouse_position.xy = event.pos
             elif event.type == pygame.MOUSEBUTTONDOWN:
-                world.append(Bubble(event.pos))
+                world.append(Bubble(randint(10, 30), event.pos))
             debug.handle_event(event)
             fps_counter.handle_event(event)
 
