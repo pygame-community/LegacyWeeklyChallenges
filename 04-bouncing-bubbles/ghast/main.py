@@ -15,12 +15,18 @@ __package__ = "04-bouncing-bubbles." + Path(__file__).absolute().parent.name
 from .utils import *
 
 BACKGROUND = 0x0F1012
-NB_BUBBLES = 30
-CORRECTION_FACTOR = 10
+NB_BUBBLES = 15
+MAX_RADIUS = 120
+FRICTION = 0.999
+
+FORCE_STAY_INSIDE_PARENT = True
+
+CORRECTION_FACTORS = [10, 5, 2.5, 1]
+MAX_CHILDREN = [5, 1, 0]
 
 
 class Bubble:
-    MAX_VELOCITY = 7
+    MAX_VELOCITY = 5
 
     def __init__(self, r: float, xy: pygame.Vector2, color=None, parent: 'Bubble' = None):
         self.r = r
@@ -32,14 +38,19 @@ class Bubble:
         self.depth = 0 if self.parent is None else self.parent.depth + 1
 
         # Set a random direction and a speed of around 3.
-        self.v_xy = pygame.Vector2()
-        self.v_xy.from_polar((gauss(3, 0.5), uniform(0, 360)))
-        self.v_accum = pygame.Vector2(0, 0)
+        self.v_xy = pygame.Vector2() if parent is None else pygame.Vector2(parent.v_xy)
+
+        motion = pygame.Vector2()
+        motion.from_polar((gauss(3, 0.5), uniform(0, 360)))
+        self.v_xy += motion / (5 * self.depth + 1)
 
         # Pick a random color with high saturation and value.
         if color is None:
-            self.color = pygame.Color(0)
-            self.color.hsva = uniform(0, 360), 80, 80, 100
+            if self.parent is not None:
+                self.color = self.parent.color.lerp((255, 255, 255), max(0, min(1, gauss(0.25, 0.15))))
+            else:
+                self.color = pygame.Color(0)
+                self.color.hsva = uniform(0, 360), 80, 80, 100
         else:
             self.color = color
 
@@ -52,10 +63,19 @@ class Bubble:
     def mass(self):
         return self.r ** 2
 
-    def draw(self, screen: pygame.Surface, offs=pygame.Vector2(0, 0)):
+    def draw(self, screen: pygame.Surface, constrain_inside_circle=None):
+        xy_to_use = pygame.Vector2(self.xy)
+
+        if FORCE_STAY_INSIDE_PARENT and constrain_inside_circle is not None:
+            # trick to force children to stay within parent (while drawing)~
+            c_xy, c_r = constrain_inside_circle
+            extruding = (xy_to_use - c_xy).magnitude() + self.r - c_r
+            if extruding > 0:
+                xy_to_use += extruding * ((c_xy - xy_to_use).normalize())
+
         for c in self.children:
-            c.draw(screen, offs=self.xy + offs)
-        pygame.draw.circle(screen, self.color, self.xy + offs, self.r, width=1)
+            c.draw(screen, constrain_inside_circle=(xy_to_use, self.r))
+        pygame.draw.circle(screen, self.color, xy_to_use, self.r, width=1)
 
     def move_away_from_mouse(self, mouse_pos: pygame.Vector2):
         """Apply a force on the bubble to move away from the mouse."""
@@ -64,6 +84,8 @@ class Bubble:
         if 0 < distance_to_mouse < 200:
             strength = chrange(distance_to_mouse, (0, 200), (1, 0), power=2)
             self.v_xy -= bubble_to_mouse.normalize() * strength
+        for c in self.children:
+            c.move_away_from_mouse(mouse_pos)
 
     def move(self):
         """Move the bubble according to its velocity."""
@@ -74,19 +96,12 @@ class Bubble:
         self.xy += self.v_xy
         debug.vector(self.v_xy, self.v_xy, scale=10)
 
-    def collide_borders(self):
-        # The first challenge is to make the bubbles bounce against the border.
-        # However that doesn't mean that a bubble must always be completely inside of the screen:
-        # If for instance it spawned on the edge, we don't want it to teleport so that it fits the screen,
-        # we want everything to be *smooooth*.
-        #
-        # To be sure it is smooth, a good rule is to never modify self.position directly,
-        # but instead modify self.velocity when needed.
-        #
-        # The second golden principle is to be lazy and not do anything if the collision will
-        # resolve itself naturally in a few frames, that is, if the bubble is already moving
-        # away from the wall.
+        for c in self.children:
+            c.move()
 
+        self.v_xy *= FRICTION
+
+    def collide_borders(self):
         if self.parent is None:
             # top-level bubble, bounce off screen borders
             if self.xy[0] - self.r < 0 and self.v_xy[0] < 0:
@@ -99,7 +114,18 @@ class Bubble:
             elif self.xy[1] + self.r >= SIZE[1] and self.v_xy[1] > 0:
                 self.v_xy[1] *= -1
         else:
-            pass  # TODO child-parent collisions
+            extruding = (self.xy - self.parent.xy).magnitude() + self.r - self.parent.r
+            if extruding > 0:
+                # push child towards parent
+                pcnt_child_extruding = min(1.0, extruding / self.r)
+                self.v_xy += CORRECTION_FACTORS[self.depth] * pcnt_child_extruding * (self.parent.xy - self.xy).normalize()
+
+                # push parent towards child
+                pcnt_parent_extruding = min(1.0, extruding / self.parent.r)
+                self.parent.v_xy += CORRECTION_FACTORS[self.depth] * pcnt_parent_extruding * (self.xy - self.parent.xy).normalize()
+
+        for c in self.children:
+            c.collide_borders()
 
     def collide(self, other: "Bubble") -> Optional["Collision"]:
         """Get the collision data if there is a collision with the other Bubble"""
@@ -141,30 +167,21 @@ class Collision:
 
     def resolve(self):
         """Apply a force on both colliding object to help them move out of collision."""
-
         xy1 = self.first.xy
         xy2 = self.second.xy
+        depth = self.first.depth  # both must have the same depth
 
+        # bit of a hack here to avoid mass calculations - use the overlap distance's ratio to the bubble's radius
+        # to scale the impulse, meaning larger bubbles will tend to get pushed less.
         overlap = (self.first.r + self.second.r) - xy1.distance_to(xy2)
-
         pcnt_overlap_1 = min(1.0, overlap / self.first.r)
-        correction1 = CORRECTION_FACTOR * pcnt_overlap_1 * (xy1 - xy2).normalize()
-        self.first.v_xy += correction1
-
         pcnt_overlap_2 = min(1.0, overlap / self.second.r)
-        correction2 = CORRECTION_FACTOR * pcnt_overlap_2 * (xy2 - xy1).normalize()
-        self.second.v_xy += correction2
 
-        # momentum = v1 * self.first.mass + v2 * self.second.mass
-        # n = self.normal
-        #
-        # # only care if they're moving towards each other
-        # if v1.dot(xy2 - xy1) > 0:
-        #     v1_new = reflect(v1, n)
-        #     self.first.v_accum += v1_new - v1
-        # if v1.dot(xy1 - xy1) > 0:
-        #     v2_new = reflect(v2, n)
-        #     self.second.v_accum += v2_new - v2
+        correction1 = CORRECTION_FACTORS[depth] * pcnt_overlap_1 * (xy1 - xy2).normalize()
+        correction2 = CORRECTION_FACTORS[depth] * pcnt_overlap_2 * (xy2 - xy1).normalize()
+
+        self.first.v_xy += correction1
+        self.second.v_xy += correction2
 
 
 def reflect(v1: pygame.Vector2, v2: pygame.Vector2):
@@ -172,10 +189,33 @@ def reflect(v1: pygame.Vector2, v2: pygame.Vector2):
         return 2*k*v2 - v1
 
 
+def gen_bubble(xy=None, depth=0, max_radius=MAX_RADIUS, parent=None):
+    r = randint(1 + max_radius // 3, max_radius)
+    n_children = 0 if depth >= len(MAX_CHILDREN) else randint(0, MAX_CHILDREN[depth])
+
+    if xy is not None:
+        pass
+    elif parent is None:
+        xy = pygame.Vector2(randint(r, SIZE[0] - r), randint(r, SIZE[1] - r))
+    else:
+        offs = pygame.Vector2(1, 0).rotate(randint(0, 360))
+        offs.scale_to_length(parent.r - r)
+        xy = parent.xy + offs
+
+    res = Bubble(r, xy, parent=parent)
+    if n_children > 0:
+        child_max_radius = int(0.9 * r // (n_children))
+        if child_max_radius >= 15:
+            for _ in range(n_children):
+                gen_bubble(depth=depth + 1, max_radius=child_max_radius, parent=res)
+
+    return res
+
+
 # The world is a list of bubbles.
 class World(List[Bubble]):
     def __init__(self, nb):
-        super().__init__(Bubble(50, pygame.Vector2(300, 200)) for _ in range(nb))
+        super().__init__([gen_bubble() for _ in range(nb)])
 
     def logic(self, mouse_position: pygame.Vector2):
         """Handles the collision and evolution of all the objects."""
@@ -222,7 +262,7 @@ def mainloop():
             elif event.type == pygame.MOUSEMOTION:
                 mouse_position.xy = event.pos
             elif event.type == pygame.MOUSEBUTTONDOWN:
-                world.append(Bubble(randint(10, 30), event.pos))
+                world.append(gen_bubble(xy=event.pos))
             debug.handle_event(event)
             fps_counter.handle_event(event)
 
