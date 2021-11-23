@@ -18,6 +18,7 @@ BACKGROUND = 0x0F1012
 NB_BUBBLES = 10
 MAX_RADIUS = 150
 FRICTION = 0.999
+WALL_CORRECTION_FACTOR = 0.5
 
 FORCE_STAY_INSIDE_PARENT = True
 
@@ -104,15 +105,15 @@ class Bubble:
     def collide_borders(self):
         if self.parent is None:
             # top-level bubble, bounce off screen borders
-            if self.xy[0] - self.r < 0 and self.v_xy[0] < 0:
-                self.v_xy[0] *= -1
-            elif self.xy[0] + self.r >= SIZE[0] and self.v_xy[0] > 0:
-                self.v_xy[0] *= -1
+            if self.xy[0] - self.r < 0:
+                self.v_xy[0] -= (self.xy[0] - self.r) * WALL_CORRECTION_FACTOR
+            elif self.xy[0] + self.r >= SIZE[0]:
+                self.v_xy[0] -= (self.xy[0] + self.r - SIZE[0]) * WALL_CORRECTION_FACTOR
 
-            if self.xy[1] - self.r < 0 and self.v_xy[1] < 0:
-                self.v_xy[1] *= -1
+            if self.xy[1] - self.r < 0:
+                self.v_xy[1] -= (self.xy[1] - self.r) * WALL_CORRECTION_FACTOR
             elif self.xy[1] + self.r >= SIZE[1] and self.v_xy[1] > 0:
-                self.v_xy[1] *= -1
+                self.v_xy[1] -= (self.xy[1] + self.r - SIZE[1]) * WALL_CORRECTION_FACTOR
         else:
             extruding = (self.xy - self.parent.xy).magnitude() + self.r - self.parent.r
             if extruding > 0:
