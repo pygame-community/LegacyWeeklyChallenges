@@ -300,6 +300,14 @@ class World(List[Bubble]):
 
 
 def mainloop():
+    """
+    Controls:
+    [→]: increase FRICTION
+    [←]: decrease FRICTION
+    [↑]: increase HEAT
+    [↓]: decrease HEAT
+    [P]: pause
+    """
     pygame.init()
 
     world = World(NB_BUBBLES)
