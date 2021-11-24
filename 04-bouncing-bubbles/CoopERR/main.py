@@ -6,6 +6,17 @@ from typing import List, Optional
 
 import pygame
 
+try:
+    import wclib
+except ImportError:
+    # wclib may not be in the path because of the architecture
+    # of all the challenges and the fact that there are many
+    # way to run them (through the showcase, or on their own)
+
+    ROOT_FOLDER = Path(__file__).absolute().parent.parent.parent
+    sys.path.append(str(ROOT_FOLDER))
+    import wclib
+
 # This line tells python how to handle the relative imports
 # when you run this file directly. Don't modify this line.
 __package__ = "04-bouncing-bubbles." + Path(__file__).absolute().parent.name
