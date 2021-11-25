@@ -3,6 +3,8 @@ from pathlib import Path
 from random import gauss, uniform, randint
 from typing import List, Optional
 
+import math
+
 import pygame
 import pygame.gfxdraw
 
@@ -19,12 +21,12 @@ NB_BUBBLES = 10
 
 
 class Bubble:
-    MAX_VELOCITY = 5
-    AVERAGE_RECURSIVITY = 2
+    AVERAGE_RECURSIVITY = 1
     RECURSIVITY_RANDOMNESS = 1
-    MAX_RECURSIVITY = 3
-    AVERAGE_RADIUS = 100
+    MAX_RECURSIVITY = 2
+    AVERAGE_RADIUS = 80
     RADIUS_RANDOMNESS = 5
+    BOUNCE_VELOCITY = 0.5
 
     def __init__(
         self,
@@ -34,6 +36,7 @@ class Bubble:
         self.depth = (parent.depth if parent else 0) + 1
         self.parent = parent
         self.radius = abs(int(gauss(self.AVERAGE_RADIUS, self.RADIUS_RANDOMNESS))) + 1
+        self.bounce = 0
         if parent:
             self.radius = abs(
                 int(
@@ -98,7 +101,7 @@ class Bubble:
             screen,
             int(self.absolute_position.x),
             int(self.absolute_position.y),
-            self.radius,
+            int(self.radius + 3*math.sin(self.bounce)) if self.radius + self.bounce > 1 else 1,
             self.color,
         )
         if self.inner:
@@ -124,6 +127,7 @@ class Bubble:
         if paused:
             return
 
+        self.bounce += self.BOUNCE_VELOCITY
         self.position += self.velocity
         debug.vector(self.velocity, self.absolute_position, scale=10)
 
@@ -148,13 +152,13 @@ class Bubble:
             self.velocity.y *= -1
             self.velocity.y -= 1 + World.HEAT
             self.velocity.scale_to_length(self.velocity.length() - World.FRICTION)
-        if self.depth:
+        if self.depth > 1:
             if (
                 self.position.distance_to(pygame.Vector2(self.size[0] / 2))
                 + self.radius
                 > self.size[0] / 2
             ):
-                self.velocity += (pygame.Vector2(self.size)/2 - self.position).normalize()
+                self.velocity += pygame.Vector2(self.size)/2 - self.position
                 self.velocity.scale_to_length(self.velocity.length() + World.HEAT - World.FRICTION)
         if self.inner:
             for bubble in self.inner:
@@ -366,7 +370,7 @@ def mainloop():
         fps_counter.draw(screen)
         if show_parameters:
             color = "#89C4F4"
-            t = text(f"HEAT: {World.HEAT}", color)
+            t = text(f"WALL HEAT: {World.HEAT}", color)
             r = screen.blit(t, t.get_rect(topright=(SIZE[0] - 15, 15)))
             t = text(f"FRICTION: {World.FRICTION}", color)
             r = screen.blit(t, t.get_rect(topright=(SIZE[0] - 15, r.bottom)))
