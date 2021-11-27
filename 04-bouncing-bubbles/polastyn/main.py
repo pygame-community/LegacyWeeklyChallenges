@@ -31,7 +31,7 @@ class Bubble:
                 randint(self.radius, SIZE[1] - self.radius),
             )
         else:
-            self.position = position
+            self.position: pygame.Vector2 = position
 
         # Set a random direction and a speed of around 3.
         self.velocity = pygame.Vector2()
@@ -90,6 +90,19 @@ class Bubble:
 
     def collide(self, other: "Bubble") -> Optional["Collision"]:
         """Get the collision data if there is a collision with the other Bubble"""
+        diff = other.position - self.position
+        diff_len = diff.length()
+
+        if diff_len <= self.radius + other.radius:
+            left_to_right_way = diff / diff_len
+            right_to_left_way = left_to_right_way * -1
+            left_collided_point = self.position + left_to_right_way * self.radius
+            right_collided_point = other.position + right_to_left_way * other.radius
+            center_collision_point = (right_collided_point - left_collided_point) / 2 + left_collided_point
+
+            rotated_way = diff.rotate(90)
+
+            return Collision(self, other, center_collision_point, rotated_way)
         return None
 
 
@@ -163,7 +176,7 @@ class World(List[Bubble]):
         # Then we check each pair of bubbles to collect all collisions.
         collisions = []
         for i, b1 in enumerate(self):
-            for b2 in self[i + 1 :]:
+            for b2 in self[i + 1:]:
                 collision = b1.collide(b2)
                 if collision:
                     collisions.append(collision)
