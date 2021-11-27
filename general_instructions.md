@@ -67,6 +67,58 @@ If you are used to classes, you can also have all your code in a class, for inst
 then you only need a statement like `mainloop = App.run` if the `run()` method is your main loop,
 to have your submission discovered.
 
+### Using your own assets
+
+Since you can only modify your own folder, you can only add your assets there.
+However, when you want to load them, you need to be a bit careful, because your 
+code will be run from different places (at least the showcase and on its own),
+so you need to specify your paths well.
+
+#### With the provided utilities
+
+If you use the utility provided, for instance `load_image()`, you can always
+configure the base path from which they search for the assets. 
+Typically, to load an image stored in your submission folder, you would use
+
+```python
+image = load_image(..., base=SUBMISSION_DIR)
+```
+Where the `...` stand for all the other parametters that I... can't predict!
+If you use a subfolder, for instance called `my_assets`, you could change the loading by
+```python
+image = load_image(..., base=SUBMISSION_DIR / "my_assets")
+```
+
+#### Manually
+
+If you want to do that manually, the best way is to use the 
+[`pathlib`](https://docs.python.org/3/library/pathlib.html#module-pathlib) module,
+which is part of the standard python library, and has a simple interface for dealing with paths.
+
+The first step is to get the path of your current directory, 
+which is
+```python
+from pathlib import Path
+
+current_file = Path(__file__)
+current_directory = Path(__file__).parent
+```
+
+Then you can navigate up in the folder hierarchy by chaining `.parent.parent`..., 
+and to go to a subfolder, you use the division operator `/`, so
+if your structure is like this, 
+```
+root
+├── assets
+│   └── image.png
+└── my_file.py
+```
+With your code is in `my_file.py` and you
+want to access `image.png` reliably, you should use:j
+```python
+image_path = Path(__file__).parent / "assets" / "image.png"
+```
+
 ### External modules
 
 It is possible to use modules others than pygame in your submission.
@@ -74,17 +126,32 @@ However, please try to keep it as the minimum possible.
 Keep in mind also that people may have trouble installing your requirements,
 and then won't be able to play your entry.
 
-In order to use external modules, you need to have a `requirements.txt` file
-at the root of your submission. This file contains the name of the modules
-that you need, one by line but without any version specified.
+In order to use external modules, you need to specify each module in `metadata.py` file
+at the root of your submission, in the `dependencies` class attribute.
+This list should be a list of strings, which are the name of each module as you import it.
+We do not support (yet?) modules with a different name than the name with which you import it.
+Please open an issue on GitHub if you need one.
 
 Users will be prompted to install them when running your entry (without just having the game crash).
+
+### Python version
+
+We aim to have the whole showcase compatible with Python 3.7, however you
+are not required to write code that is compatible with Python 3.7, 
+but if you do so, (for instance using the new `match` keyword or the `:=` operator),
+you need to say so in the `metadata.py`.
+
+To that extent, set the `min_python_version` to the version of python that
+is required to run your code, as a tuple. For instance if your code cannot
+be run with less than Python 3.9, set `min_python_version = (3, 9)`.
+
+Your current python version can be found as a tuple in `sys.version_info`.
 
 ### Submitting your entry
 
 Before the deadline, make sure that your entry is runnable both via the showcase,
 when you run the top level [`main.py`](main.py) and when you run it individually
-from you own `yourname/main.py`.
+from you own `yourname/main.py`. Check also that `metadata.py` is up-to-date!
 
 There are two ways to submit an entry:
 - send a zip of your code in the discord
@@ -115,3 +182,15 @@ from .utils import foo
 ```
 Where the dot in front of `.utils` signifies that python needs to look inside the
 same directory (here, the `yourname/` directory).
+
+### Legal stuff
+
+By submitting your game, you agree that we add its code to the repository
+and that it can be:
+- used (for instance in the showcase),
+- modified (for instance to work with a future version of the showcase),
+- shared (for instance as a mean to illustrate the capabilities of pygames).
+
+But all those uses must be for the good of the community, and never for any individual.
+This concerns for instance any profits that could be made: they have to be used for the
+benefit of the whole community.

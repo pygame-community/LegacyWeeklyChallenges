@@ -24,14 +24,6 @@ __package__ = "02-particle-system." + Path(__file__).parent.name
 
 # ---- Recommended: don't modify anything above this line ---- #
 
-# Metadata about your submission
-__author__ = "andenixa#2251"  # Put yours!
-__achievements__ = [  # Uncomment the ones you've done
-    # "Casual",
-    "Ambitious",
-    # "Adventurous",
-]
-
 # To import the modules in yourname/, you need to use relative imports,
 # otherwise your project will not be compatible with the showcase.
 # noinspection PyPackages
@@ -119,7 +111,8 @@ class AsteroidEx(Asteroid):
         self_xy = self.center - asteroid_rect.center
         bullet_xy = bullet.center - bullet.rotated_sprite.get_rect().center
 
-        overlap = asteroid_mask.overlap(bullet_mask, bullet_xy - self_xy)
+        offset = int(bullet_xy.x - self_xy.x), int(bullet_xy.y - self_xy.y)
+        overlap = asteroid_mask.overlap(bullet_mask, offset)
         if not overlap:
             return
 

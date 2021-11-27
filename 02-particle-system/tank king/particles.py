@@ -107,7 +107,7 @@ class ExhaustParticles(BaseParticle):
         if self.size < 1:
             self.size = 1
             self.alive = False
-        self.sprite = scale(self.sprite, (self.size * 3.3, self.size * 3.3))
+        self.sprite = scale(self.sprite, (int(self.size * 3.3), int(self.size * 3.3)))
         super().update()
 
 
