@@ -101,6 +101,9 @@ class Bubble:
             center_collision_point = (right_collided_point - left_collided_point) / 2 + left_collided_point
 
             rotated_way = diff.rotate(90)
+            rotated_way = rotated_way / rotated_way.length()
+
+            debug.vector(rotated_way * 20, center_collision_point, "blue")
 
             return Collision(self, other, center_collision_point, rotated_way)
         return None
@@ -210,9 +213,17 @@ def mainloop():
             debug.handle_event(event)
             fps_counter.handle_event(event)
 
-        # Handle the collisions
-        world.logic(mouse_position)
-        fps_counter.logic()
+        if pygame.key.get_pressed()[pygame.K_SPACE]:
+            collisions = []
+            for i, b1 in enumerate(world):
+                for b2 in world[i + 1:]:
+                    collision = b1.collide(b2)
+                    if collision:
+                        collisions.append(collision)
+        else:
+            # Handle the collisions
+            world.logic(mouse_position)
+            fps_counter.logic()
 
         # Drawing the screen
         screen.fill(BACKGROUND)
