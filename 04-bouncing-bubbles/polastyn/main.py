@@ -43,6 +43,8 @@ class Bubble:
 
         self.border = pygame.display.get_window_size()
 
+        self._fix_force = 5
+
     @property
     def mass(self):
         return self.radius ** 2
@@ -90,10 +92,21 @@ class Bubble:
         # TODO: Make it smooth and without glitches.
 
         collided = self.how_colliding_border()
-        if collided[0] or collided[1]:
-            self.velocity.x *= -1
-        if collided[2] or collided[3]:
-            self.velocity.y *= -1
+        if collided[0]:
+            change = min(self.velocity.x * 0.25, -self._fix_force)
+            self.velocity.x -= change
+
+        if collided[1]:
+            change = max(self.velocity.x * 0.25, self._fix_force)
+            self.velocity.x -= change
+
+        if collided[2]:
+            change = min(self.velocity.y * 0.25, -self._fix_force)
+            self.velocity.y -= change
+
+        if collided[3]:
+            change = max(self.velocity.y * 0.25, self._fix_force)
+            self.velocity.y -= change
 
     def collide(self, other: "Bubble") -> Optional["Collision"]:
         """Get the collision data if there is a collision with the other Bubble"""
