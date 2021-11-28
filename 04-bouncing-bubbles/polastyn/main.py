@@ -41,6 +41,8 @@ class Bubble:
         self.color = pygame.Color(0)
         self.color.hsva = uniform(0, 360), 80, 80, 100
 
+        self.border = pygame.display.get_window_size()
+
     @property
     def mass(self):
         return self.radius ** 2
@@ -65,6 +67,13 @@ class Bubble:
         self.position += self.velocity
         debug.vector(self.velocity, self.position, scale=10)
 
+    def how_colliding_border(self):
+        left = self.position.x - self.radius <= 0
+        right = self.position.x + self.radius >= self.border[0]
+        top = self.position.y - self.radius <= 0
+        down = self.position.y + self.radius >= self.border[1]
+        return left, right, top, down
+
     def collide_borders(self):
         # The first challenge is to make the bubbles bounce against the border.
         # Hover that doesn't mean that a bubble must always be completely inside of the screen:
@@ -78,15 +87,13 @@ class Bubble:
         # resolve itself naturally in a few frames, that is, if the bubble is already moving
         # away from the wall.
 
-        # TODO: handle collisions for each of the four edges.
+        # TODO: Make it smooth and without glitches.
 
-        if not "self-resolving collision with left wall":
+        collided = self.how_colliding_border()
+        if collided[0] or collided[1]:
             self.velocity.x *= -1
-        ...
-
-        # Remove this. It is only a placeholder to keep the bubble inside the screen
-        self.position.x %= SIZE[0]
-        self.position.y %= SIZE[1]
+        if collided[2] or collided[3]:
+            self.velocity.y *= -1
 
     def collide(self, other: "Bubble") -> Optional["Collision"]:
         """Get the collision data if there is a collision with the other Bubble"""
