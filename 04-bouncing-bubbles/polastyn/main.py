@@ -89,8 +89,6 @@ class Bubble:
         # resolve itself naturally in a few frames, that is, if the bubble is already moving
         # away from the wall.
 
-        # TODO: Make it smooth and without glitches.
-
         collided = self.how_colliding_border()
         if collided[0]:
             change = min(self.velocity.x * 0.25, -self._fix_force)
