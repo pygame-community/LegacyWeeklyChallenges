@@ -10,7 +10,7 @@ class Metadata:
     # All the challenges that you think you have achieved.
     # Uncomment each one that you have done and not only the highest.
     achievements = [
-        # "Casual",
+        "Casual",
         # "Ambitious",
         # "Adventurous",
     ]

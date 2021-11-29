@@ -22,6 +22,14 @@ def mul_vectors(v1: pygame.Vector2, v2: pygame.Vector2):
     return pygame.Vector2(v1.x * v2.x, v1.y * v2.y)
 
 
+def perp_vec(vec: pygame.Vector2):
+    return pygame.Vector2(vec.y, -vec.x)
+
+
+def counter_perp_vec(vec: pygame.Vector2):
+    return pygame.Vector2(-vec.y, vec.x)
+
+
 class Bubble:
     MAX_VELOCITY = 7
 
@@ -122,7 +130,7 @@ class Bubble:
             right_collided_point = other.position + right_to_left_way * other.radius
             center_collision_point = (right_collided_point - left_collided_point) / 2 + left_collided_point
 
-            rotated_way = diff.rotate(90)
+            rotated_way = perp_vec(diff)
             rotated_way = rotated_way / rotated_way.length()
 
             debug.vector(rotated_way * 20, center_collision_point, "blue")
@@ -178,8 +186,12 @@ class Collision:
         # If you have troubles handling the mass of the particles, start by assuming they
         # have a mass of 1, and then upgrade your code to take the mass into account.
 
-        self.first.velocity = mul_vectors(self.first.velocity, self.normal)
-        self.second.velocity = mul_vectors(self.second.velocity, self.normal)
+        v1 = perp_vec(self.normal * self.first.velocity.length())
+        v2 = counter_perp_vec(self.normal * self.second.velocity.length())
+        self.first.velocity += v1
+        self.second.velocity += v2
+        debug.vector(v1, self.first.position, "green")
+        debug.vector(v2, self.second.position, "green")
 
 
 # The world is a list of bubbles.
