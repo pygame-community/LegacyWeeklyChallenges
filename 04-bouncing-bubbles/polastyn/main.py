@@ -173,7 +173,6 @@ class Collision:
         # The second part of the Ambitious challenge is to resolve the collisions that we have collected.
         # (See below in World.logic for how all this is put together).
 
-        # TODO: Resolve the collision.
         # Resolving a collision, here, means to modify the velocity of the two bubbles
         # so that they move out of collision. Not necessarly in one frame, but if
         # they move away from each other for say 2-5 frames, the collision will be resolved.
