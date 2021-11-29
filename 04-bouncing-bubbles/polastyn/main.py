@@ -18,6 +18,10 @@ BACKGROUND = 0x0F1012
 NB_BUBBLES = 42
 
 
+def mul_vectors(v1: pygame.Vector2, v2: pygame.Vector2):
+    return pygame.Vector2(v1.x * v2.x, v1.y * v2.y)
+
+
 class Bubble:
     MAX_VELOCITY = 7
 
@@ -174,7 +178,8 @@ class Collision:
         # If you have troubles handling the mass of the particles, start by assuming they
         # have a mass of 1, and then upgrade your code to take the mass into account.
 
-        ...
+        self.first.velocity = mul_vectors(self.first.velocity, self.normal)
+        self.second.velocity = mul_vectors(self.second.velocity, self.normal)
 
 
 # The world is a list of bubbles.
@@ -242,6 +247,9 @@ def mainloop():
             # Handle the collisions
             world.logic(mouse_position)
             fps_counter.logic()
+
+        if pygame.key.get_pressed()[pygame.K_c]:
+            world.clear()
 
         # Drawing the screen
         screen.fill(BACKGROUND)
