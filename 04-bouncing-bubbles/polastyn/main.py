@@ -31,6 +31,7 @@ def counter_perp_vec(vec: pygame.Vector2):
 
 
 class Bubble:
+    # TODO: add rectangular variant
     MAX_VELOCITY = 7
 
     def __init__(self, position=None):
@@ -52,8 +53,6 @@ class Bubble:
         # Pick a random color with high saturation and value.
         self.color = pygame.Color(0)
         self.color.hsva = uniform(0, 360), 80, 80, 100
-
-        self.border = pygame.display.get_window_size()
 
         self._fix_force = 5
 
@@ -83,9 +82,9 @@ class Bubble:
 
     def how_colliding_border(self):
         left = self.position.x - self.radius <= 0
-        right = self.position.x + self.radius >= self.border[0]
+        right = self.position.x + self.radius >= SIZE[0]
         top = self.position.y - self.radius <= 0
-        down = self.position.y + self.radius >= self.border[1]
+        down = self.position.y + self.radius >= SIZE[1]
         return left, right, top, down
 
     def collide_borders(self):
