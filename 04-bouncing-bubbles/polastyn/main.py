@@ -1,7 +1,9 @@
+from __future__ import annotations
+
 import sys
 from dataclasses import dataclass
 from pathlib import Path
-from random import gauss, uniform, randint
+from random import gauss, uniform, randint, getrandbits
 from typing import List, Optional
 
 import pygame
@@ -34,7 +36,10 @@ class Bubble:
     # TODO: add rectangular variant
     MAX_VELOCITY = 7
 
-    def __init__(self, position=None):
+    def __init__(self, position=None, is_rect: bool | None = None):
+        self.is_rect = is_rect if is_rect is not None else not getrandbits(1)
+        self.rotation = 0
+        self.rotation_speed = 0
         self.radius = int(gauss(25, 5))
 
         if position is None:
@@ -60,8 +65,20 @@ class Bubble:
     def mass(self):
         return self.radius ** 2
 
+    def get_rect_points(self):
+        rec = pygame.Rect(0, 0, self.radius * 2, self.radius * 2)
+        rec.center = 0, 0
+        tl = pygame.Vector2(rec.topleft).rotate(self.rotation) + self.position
+        tr = pygame.Vector2(rec.topright).rotate(self.rotation) + self.position
+        bl = pygame.Vector2(rec.bottomleft).rotate(self.rotation) + self.position
+        br = pygame.Vector2(rec.bottomright).rotate(self.rotation) + self.position
+        return tl, tr, br, bl
+
     def draw(self, screen: pygame.Surface):
-        pygame.draw.circle(screen, self.color, self.position, self.radius)
+        if self.is_rect:
+            pygame.draw.polygon(screen, self.color, self.get_rect_points())
+        else:
+            pygame.draw.circle(screen, self.color, self.position, self.radius)
 
     def move_away_from_mouse(self, mouse_pos: pygame.Vector2):
         """Apply a force on the bubble to move away from the mouse."""
@@ -79,6 +96,8 @@ class Bubble:
 
         self.position += self.velocity
         debug.vector(self.velocity, self.position, scale=10)
+        self.rotation += self.rotation_speed
+        debug.vector(pygame.Vector2(1, 1), self.position, "yellow", self.rotation_speed)
 
     def how_colliding_border(self):
         left = self.position.x - self.radius <= 0
@@ -184,12 +203,10 @@ class Collision:
         # If you have troubles handling the mass of the particles, start by assuming they
         # have a mass of 1, and then upgrade your code to take the mass into account.
 
-        v1 = perp_vec(self.normal * self.first.velocity.length())
-        v2 = counter_perp_vec(self.normal * self.second.velocity.length())
+        v1 = perp_vec(self.normal * self.first.velocity.length()) * self.second.mass
+        v2 = counter_perp_vec(self.normal * self.second.velocity.length()) * self.first.mass
         self.first.velocity += v1
         self.second.velocity += v2
-        debug.vector(v1, self.first.position, "green")
-        debug.vector(v2, self.second.position, "green")
 
 
 # The world is a list of bubbles.
