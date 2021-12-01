@@ -221,16 +221,17 @@ class Collision:
         # If you have troubles handling the mass of the particles, start by assuming they
         # have a mass of 1, and then upgrade your code to take the mass into account.
 
-        v1 = perp_vec(self.normal * self.first.velocity.length()) * self.second.mass
-        v2 = counter_perp_vec(self.normal * self.second.velocity.length()) * self.first.mass
-        self.first.velocity += v1
-        self.second.velocity += v2
-
         if self.first.is_rect:
             self.apply_rotation(0)
 
         if self.second.is_rect:
             self.apply_rotation(1)
+
+        v1 = perp_vec(self.normal * self.first.velocity.length()) * self.second.mass
+        v2 = counter_perp_vec(self.normal * self.second.velocity.length()) * self.first.mass
+        self.first.velocity += v1
+        self.second.velocity += v2
+
 
     # TODO: make this function
     def apply_rotation(self, who: int):
