@@ -61,6 +61,13 @@ class Bubble:
 
         self._fix_force = 5
 
+        self.border_lines = [
+            [pygame.Vector2(0, 0), pygame.Vector2(0, SIZE[1])],  # left
+            [pygame.Vector2(0, 0), pygame.Vector2(SIZE[0], 0)],  # up
+            [pygame.Vector2(SIZE[0], 0), pygame.Vector2(SIZE)],  # right
+            [pygame.Vector2(0, SIZE[1]), pygame.Vector2(SIZE)]   # down
+        ]
+
     @property
     def mass(self):
         return self.radius ** 2
@@ -110,14 +117,25 @@ class Bubble:
         self.position += self.velocity
         debug.vector(self.velocity, self.position, scale=10)
         self.rotation += self.rotation_speed
-        debug.vector(pygame.Vector2(1, 1), self.position, "yellow", self.rotation_speed)
+        debug.vector(pygame.Vector2(1, 0), self.position, "yellow", self.rotation_speed)
 
-    def how_colliding_border(self):
-        left = self.position.x - self.radius <= 0
-        right = self.position.x + self.radius >= SIZE[0]
-        top = self.position.y - self.radius <= 0
-        down = self.position.y + self.radius >= SIZE[1]
-        return left, right, top, down
+    def how_colliding_border(self, mode: int):
+        """
+        :param mode: 0 or 1 (0 circle, 1 rect)
+        :return:
+        """
+        if mode:
+            left = self.collide_rect_line(*self.border_lines[0])
+            top = self.collide_rect_line(*self.border_lines[1])
+            right = self.collide_rect_line(*self.border_lines[2])
+            down = self.collide_rect_line(*self.border_lines[3])
+            return left, right, top, down
+        else:
+            left = self.position.x - self.radius <= 0
+            right = self.position.x + self.radius >= SIZE[0]
+            top = self.position.y - self.radius <= 0
+            down = self.position.y + self.radius >= SIZE[1]
+            return left, right, top, down
 
     # TODO: add support for rectangles
     def collide_borders(self):
@@ -133,7 +151,7 @@ class Bubble:
         # resolve itself naturally in a few frames, that is, if the bubble is already moving
         # away from the wall.
 
-        collided = self.how_colliding_border()
+        collided = self.how_colliding_border(int(self.is_rect))
         if collided[0]:
             change = min(self.velocity.x * 0.25, -self._fix_force)
             self.velocity.x -= change
@@ -172,6 +190,12 @@ class Bubble:
         cross1 += self.position
         cross2 += self.position
         return line_intersect(p1, p2, cross1, cross2)
+
+    def collide_rect_line(self, p1: pygame.Vector2, p2: pygame.Vector2):
+        for el in self.get_lines():
+            if line_intersect(el[0], el[1], p1, p2):
+                return True
+        return False
 
     def collide_circle_rect(self, other: "Bubble") -> Optional["Collision"]:
         collisions = 0
