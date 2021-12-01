@@ -138,10 +138,10 @@ class Bubble:
 
     # TODO: make variants of collisions
     def collide_rect_rect(self, other: "Bubble") -> Optional["Collision"]:
-        pass
+        return self.collide_circle_circle(other)
 
     def collide_circle_rect(self, other: "Bubble") -> Optional["Collision"]:
-        pass
+        return self.collide_circle_circle(other)
 
     def collide_circle_circle(self, other: "Bubble") -> Optional["Collision"]:
         diff = other.position - self.position
@@ -232,10 +232,13 @@ class Collision:
         self.first.velocity += v1
         self.second.velocity += v2
 
-
     # TODO: make this function
     def apply_rotation(self, who: int):
-        pass
+        him = self.second if who else self.first
+        her = self.first if who else self.second
+        central = her.position - him.position
+        angle = her.velocity.angle_to(central)
+        him.rotation_speed += angle
 
 
 # The world is a list of bubbles.
