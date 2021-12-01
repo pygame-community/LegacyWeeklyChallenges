@@ -10,8 +10,8 @@ class Metadata:
     # All the challenges that you think you have achieved.
     # Uncomment each one that you have done and not only the highest.
     achievements = [
-        # "Casual",
-        # "Ambitious",
+        "Casual",
+        "Ambitious",
         # "Adventurous",
     ]
 
@@ -32,5 +32,5 @@ class Metadata:
     # on install and import are also not supported. If you need it,
     # please open an issue on the GitHub.
     dependencies = [
-        # "numpy",
+        "numpy",
     ]
