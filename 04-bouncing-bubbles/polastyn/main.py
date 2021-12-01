@@ -74,6 +74,19 @@ class Bubble:
         br = pygame.Vector2(rec.bottomright).rotate(self.rotation) + self.position
         return tl, tr, br, bl
 
+    def get_lines(self) -> list[list[pygame.Vector2, pygame.Vector2]]:
+        ret = []
+        last = None
+        for el in self.get_rect_points():
+            if last is not None:
+                ret.append([last, el])
+            last = el
+
+        if len(ret) > 1:
+            ret.append([last, ret[0][0]])
+
+        return ret
+
     def draw(self, screen: pygame.Surface):
         if self.is_rect:
             pygame.draw.polygon(screen, self.color, self.get_rect_points())
@@ -106,6 +119,7 @@ class Bubble:
         down = self.position.y + self.radius >= SIZE[1]
         return left, right, top, down
 
+    # TODO: add support for rectangles
     def collide_borders(self):
         # The first challenge is to make the bubbles bounce against the border.
         # Hover that doesn't mean that a bubble must always be completely inside of the screen:
@@ -136,30 +150,63 @@ class Bubble:
             change = max(self.velocity.y * 0.25, self._fix_force)
             self.velocity.y -= change
 
-    # TODO: make variants of collisions
     def collide_rect_rect(self, other: "Bubble") -> Optional["Collision"]:
-        return self.collide_circle_circle(other)
+        collisions = 0
+
+        for l1 in self.get_lines():
+            for l2 in other.get_lines():
+                if line_intersect(l1[0], l1[1], l2[0], l2[1]):
+                    collisions += 1
+
+        if collisions == 0:
+            return None
+
+        return self._generate_collision(other)
+
+    def collide_circle_line(self, p1: pygame.Vector2, p2: pygame.Vector2):
+        angle = p2 - p1
+        angle /= angle.length()
+
+        cross1 = perp_vec(angle) * self.radius
+        cross2 = counter_perp_vec(angle) * self.radius
+        cross1 += self.position
+        cross2 += self.position
+        return line_intersect(p1, p2, cross1, cross2)
 
     def collide_circle_rect(self, other: "Bubble") -> Optional["Collision"]:
-        return self.collide_circle_circle(other)
+        collisions = 0
+
+        for line in other.get_lines():
+            if self.collide_circle_line(line[0], line[1]):
+                collisions += 1
+
+        if collisions == 0:
+            return None
+
+        return self._generate_collision(other)
 
     def collide_circle_circle(self, other: "Bubble") -> Optional["Collision"]:
         diff = other.position - self.position
         diff_len = diff.length()
         if diff_len <= self.radius + other.radius:
-            left_to_right_way = diff / diff_len
-            right_to_left_way = left_to_right_way * -1
-            left_collided_point = self.position + left_to_right_way * self.radius
-            right_collided_point = other.position + right_to_left_way * other.radius
-            center_collision_point = (right_collided_point - left_collided_point) / 2 + left_collided_point
-
-            rotated_way = perp_vec(diff)
-            rotated_way = rotated_way / rotated_way.length()
-
-            debug.vector(rotated_way * 20, center_collision_point, "blue")
-
-            return Collision(self, other, center_collision_point, rotated_way)
+            return self._generate_collision(other)
         return None
+
+    def _generate_collision(self, other: "Bubble") -> Optional["Collision"]:
+        diff = other.position - self.position
+        diff_len = diff.length()
+        left_to_right_way = diff / diff_len
+        right_to_left_way = left_to_right_way * -1
+        left_collided_point = self.position + left_to_right_way * self.radius
+        right_collided_point = other.position + right_to_left_way * other.radius
+        center_collision_point = (right_collided_point - left_collided_point) / 2 + left_collided_point
+
+        rotated_way = perp_vec(diff)
+        rotated_way = rotated_way / rotated_way.length()
+
+        debug.vector(rotated_way * 20, center_collision_point, "blue")
+
+        return Collision(self, other, center_collision_point, rotated_way)
 
     def collide(self, other: "Bubble") -> Optional["Collision"]:
         """Get the collision data if there is a collision with the other Bubble"""
@@ -221,18 +268,14 @@ class Collision:
         # If you have troubles handling the mass of the particles, start by assuming they
         # have a mass of 1, and then upgrade your code to take the mass into account.
 
-        if self.first.is_rect:
-            self.apply_rotation(0)
-
-        if self.second.is_rect:
-            self.apply_rotation(1)
+        self.apply_rotation(0)
+        self.apply_rotation(1)
 
         v1 = perp_vec(self.normal * self.first.velocity.length()) * self.second.mass
         v2 = counter_perp_vec(self.normal * self.second.velocity.length()) * self.first.mass
         self.first.velocity += v1
         self.second.velocity += v2
 
-    # TODO: make this function
     def apply_rotation(self, who: int):
         him = self.second if who else self.first
         her = self.first if who else self.second
