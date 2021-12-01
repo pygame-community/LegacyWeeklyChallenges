@@ -12,7 +12,7 @@ class Metadata:
     achievements = [
         "Casual",
         "Ambitious",
-        # "Adventurous",
+        "Adventurous",
     ]
 
     # The lowest python version on which your code can run.

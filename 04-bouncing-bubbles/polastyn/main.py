@@ -137,7 +137,6 @@ class Bubble:
             down = self.position.y + self.radius >= SIZE[1]
             return left, right, top, down
 
-    # TODO: add support for rectangles
     def collide_borders(self):
         # The first challenge is to make the bubbles bounce against the border.
         # Hover that doesn't mean that a bubble must always be completely inside of the screen:
