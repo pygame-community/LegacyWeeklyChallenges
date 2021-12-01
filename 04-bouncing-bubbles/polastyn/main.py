@@ -15,6 +15,7 @@ __package__ = "04-bouncing-bubbles." + Path(__file__).absolute().parent.name
 # To import the modules in yourname/, you need to use relative imports,
 # otherwise your project will not be compatible with the showcase.
 from .utils import *
+from .line_intersection import do_intersect as line_intersect
 
 BACKGROUND = 0x0F1012
 NB_BUBBLES = 42
@@ -33,7 +34,6 @@ def counter_perp_vec(vec: pygame.Vector2):
 
 
 class Bubble:
-    # TODO: add rectangular variant
     MAX_VELOCITY = 7
 
     def __init__(self, position=None, is_rect: bool | None = None):
@@ -136,11 +136,16 @@ class Bubble:
             change = max(self.velocity.y * 0.25, self._fix_force)
             self.velocity.y -= change
 
-    def collide(self, other: "Bubble") -> Optional["Collision"]:
-        """Get the collision data if there is a collision with the other Bubble"""
+    # TODO: make variants of collisions
+    def collide_rect_rect(self, other: "Bubble") -> Optional["Collision"]:
+        pass
+
+    def collide_circle_rect(self, other: "Bubble") -> Optional["Collision"]:
+        pass
+
+    def collide_circle_circle(self, other: "Bubble") -> Optional["Collision"]:
         diff = other.position - self.position
         diff_len = diff.length()
-
         if diff_len <= self.radius + other.radius:
             left_to_right_way = diff / diff_len
             right_to_left_way = left_to_right_way * -1
@@ -155,6 +160,19 @@ class Bubble:
 
             return Collision(self, other, center_collision_point, rotated_way)
         return None
+
+    def collide(self, other: "Bubble") -> Optional["Collision"]:
+        """Get the collision data if there is a collision with the other Bubble"""
+        if self.is_rect:
+            if other.is_rect:
+                return self.collide_rect_rect(other)
+            else:
+                return self.collide_circle_rect(other)
+        else:
+            if other.is_rect:
+                return other.collide_circle_rect(self)
+            else:
+                return self.collide_circle_circle(other)
 
 
 # The second challenge contains two parts.
@@ -207,6 +225,16 @@ class Collision:
         v2 = counter_perp_vec(self.normal * self.second.velocity.length()) * self.first.mass
         self.first.velocity += v1
         self.second.velocity += v2
+
+        if self.first.is_rect:
+            self.apply_rotation(0)
+
+        if self.second.is_rect:
+            self.apply_rotation(1)
+
+    # TODO: make this function
+    def apply_rotation(self, who: int):
+        pass
 
 
 # The world is a list of bubbles.
