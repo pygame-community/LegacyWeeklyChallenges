@@ -11,7 +11,7 @@ class Metadata:
     # Uncomment each one that you have done and not only the highest.
     achievements = [
         "Casual",
-        # "Ambitious",
+        "Ambitious",
         # "Adventurous",
     ]
 
