@@ -26,7 +26,7 @@ __package__ = "04-bouncing-bubbles." + Path(__file__).absolute().parent.name
 from .utils import *
 
 BACKGROUND = 0x0F1012
-NB_BUBBLES = 42
+NB_BUBBLES = 50
 
 
 class Bubble:
@@ -78,17 +78,32 @@ class Bubble:
 
     def collide_borders(self):
         if self.position[0] < self.radius:
-            self.velocity[0] *= -1
-        if self.position[0] > SIZE[0] - self.radius:
-            self.velocity[0] *= -1
+            if self.velocity[0] < 0:  
+                self.velocity[0] *= -1
+            else: 
+                self.velocity[0] += 0.5
+
         if self.position[1] < self.radius:
-            self.velocity[1] *= -1
+            if self.velocity[1] < 0:  
+                self.velocity[1] *= -1
+            else: 
+                self.velocity[1] += 0.5
+
+        if self.position[0] > SIZE[0] - self.radius:
+            if self.velocity[0] > 0:  
+                self.velocity[0] *= -1
+            else: 
+                self.velocity[0] -= 0.5
+
         if self.position[1] > SIZE[1] - self.radius:
-            self.velocity[1] *= -1
+            if self.velocity[1] > 0:  
+                self.velocity[1] *= -1
+            else: 
+                self.velocity[1] -= 0.5
 
     def collide(self, other: "Bubble") -> Optional["Collision"]:
-        """Get the collision data if there is a collision with the other Bubble"""
-        return None
+        if self.position.distance_to(other.position) < self.radius + other.radius:
+            return Collision(self, other)
 
 
 # The second challenge contains two parts.
@@ -116,30 +131,20 @@ class Collision:
 
     first: "Bubble"
     second: "Bubble"
-    center: pygame.Vector2
-    normal: pygame.Vector2
 
     def resolve(self):
         """Apply a force on both colliding object to help them move out of collision."""
+        normal_vec = self.first.position - self.second.position
+        correction = (normal_vec.length() - (self.first.radius + self.second.radius)) / 2
 
-        # The second part of the Ambitious challenge is to resolve the collisions that we have collected.
-        # (See below in World.logic for how all this is put together).
+        self.first.position += -1 * normal_vec / normal_vec.length() * correction
+        self.second.position +=  normal_vec / normal_vec.length() * correction
 
-        # TODO: Resolve the collision.
-        # Resolving a collision, here, means to modify the velocity of the two bubbles
-        # so that they move out of collision. Not necessarly in one frame, but if
-        # they move away from each other for say 2-5 frames, the collision will be resolved.
+        v1 = pygame.math.Vector2(self.first.velocity).reflect(normal_vec)
+        v2 = pygame.math.Vector2(self.second.velocity).reflect(normal_vec)
 
-        # To do so, add a force to the velocity of each bubble to help the two bubbles to separate.
-        # The separating force is perpendicular to the normal, similarly to how bubbles bounce
-        # against a wall: only the part of the velocity perpendicular to the wall is reflected.
-        # Keep in mind that one bubble an have multiple collisions at the same time.
-        # You may need to define extra methods.
-        # If you have troubles handling the mass of the particles, start by assuming they
-        # have a mass of 1, and then upgrade your code to take the mass into account.
-
-        ...
-
+        self.first.velocity = v1
+        self.second.velocity = v2
 
 # The world is a list of bubbles.
 class World(List[Bubble]):
@@ -158,7 +163,6 @@ class World(List[Bubble]):
             bubble.collide_borders()
             bubble.move_away_from_mouse(mouse_position)
 
-        # Then we check each pair of bubbles to collect all collisions.
         collisions = []
         for i, b1 in enumerate(self):
             for b2 in self[i + 1 :]:
