@@ -77,27 +77,14 @@ class Bubble:
         debug.vector(self.velocity, self.position, scale=10)
 
     def collide_borders(self):
-        # The first challenge is to make the bubbles bounce against the border.
-        # Hover that doesn't mean that a bubble must always be completely inside of the screen:
-        # If for instance it spawned on the edge, we don't want it to teleport so that it fits the screen,
-        # we want everything to be *smooooth*.
-        #
-        # To be sure it is smooth, a good rule is to never modify self.position directly,
-        # but instead modify self.velocity when needed.
-        #
-        # The second golden principle is to be lazy and not do anything if the collision will
-        # resolve itself naturally in a few frames, that is, if the bubble is already moving
-        # away from the wall.
-
-        # TODO: handle collisions for each of the four edges.
-
-        if not "self-resolving collision with left wall":
-            self.velocity.x *= -1
-        ...
-
-        # Remove this. It is only a placeholder to keep the bubble inside the screen
-        self.position.x %= SIZE[0]
-        self.position.y %= SIZE[1]
+        if self.position[0] < self.radius:
+            self.velocity[0] *= -1
+        if self.position[0] > SIZE[0] - self.radius:
+            self.velocity[0] *= -1
+        if self.position[1] < self.radius:
+            self.velocity[1] *= -1
+        if self.position[1] > SIZE[1] - self.radius:
+            self.velocity[1] *= -1
 
     def collide(self, other: "Bubble") -> Optional["Collision"]:
         """Get the collision data if there is a collision with the other Bubble"""

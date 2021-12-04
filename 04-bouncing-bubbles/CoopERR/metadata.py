@@ -2,15 +2,15 @@
 class Metadata:
     # Your discord name and tag, so that we can award you the points
     # in the leaderboards.
-    discord_tag = "MyUsename#0000"
+    discord_tag = "CoopERR#2213"
 
     # The name that should be diplayed below your entry in the menu.
-    display_name = "Base setup"
+    display_name = "CoopERR"
 
     # All the challenges that you think you have achieved.
     # Uncomment each one that you have done and not only the highest.
     achievements = [
-        # "Casual",
+        "Casual",
         # "Ambitious",
         # "Adventurous",
     ]
@@ -22,7 +22,7 @@ class Metadata:
     # In order to have the most people to run your entry, try to
     # keep the minimum version as low as possible (ie. don't use
     # match, := etc...
-    min_python_version = (3, 7)
+    min_python_version = (3, 9)
 
     # A list of all the modules that one should install
     # to run your entry. Each string is what you would pass to
