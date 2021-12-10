@@ -17,16 +17,16 @@ __package__ = "04-bouncing-bubbles." + Path(__file__).absolute().parent.name
 from .utils import *
 
 BACKGROUND = 0x0F1012
-NB_BUBBLES = 10
+NB_BUBBLES = 20
 
 
 class Bubble:
-    AVERAGE_RECURSIVITY = 1
-    RECURSIVITY_RANDOMNESS = 1
-    MAX_RECURSIVITY = 2
-    AVERAGE_RADIUS = 80
+    AVERAGE_RECURSIVITY = 0
+    RECURSIVITY_RANDOMNESS = 0
+    MAX_RECURSIVITY = 0
+    AVERAGE_RADIUS = 50
     RADIUS_RANDOMNESS = 5
-    BOUNCE_VELOCITY = 0.5
+    BOUNCE_VELOCITY = 0.4
 
     def __init__(
         self,
@@ -377,7 +377,7 @@ def mainloop():
             t = text(f"TEMPERATURE: {world.temperature}", color)
             r = screen.blit(t, t.get_rect(topright=(SIZE[0] - 15, r.bottom)))
             t = text(f"INTERACTIONS: {world.interaction}", color)
-            r = screen.blit(t, t.get_rect(topright=(SIZE[0] - 15, r.bottom)))
+            screen.blit(t, t.get_rect(topright=(SIZE[0] - 15, r.bottom)))
         debug.draw(screen)
 
 
