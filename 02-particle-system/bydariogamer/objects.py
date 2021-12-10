@@ -453,8 +453,8 @@ class ParticleManager:
         r, g, b = hsv_to_rgb(uniform(0, 1), 0.8, 0.8)
         return pygame.Color(int(r * 255), int(g * 255), int(b * 255))
 
-    @classmethod
-    def break_surface(cls, surface):
+    @staticmethod
+    def break_surface(surface):
         points = [
             [
                 randint(0, surface.get_width()),
@@ -472,7 +472,7 @@ class ParticleManager:
         x2 = max(all_x)
         y1 = min(all_y)
         y2 = max(all_y)
-        return surface.subsurface(pygame.Rect(x1, y1, x2 - x1, y2 - y1)).convert_alpha()
+        return surface.subsurface(pygame.Rect(x1, y1, x2 - x1, y2 - y1)).copy()
 
     def __init__(self):
         self.particles = set()
@@ -517,7 +517,7 @@ class ParticleManager:
                 BouncingParticle(
                     pos,
                     self.randomize_vel(2 * vel.rotate(i * 360 / n)),
-                    60,
+                    30,
                     self.random_color(),
                     4,
                 )
@@ -543,14 +543,14 @@ class ParticleManager:
                     )
                 )
 
-    def explode(self, asteroid: Asteroid, amount=10):
-        for i in range(amount):
+    def explode(self, asteroid: Asteroid):
+        for i in range(asteroid.level):
             self.particles.add(
                 BrokenSurfaceParticle(
                     pygame.Vector2(asteroid.center),
-                    pygame.Vector2(2 * ParticleManager.gauss()).rotate(i * 360 / amount),
+                    pygame.Vector2(2 * ParticleManager.gauss()).rotate(i * 180 / asteroid.level),
                     200,
-                    asteroid.rotated_sprite.copy()
+                    asteroid.sprite
                 )
             )
 
@@ -621,6 +621,10 @@ class BouncingParticle(FilledParticle):
         super().__init__(pos, vel, life, color, size)
 
     def logic(self):
+        self.age += 1
+        self.pos += self.vel
+        self.vel *= 0.9
+        self.color -= self.decay
         if not (0 < self.pos.x < SIZE[0]):
             self.vel.x *= -1
             if 0 > self.pos.x:
@@ -633,9 +637,6 @@ class BouncingParticle(FilledParticle):
                 self.pos.y = 0
             if SIZE[0] < self.pos.y:
                 self.pos.y = SIZE[1]
-
-        self.age += 1
-        self.pos += self.vel
 
 
 class ShootParticle(Particle):
@@ -654,15 +655,16 @@ class ShootParticle(Particle):
 
 
 class SurfaceParticle:
-    __slots__ = ("pos", "vel", "life", "age", "surface", "rotation")
+    __slots__ = ("pos", "vel", "life", "age", "surface", "rotation", "bounce")
 
-    def __init__(self, pos, vel, life, surface):
+    def __init__(self, pos, vel, life, surface, bounce=False):
         self.pos = pos
         self.vel = vel
         self.life = life
         self.age = 0
         self.surface: pygame.Surface = surface
         self.rotation = 0
+        self.bounce = bounce
 
     @property
     def rotated_sprite(self):
@@ -671,18 +673,27 @@ class SurfaceParticle:
     def logic(self):
         self.age += 1
         self.pos += self.vel
-        if 0 > self.pos.x > SIZE[0]:
-            self.vel.x *= -1
-        if 0 > self.pos.y > SIZE[1]:
-            self.vel.y *= -1
+        self.rotation += 360 / self.life
         self.surface.set_alpha(255 * (1 - self.age / self.life))
+        if self.bounce:
+            if not (0 < self.pos.x < SIZE[0]):
+                self.vel.x *= -1
+                if 0 > self.pos.x:
+                    self.pos.x = 0
+                if SIZE[0] < self.pos.x:
+                    self.pos.x = SIZE[0]
+            if not (0 < self.pos.y < SIZE[1]):
+                self.vel.y *= -1
+                if 0 > self.pos.y:
+                    self.pos.y = 0
+                if SIZE[0] < self.pos.y:
+                    self.pos.y = SIZE[1]
 
     def draw(self, screen):
-        screen.blit(self.rotated_sprite, self.pos)
+        screen.blit(self.rotated_sprite, self.rotated_sprite.get_rect(center=self.pos))
 
 
 class BrokenSurfaceParticle(SurfaceParticle):
-    __slots__ = ("pos", "vel", "life", "age", "surface", "rotation")
 
-    def __init__(self, pos, vel, life, surface):
-        super().__init__(pos, vel, life, ParticleManager.break_surface(surface))
+    def __init__(self, pos, vel, life, surface, bounce=False):
+        super().__init__(pos, vel, life, ParticleManager.break_surface(surface), bounce)
