@@ -14,7 +14,7 @@ from colorsys import hsv_to_rgb
 from functools import lru_cache
 from random import gauss, choices, uniform, randint
 from operator import attrgetter
-
+from typing import Optional
 import pygame
 import pygame.gfxdraw
 import numpy
@@ -80,7 +80,7 @@ class Object:
 
     def __init__(self, pos, vel, sprite: pygame.Surface):
         # The state is set when the object is added to a state.
-        self.state: "State" = None
+        self.state: Optional["State"] = None
         self.center = pygame.Vector2(pos)
         self.vel = pygame.Vector2(vel)
         self.sprite = sprite
@@ -403,8 +403,8 @@ class ParticleManager:
 
     __slots__ = ("particles",)
 
-    LIMITER = 5000
-    MULTIPLIER = 50
+    LIMITER = 0
+    MULTIPLIER = 2
     RANDOMNESS = 1
     TEN_THOUSAND_RANDOMNESS = 10000 * RANDOMNESS
     NORMAL_VALUES: list = numpy.random.default_rng().normal(size=TEN_THOUSAND_RANDOMNESS).tolist()
@@ -452,6 +452,27 @@ class ParticleManager:
     def random_color():
         r, g, b = hsv_to_rgb(uniform(0, 1), 0.8, 0.8)
         return pygame.Color(int(r * 255), int(g * 255), int(b * 255))
+
+    @classmethod
+    def break_surface(cls, surface):
+        points = [
+            [
+                randint(0, surface.get_width()),
+                randint(0, surface.get_height()),
+            ]
+            for _ in range(3)
+        ]
+        surf = pygame.Surface(surface.get_size(), pygame.SRCALPHA)
+        pygame.draw.polygon(surf, (255, 255, 255), points)
+        surface.blit(surf, (0, 0), special_flags=pygame.BLEND_RGBA_MULT)
+        # extracting only the non-transparent portion
+        all_x = [i[0] for i in points]
+        all_y = [i[1] for i in points]
+        x1 = min(all_x)
+        x2 = max(all_x)
+        y1 = min(all_y)
+        y2 = max(all_y)
+        return surface.subsurface(pygame.Rect(x1, y1, x2 - x1, y2 - y1)).convert_alpha()
 
     def __init__(self):
         self.particles = set()
@@ -522,13 +543,15 @@ class ParticleManager:
                     )
                 )
 
-    def explode(self, asteroid: Object):
-        return
-        i = 0
-        for surface in break_surface(asteroid.rotated_sprite, 4):
-            surface.set_colorkey((0, 0, 0))
+    def explode(self, asteroid: Asteroid, amount=10):
+        for i in range(amount):
             self.particles.add(
-                SurfaceParticle(asteroid.center, 2 * asteroid.vel.rotate(i * 16 / 30), 100, surface)
+                BrokenSurfaceParticle(
+                    pygame.Vector2(asteroid.center),
+                    pygame.Vector2(2 * ParticleManager.gauss()).rotate(i * 360 / amount),
+                    200,
+                    asteroid.rotated_sprite.copy()
+                )
             )
 
     def firetrail(self, pos, vel, color=pygame.Color(255, 165, 0)):
@@ -648,11 +671,18 @@ class SurfaceParticle:
     def logic(self):
         self.age += 1
         self.pos += self.vel
-        if 0 < self.pos.x < SIZE[0]:
+        if 0 > self.pos.x > SIZE[0]:
             self.vel.x *= -1
-        if 0 < self.pos.y < SIZE[1]:
+        if 0 > self.pos.y > SIZE[1]:
             self.vel.y *= -1
-        self.surface.set_alpha(255 * self.age // self.life)
+        self.surface.set_alpha(255 * (1 - self.age / self.life))
 
     def draw(self, screen):
         screen.blit(self.rotated_sprite, self.pos)
+
+
+class BrokenSurfaceParticle(SurfaceParticle):
+    __slots__ = ("pos", "vel", "life", "age", "surface", "rotation")
+
+    def __init__(self, pos, vel, life, surface):
+        super().__init__(pos, vel, life, ParticleManager.break_surface(surface))
