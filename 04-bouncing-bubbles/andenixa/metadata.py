@@ -2,16 +2,16 @@
 class Metadata:
     # Your discord name and tag, so that we can award you the points
     # in the leaderboards.
-    discord_tag = "MyUsename#0000"
+    discord_tag = "andenixa#2251"
 
     # The name that should be diplayed below your entry in the menu.
-    display_name = "Base setup"
+    display_name = "andenixa"
 
     # All the challenges that you think you have achieved.
     # Uncomment each one that you have done and not only the highest.
     achievements = [
-        # "Casual",
-        # "Ambitious",
+        "Casual",
+        "Ambitious",
         # "Adventurous",
     ]
 
