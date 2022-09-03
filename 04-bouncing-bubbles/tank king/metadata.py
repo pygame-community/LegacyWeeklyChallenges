@@ -5,7 +5,7 @@ class Metadata:
     discord_tag = "tank king#8395"
 
     # The name that should be diplayed below your entry in the menu.
-    display_name = "Base setup"
+    display_name = "tank king"
 
     # All the challenges that you think you have achieved.
     # Uncomment each one that you have done and not only the highest.
